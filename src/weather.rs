@@ -1405,56 +1405,56 @@ pub fn wind_direction_to_compass(degrees: i32) -> &'static str {
     }
 }
 
-/// Converts WMO weather codes to freedesktop icon names
-/// https://specifications.freedesktop.org/icon-naming-spec/latest/
+/// Converts WMO weather codes to freedesktop icon names.
+/// Uses the -symbolic suffix for proper icon lookup across different icon themes.
 pub fn weathercode_to_icon_name(code: i32, is_night: bool) -> &'static str {
     match code {
         // Clear sky
         0 => {
             if is_night {
-                "weather-clear-night"
+                "weather-clear-night-symbolic"
             } else {
-                "weather-clear"
+                "weather-clear-symbolic"
             }
         }
         // Mainly clear
         1 => {
             if is_night {
-                "weather-few-clouds-night"
+                "weather-few-clouds-night-symbolic"
             } else {
-                "weather-few-clouds"
+                "weather-few-clouds-symbolic"
             }
         }
         // Partly cloudy
         2 => {
             if is_night {
-                "weather-few-clouds-night"
+                "weather-few-clouds-night-symbolic"
             } else {
-                "weather-few-clouds"
+                "weather-few-clouds-symbolic"
             }
         }
         // Overcast
-        3 => "weather-overcast",
+        3 => "weather-overcast-symbolic",
         // Fog and depositing rime fog
-        45 | 48 => "weather-fog",
+        45 | 48 => "weather-fog-symbolic",
         // Drizzle: Light, moderate, and dense intensity
-        51 | 53 | 55 => "weather-showers-scattered",
+        51 | 53 | 55 => "weather-showers-scattered-symbolic",
         // Rain: Slight, moderate and heavy intensity
-        61 | 63 | 65 => "weather-showers",
+        61 | 63 | 65 => "weather-showers-symbolic",
         // Snow fall: Slight, moderate, and heavy intensity
-        71 | 73 | 75 => "weather-snow",
+        71 | 73 | 75 => "weather-snow-symbolic",
         // Snow grains
-        77 => "weather-snow",
+        77 => "weather-snow-symbolic",
         // Rain showers: Slight, moderate, and violent
-        80..=82 => "weather-showers",
+        80..=82 => "weather-showers-symbolic",
         // Snow showers slight and heavy
-        85 | 86 => "weather-snow",
+        85 | 86 => "weather-snow-symbolic",
         // Thunderstorm
-        95 => "weather-storm",
+        95 => "weather-storm-symbolic",
         // Thunderstorm with slight and heavy hail
-        96 | 99 => "weather-storm",
+        96 | 99 => "weather-storm-symbolic",
         // Unknown
-        _ => "weather-severe-alert",
+        _ => "weather-severe-alert-symbolic",
     }
 }
 

@@ -47,6 +47,24 @@
   </categories>
 
   <releases>
+    <release version="1.7.2" date="2025-12-27">
+      <description>
+        <p>Icon fix and maintenance</p>
+        <ul>
+          <li>Fixed weather icons not displaying on Arch and other non-Pop distributions</li>
+          <li>Updated dependencies</li>
+        </ul>
+      </description>
+    </release>
+    <release version="1.7.1" date="2025-12-27">
+      <description>
+        <p>Translations and dependency updates</p>
+        <ul>
+          <li>Added French, German, and US English translations via Weblate</li>
+          <li>Updated all dependencies to latest compatible versions</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.7.0" date="2025-12-20">
       <description>
         <p>Internationalization support</p>
