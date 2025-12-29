@@ -47,12 +47,13 @@
   </categories>
 
   <releases>
-    <release version="1.7.2" date="2025-12-27">
+    <release version="1.7.3" date="2025-12-29">
       <description>
         <p>Icon fix and maintenance</p>
         <ul>
           <li>Fixed weather icons not displaying on Arch and other non-Pop distributions</li>
           <li>Updated dependencies</li>
+          <li>Added German foundation for translations</li>
         </ul>
       </description>
     </release>
