@@ -101,6 +101,10 @@ pub enum Message {
     ToggleTemperatureUnit,
     ToggleAlertsEnabled,
     ToggleShowAqiInPanel,
+    ToggleShowIconInPanel,
+    ToggleShowPressureInPanel,
+    ToggleShowDewPointInPanel,
+    ToggleShowSunriseSunsetInPanel,
     ToggleAutoUnits,
     UpdateCityInput(String),
     SearchCity,
@@ -246,11 +250,34 @@ impl Application for Tempest {
             if has_alerts {
                 row = row.push(alert_icon);
             }
-            row = row.push(icon).push(temperature_text);
+            if self.config.show_icon_in_panel {
+                row = row.push(icon);
+            }
+            row = row.push(temperature_text);
             if self.config.show_aqi_in_panel {
                 if let Some((aqi, _)) = self.current_aqi {
                     row = row.push(text("|").size(12));
                     row = row.push(text(crate::fl!("aqi-label", value = aqi)));
+                }
+            }
+            if let Some(weather) = &self.weather_data {
+                if self.config.show_dew_point_in_panel {
+                    let dew_point_str = self.config.temperature_unit.format(weather.current.dew_point);
+                    row = row.push(text("|").size(12));
+                    row = row.push(text(crate::fl!("panel-dew-point", value = dew_point_str.as_str())));
+                }
+                if self.config.show_pressure_in_panel {
+                    let pressure_str = format!("{:.0}", weather.current.pressure);
+                    row = row.push(text("|").size(12));
+                    row = row.push(text(crate::fl!("panel-pressure", value = pressure_str.as_str())));
+                }
+                if self.config.show_sunrise_sunset_in_panel {
+                    if let Some(first_day) = weather.forecast.first() {
+                        let sunrise = format_time(&first_day.sunrise);
+                        let sunset = format_time(&first_day.sunset);
+                        row = row.push(text("|").size(12));
+                        row = row.push(text(format!("{}/{}", sunrise, sunset)));
+                    }
                 }
             }
             Element::from(row)
@@ -261,10 +288,30 @@ impl Application for Tempest {
             if has_alerts {
                 col = col.push(alert_icon);
             }
-            col = col.push(icon).push(temperature_text);
+            if self.config.show_icon_in_panel {
+                col = col.push(icon);
+            }
+            col = col.push(temperature_text);
             if self.config.show_aqi_in_panel {
                 if let Some((aqi, _)) = self.current_aqi {
                     col = col.push(text(crate::fl!("aqi-label", value = aqi)).size(12));
+                }
+            }
+            if let Some(weather) = &self.weather_data {
+                if self.config.show_dew_point_in_panel {
+                    let dew_point_str = self.config.temperature_unit.format(weather.current.dew_point);
+                    col = col.push(text(crate::fl!("panel-dew-point", value = dew_point_str.as_str())).size(12));
+                }
+                if self.config.show_pressure_in_panel {
+                    let pressure_str = format!("{:.0}", weather.current.pressure);
+                    col = col.push(text(crate::fl!("panel-pressure", value = pressure_str.as_str())).size(12));
+                }
+                if self.config.show_sunrise_sunset_in_panel {
+                    if let Some(first_day) = weather.forecast.first() {
+                        let sunrise = format_time(&first_day.sunrise);
+                        let sunset = format_time(&first_day.sunset);
+                        col = col.push(text(format!("{}/{}", sunrise, sunset)).size(12));
+                    }
                 }
             }
             Element::from(col)
@@ -854,10 +901,43 @@ impl Application for Tempest {
                             .push(text(l_alerts_hint).size(11)),
                     ));
 
+                    // Panel display options
+                    let l_panel_display = crate::fl!("panel-display");
+                    let l_show_icon = crate::fl!("show-icon");
+                    let l_show_pressure = crate::fl!("show-pressure");
+                    let l_show_dew_point = crate::fl!("show-dew-point");
+                    let l_show_sunrise_sunset = crate::fl!("show-sunrise-sunset");
+
+                    column = column.push(text(l_panel_display).size(14));
+
+                    column = column.push(settings::item(
+                        l_show_icon,
+                        widget::toggler(self.config.show_icon_in_panel)
+                            .on_toggle(|_| Message::ToggleShowIconInPanel),
+                    ));
+
                     column = column.push(settings::item(
                         l_show_aqi,
                         widget::toggler(self.config.show_aqi_in_panel)
                             .on_toggle(|_| Message::ToggleShowAqiInPanel),
+                    ));
+
+                    column = column.push(settings::item(
+                        l_show_pressure,
+                        widget::toggler(self.config.show_pressure_in_panel)
+                            .on_toggle(|_| Message::ToggleShowPressureInPanel),
+                    ));
+
+                    column = column.push(settings::item(
+                        l_show_dew_point,
+                        widget::toggler(self.config.show_dew_point_in_panel)
+                            .on_toggle(|_| Message::ToggleShowDewPointInPanel),
+                    ));
+
+                    column = column.push(settings::item(
+                        l_show_sunrise_sunset,
+                        widget::toggler(self.config.show_sunrise_sunset_in_panel)
+                            .on_toggle(|_| Message::ToggleShowSunriseSunsetInPanel),
                     ));
 
                     column = column.push(widget::divider::horizontal::default());
@@ -1042,6 +1122,22 @@ impl Application for Tempest {
             }
             Message::ToggleShowAqiInPanel => {
                 self.config.show_aqi_in_panel = !self.config.show_aqi_in_panel;
+                self.save_config();
+            }
+            Message::ToggleShowIconInPanel => {
+                self.config.show_icon_in_panel = !self.config.show_icon_in_panel;
+                self.save_config();
+            }
+            Message::ToggleShowPressureInPanel => {
+                self.config.show_pressure_in_panel = !self.config.show_pressure_in_panel;
+                self.save_config();
+            }
+            Message::ToggleShowDewPointInPanel => {
+                self.config.show_dew_point_in_panel = !self.config.show_dew_point_in_panel;
+                self.save_config();
+            }
+            Message::ToggleShowSunriseSunsetInPanel => {
+                self.config.show_sunrise_sunset_in_panel = !self.config.show_sunrise_sunset_in_panel;
                 self.save_config();
             }
             Message::ToggleAutoUnits => {

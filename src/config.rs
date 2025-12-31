@@ -128,6 +128,18 @@ pub struct Config {
     /// Show AQI in the panel display.
     #[serde(default = "default_show_aqi_in_panel")]
     pub show_aqi_in_panel: bool,
+    /// Show weather icon in the panel display.
+    #[serde(default = "default_show_icon_in_panel")]
+    pub show_icon_in_panel: bool,
+    /// Show pressure in the panel display.
+    #[serde(default)]
+    pub show_pressure_in_panel: bool,
+    /// Show dew point in the panel display.
+    #[serde(default)]
+    pub show_dew_point_in_panel: bool,
+    /// Show sunrise/sunset times in the panel display.
+    #[serde(default)]
+    pub show_sunrise_sunset_in_panel: bool,
 }
 
 fn default_alerts_enabled() -> bool {
@@ -139,6 +151,10 @@ fn default_auto_units() -> bool {
 }
 
 fn default_show_aqi_in_panel() -> bool {
+    true
+}
+
+fn default_show_icon_in_panel() -> bool {
     true
 }
 
@@ -160,6 +176,10 @@ impl Default for Config {
             alerts_enabled: true,
             auto_units: true,
             show_aqi_in_panel: true,
+            show_icon_in_panel: true,
+            show_pressure_in_panel: false,
+            show_dew_point_in_panel: false,
+            show_sunrise_sunset_in_panel: false,
         }
     }
 }

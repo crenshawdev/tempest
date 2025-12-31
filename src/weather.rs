@@ -32,6 +32,7 @@ pub struct CurrentWeather {
     pub visibility: f32,
     pub pressure: f32,
     pub cloud_cover: i32,
+    pub dew_point: f32,
 }
 
 /// Daily forecast data
@@ -289,6 +290,7 @@ struct CurrentData {
     visibility: f32,
     surface_pressure: f32,
     cloud_cover: i32,
+    dewpoint_2m: f32,
 }
 
 #[derive(Debug, Deserialize)]
@@ -317,7 +319,7 @@ pub async fn fetch_weather(
     windspeed_unit: &str,
 ) -> Result<WeatherData, Box<dyn std::error::Error>> {
     let url = format!(
-        "https://api.open-meteo.com/v1/forecast?latitude={}&longitude={}&current=temperature_2m,weathercode,windspeed_10m,relative_humidity_2m,apparent_temperature,wind_direction_10m,wind_gusts_10m,uv_index,visibility,surface_pressure,cloud_cover&hourly=temperature_2m,weathercode,precipitation_probability&daily=temperature_2m_max,temperature_2m_min,weathercode,sunrise,sunset&temperature_unit={}&windspeed_unit={}&timezone=auto&forecast_days=7&forecast_hours=24",
+        "https://api.open-meteo.com/v1/forecast?latitude={}&longitude={}&current=temperature_2m,weathercode,windspeed_10m,relative_humidity_2m,apparent_temperature,wind_direction_10m,wind_gusts_10m,uv_index,visibility,surface_pressure,cloud_cover,dewpoint_2m&hourly=temperature_2m,weathercode,precipitation_probability&daily=temperature_2m_max,temperature_2m_min,weathercode,sunrise,sunset&temperature_unit={}&windspeed_unit={}&timezone=auto&forecast_days=7&forecast_hours=24",
         latitude, longitude, temperature_unit, windspeed_unit
     );
 
@@ -361,6 +363,7 @@ pub async fn fetch_weather(
             visibility: data.current.visibility,
             pressure: data.current.surface_pressure,
             cloud_cover: data.current.cloud_cover,
+            dew_point: data.current.dewpoint_2m,
         },
         hourly,
         forecast,
