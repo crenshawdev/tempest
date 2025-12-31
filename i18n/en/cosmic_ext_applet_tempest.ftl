@@ -7,6 +7,8 @@ failed-to-load = Failed to load weather
 
 # Panel
 aqi-label = AQI { $value }
+panel-dew-point = Dew { $value }
+panel-pressure = { $value } hPa
 
 # Tabs
 tab-current = Current
@@ -60,8 +62,13 @@ settings-search = Search
 settings-refresh-interval = Refresh Interval
 settings-minutes = minutes
 settings-weather-alerts = Weather Alerts
-settings-alerts-hint = US, Canada & Europe
+settings-alerts-hint = US, Canada, Europe & Australia
 settings-show-aqi = Show AQI in Panel
+panel-display = Panel Display
+show-icon = Show Weather Icon
+show-pressure = Show Pressure
+show-dew-point = Show Dew Point
+show-sunrise-sunset = Show Sunrise/Sunset
 settings-version = Version
 settings-support = Support
 settings-tip-kofi = Tip me on Ko-fi

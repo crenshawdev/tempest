@@ -32,6 +32,7 @@ pub struct CurrentWeather {
     pub visibility: f32,
     pub pressure: f32,
     pub cloud_cover: i32,
+    pub dew_point: f32,
 }
 
 /// Daily forecast data
@@ -75,6 +76,7 @@ pub enum Region {
     Us,
     Europe,
     Canada,
+    Australia,
     Unknown,
 }
 
@@ -289,6 +291,7 @@ struct CurrentData {
     visibility: f32,
     surface_pressure: f32,
     cloud_cover: i32,
+    dewpoint_2m: f32,
 }
 
 #[derive(Debug, Deserialize)]
@@ -317,7 +320,7 @@ pub async fn fetch_weather(
     windspeed_unit: &str,
 ) -> Result<WeatherData, Box<dyn std::error::Error>> {
     let url = format!(
-        "https://api.open-meteo.com/v1/forecast?latitude={}&longitude={}&current=temperature_2m,weathercode,windspeed_10m,relative_humidity_2m,apparent_temperature,wind_direction_10m,wind_gusts_10m,uv_index,visibility,surface_pressure,cloud_cover&hourly=temperature_2m,weathercode,precipitation_probability&daily=temperature_2m_max,temperature_2m_min,weathercode,sunrise,sunset&temperature_unit={}&windspeed_unit={}&timezone=auto&forecast_days=7&forecast_hours=24",
+        "https://api.open-meteo.com/v1/forecast?latitude={}&longitude={}&current=temperature_2m,weathercode,windspeed_10m,relative_humidity_2m,apparent_temperature,wind_direction_10m,wind_gusts_10m,uv_index,visibility,surface_pressure,cloud_cover,dewpoint_2m&hourly=temperature_2m,weathercode,precipitation_probability&daily=temperature_2m_max,temperature_2m_min,weathercode,sunrise,sunset&temperature_unit={}&windspeed_unit={}&timezone=auto&forecast_days=7&forecast_hours=24",
         latitude, longitude, temperature_unit, windspeed_unit
     );
 
@@ -361,6 +364,7 @@ pub async fn fetch_weather(
             visibility: data.current.visibility,
             pressure: data.current.surface_pressure,
             cloud_cover: data.current.cloud_cover,
+            dew_point: data.current.dewpoint_2m,
         },
         hourly,
         forecast,
@@ -415,6 +419,12 @@ fn is_europe_bounds(lat: f64, lon: f64) -> bool {
     (35.0..=71.0).contains(&lat) && (-25.0..=40.0).contains(&lon)
 }
 
+/// Checks if coordinates fall within Australia.
+fn is_australia_bounds(lat: f64, lon: f64) -> bool {
+    // Australia: lat -44 to -10, lon 112 to 154
+    (-44.0..=-10.0).contains(&lat) && (112.0..=154.0).contains(&lon)
+}
+
 /// Detects geographic region from coordinates for alert provider selection.
 pub fn detect_region(lat: f64, lon: f64) -> Region {
     if is_us_bounds(lat, lon) {
@@ -425,6 +435,9 @@ pub fn detect_region(lat: f64, lon: f64) -> Region {
     }
     if is_europe_bounds(lat, lon) {
         return Region::Europe;
+    }
+    if is_australia_bounds(lat, lon) {
+        return Region::Australia;
     }
     Region::Unknown
 }
@@ -1250,6 +1263,146 @@ fn parse_eccc_cap(
     })
 }
 
+/// Encodes latitude/longitude into a geohash string.
+/// Uses base32 encoding with precision of 6 characters (suitable for city-level).
+fn encode_geohash(lat: f64, lon: f64, precision: usize) -> String {
+    const BASE32: &[u8] = b"0123456789bcdefghjkmnpqrstuvwxyz";
+
+    let mut lat_range = (-90.0, 90.0);
+    let mut lon_range = (-180.0, 180.0);
+    let mut hash = String::with_capacity(precision);
+    let mut bits = 0u8;
+    let mut bit_count = 0;
+    let mut is_lon = true;
+
+    while hash.len() < precision {
+        if is_lon {
+            let mid = (lon_range.0 + lon_range.1) / 2.0;
+            if lon >= mid {
+                bits = (bits << 1) | 1;
+                lon_range.0 = mid;
+            } else {
+                bits <<= 1;
+                lon_range.1 = mid;
+            }
+        } else {
+            let mid = (lat_range.0 + lat_range.1) / 2.0;
+            if lat >= mid {
+                bits = (bits << 1) | 1;
+                lat_range.0 = mid;
+            } else {
+                bits <<= 1;
+                lat_range.1 = mid;
+            }
+        }
+        is_lon = !is_lon;
+        bit_count += 1;
+
+        if bit_count == 5 {
+            hash.push(BASE32[bits as usize] as char);
+            bits = 0;
+            bit_count = 0;
+        }
+    }
+    hash
+}
+
+/// BOM API response wrapper
+#[derive(Debug, Deserialize)]
+struct BomWarningsResponse {
+    data: Vec<BomWarning>,
+}
+
+/// BOM API warning structure
+#[derive(Debug, Deserialize)]
+struct BomWarning {
+    id: String,
+    #[serde(rename = "type")]
+    warning_type: Option<String>,
+    short_title: Option<String>,
+    warning_group_type: Option<String>,
+    phase: Option<String>,
+    issue_time: Option<String>,
+    expiry_time: Option<String>,
+}
+
+/// Fetches weather alerts from Australian Bureau of Meteorology.
+async fn fetch_bom_alerts(
+    latitude: f64,
+    longitude: f64,
+) -> Result<Vec<Alert>, Box<dyn std::error::Error + Send + Sync>> {
+    let geohash = encode_geohash(latitude, longitude, 6);
+    let url = format!(
+        "https://api.weather.bom.gov.au/v1/locations/{}/warnings",
+        geohash
+    );
+
+    let response = http_client().get(&url).send().await?;
+
+    if !response.status().is_success() {
+        return Ok(vec![]);
+    }
+
+    let response_body: BomWarningsResponse = response.json().await?;
+    let now = Utc::now();
+    let warnings = response_body.data;
+
+    let alerts = warnings
+        .into_iter()
+        .filter(|w| {
+            // Filter out cancelled warnings
+            w.phase.as_deref() != Some("cancelled")
+        })
+        .filter_map(|w| {
+            let severity = match w.warning_group_type.as_deref() {
+                Some("minor") => AlertSeverity::Minor,
+                Some("moderate") => AlertSeverity::Moderate,
+                Some("major") | Some("severe") => AlertSeverity::Severe,
+                Some("extreme") => AlertSeverity::Extreme,
+                _ => AlertSeverity::Unknown,
+            };
+
+            let sent = w.issue_time
+                .as_ref()
+                .and_then(|t| DateTime::parse_from_rfc3339(t).ok())
+                .map(|dt| dt.with_timezone(&Utc))
+                .unwrap_or(now);
+
+            let expires = w.expiry_time
+                .as_ref()
+                .and_then(|t| DateTime::parse_from_rfc3339(t).ok())
+                .map(|dt| dt.with_timezone(&Utc))
+                .unwrap_or(now + chrono::Duration::hours(24));
+
+            // Skip expired warnings
+            if expires < now {
+                return None;
+            }
+
+            let headline = w.short_title.clone().unwrap_or_else(|| "Weather Warning".to_string());
+            let event = w.warning_type
+                .as_ref()
+                .map(|t| t.replace('_', " "))
+                .unwrap_or_else(|| headline.clone());
+
+            Some(Alert {
+                id: w.id.clone(),
+                event,
+                severity,
+                urgency: "Expected".to_string(),
+                headline,
+                description: String::new(),
+                instruction: None,
+                area_desc: "Australia".to_string(),
+                sent,
+                expires,
+            })
+        })
+        .collect();
+
+    Ok(alerts)
+}
+
 /// Fetches active weather alerts based on location.
 /// Dispatches to appropriate regional API based on detected region.
 pub async fn fetch_alerts(
@@ -1265,6 +1418,7 @@ pub async fn fetch_alerts(
             fetch_meteoalarm_alerts(latitude, longitude, &country).await
         }
         Region::Canada => fetch_eccc_alerts(latitude, longitude).await,
+        Region::Australia => fetch_bom_alerts(latitude, longitude).await,
         Region::Unknown => Ok(vec![]),
     }
 }

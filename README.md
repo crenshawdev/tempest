@@ -10,21 +10,17 @@ A weather applet for COSMIC Desktop with automatic location detection.
 
 *Note: Hourly and Alerts tabs not shown above.*
 
-## Roadmap
-   
-   See planned features and progress on the [Project Board](https://github.com/users/VintageTechie/projects/1)
-
 ## Features
 
 - Real-time weather data from Open-Meteo API (no API key required)
-- Current temperature and AQI displayed in panel
+- Customizable panel display (temperature, weather icon, AQI, pressure, dew point, sunrise/sunset)
 - Detailed popup with tabbed interface:
   - Current conditions (temperature, feels-like, humidity)
   - Wind information (speed, direction, gusts)
   - UV index, cloud cover, visibility, pressure
   - Sunrise and sunset times
   - **Air Quality tab**: AQI (US/EU standards), PM2.5, PM10, Ozone, NO2, CO levels
-  - **Alerts tab**: Weather alerts from NWS (US), ECCC (Canada), MeteoAlarm (EU)
+  - **Alerts tab**: Weather alerts from NWS (US), ECCC (Canada), MeteoAlarm (EU), BOM (Australia)
   - **Hourly tab**: Next 12 hours forecast with precipitation probability
   - **7-Day tab**: Weekly forecast with high/low temperatures
   - **Settings tab**: All configuration options
@@ -43,7 +39,7 @@ A weather applet for COSMIC Desktop with automatic location detection.
 Clone the repository:
 
 ```bash
-git clone https://github.com/VintageTechie/cosmic-ext-applet-tempest
+git clone https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest
 cd cosmic-ext-applet-tempest
 ```
 
@@ -71,9 +67,9 @@ Click the applet to open the popup and navigate to the Settings tab where you ca
 - Toggle measurement system (Imperial/Metric)
 - Set refresh interval (1-1440 minutes)
 - Enable or disable weather alerts
-- Toggle AQI display in panel
+- Customize panel display (icon, AQI, pressure, dew point, sunrise/sunset)
 
-Settings are automatically saved and persist across sessions. The applet defaults to New York City coordinates (40.7128, -74.0060) if no location is detected.
+Settings are automatically saved and persist across sessions. The applet defaults to automatic location detection; New York City is used as a fallback if detection fails.
 
 ## Translations
 
