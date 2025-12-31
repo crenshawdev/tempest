@@ -16,7 +16,7 @@
     <ul>
       <li>Real-time weather data from Open-Meteo API (no API key required)</li>
       <li>Automatic location detection via IP geolocation</li>
-      <li>Current temperature and AQI displayed in panel</li>
+      <li>Customizable panel display (temperature, icon, AQI, pressure, dew point, sunrise/sunset)</li>
       <li>Tabbed popup interface with weather, air quality, alerts, forecasts, and settings</li>
       <li>Current conditions including temperature, feels-like, and humidity</li>
       <li>Wind information with speed, direction compass, and gusts</li>
@@ -24,7 +24,7 @@
       <li>Sunrise and sunset times with timezone support</li>
       <li>Air quality data with PM2.5, PM10, ozone, NO2, and CO readings</li>
       <li>Auto-detects US or European AQI standard based on location</li>
-      <li>Weather alerts for US (NWS), Canadian (ECCC), and European (MeteoAlarm) locations</li>
+      <li>Weather alerts for US (NWS), Canada (ECCC), Europe (MeteoAlarm), and Australia (BOM)</li>
       <li>Hourly forecast for next 12 hours</li>
       <li>7-day forecast with high/low temperatures</li>
       <li>Auto-select temperature and measurement units based on location</li>
@@ -34,8 +34,8 @@
       <li>Persistent configuration</li>
     </ul>
   </description>
-  <url type="homepage">https://github.com/VintageTechie/cosmic-ext-applet-tempest</url>
-  <url type="bugtracker">https://github.com/VintageTechie/cosmic-ext-applet-tempest/issues</url>
+  <url type="homepage">https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest</url>
+  <url type="bugtracker">https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/issues</url>
   <url type="donation">https://ko-fi.com/vintagetechie</url>
   <developer_name>VintageTechie</developer_name>
   <update_contact>john@vintagetechie.com</update_contact>
@@ -47,6 +47,16 @@
   </categories>
 
   <releases>
+    <release version="1.8.0" date="2025-12-31">
+      <description>
+        <p>Panel customization and Australian weather alerts</p>
+        <ul>
+          <li>Customizable panel display with toggles for weather icon, AQI, pressure, dew point, and sunrise/sunset</li>
+          <li>Weather alerts for Australia via Bureau of Meteorology API</li>
+          <li>Repository migrated to Codeberg</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.7.3" date="2025-12-29">
       <description>
         <p>Icon fix and maintenance</p>
@@ -202,27 +212,27 @@
   <screenshots>
     <screenshot type="default">
       <caption>Current weather conditions</caption>
-      <image>https://raw.githubusercontent.com/VintageTechie/cosmic-ext-applet-tempest/main/screenshots/tempest-main.png</image>
+      <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-main.png</image>
     </screenshot>
     <screenshot>
       <caption>Hourly forecast</caption>
-      <image>https://raw.githubusercontent.com/VintageTechie/cosmic-ext-applet-tempest/main/screenshots/tempest-hourly.png</image>
+      <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-hourly.png</image>
     </screenshot>
     <screenshot>
       <caption>7-day weather forecast</caption>
-      <image>https://raw.githubusercontent.com/VintageTechie/cosmic-ext-applet-tempest/main/screenshots/tempest-7day.png</image>
+      <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-7day.png</image>
     </screenshot>
     <screenshot>
       <caption>Air quality information</caption>
-      <image>https://raw.githubusercontent.com/VintageTechie/cosmic-ext-applet-tempest/main/screenshots/tempest-aiq.png</image>
+      <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-aiq.png</image>
     </screenshot>
     <screenshot>
       <caption>Weather alerts</caption>
-      <image>https://raw.githubusercontent.com/VintageTechie/cosmic-ext-applet-tempest/main/screenshots/tempest-alerts.png</image>
+      <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-alerts.png</image>
     </screenshot>
     <screenshot>
       <caption>Settings and configuration</caption>
-      <image>https://raw.githubusercontent.com/VintageTechie/cosmic-ext-applet-tempest/main/screenshots/tempest-settings.png</image>
+      <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-settings.png</image>
     </screenshot>
   </screenshots>
 
