@@ -1,12 +1,13 @@
 [package]
 name = "cosmic-ext-applet-tempest"
-version = "1.8.0"
+version = "1.8.1"
 edition = "2021"
 authors = ["VintageTechie (John Crenshaw) <john@vintagetechie.com>"]
 license = "GPL-3.0-only"
 description = "Weather applet for COSMIC Desktop with automatic location detection"
 
 [dependencies]
+anyhow = "1.0"
 async-stream = "0.3"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
+use anyhow::{anyhow, Result};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::sync::OnceLock;
@@ -8,14 +9,17 @@ const USER_AGENT: &str =
     "(cosmic-ext-applet-tempest, https://github.com/VintageTechie/cosmic-ext-applet-tempest)";
 
 /// Shared HTTP client for connection pooling and consistent headers.
-fn http_client() -> &'static reqwest::Client {
-    static CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
-    CLIENT.get_or_init(|| {
-        reqwest::Client::builder()
-            .user_agent(USER_AGENT)
-            .build()
-            .expect("failed to build HTTP client")
-    })
+fn http_client() -> Result<&'static reqwest::Client> {
+    static CLIENT: OnceLock<std::result::Result<reqwest::Client, String>> = OnceLock::new();
+    CLIENT
+        .get_or_init(|| {
+            reqwest::Client::builder()
+                .user_agent(USER_AGENT)
+                .build()
+                .map_err(|e| e.to_string())
+        })
+        .as_ref()
+        .map_err(|e| anyhow!("failed to build HTTP client: {}", e))
 }
 
 /// Current weather conditions
@@ -117,19 +121,13 @@ impl AlertSeverity {
 }
 
 /// Weather alert from NWS or other sources.
-/// Some fields are included for potential future UI enhancements.
 #[derive(Debug, Clone)]
-#[allow(dead_code)]
 pub struct Alert {
     pub id: String,
     pub event: String,
     pub severity: AlertSeverity,
-    pub urgency: String,
     pub headline: String,
     pub description: String,
-    pub instruction: Option<String>,
-    pub area_desc: String,
-    pub sent: DateTime<Utc>,
     pub expires: DateTime<Utc>,
 }
 
@@ -150,11 +148,8 @@ struct NwsAlertProperties {
     id: String,
     event: String,
     severity: Option<String>,
-    urgency: Option<String>,
     headline: Option<String>,
     description: Option<String>,
-    instruction: Option<String>,
-    area_desc: String,
     sent: String,
     expires: Option<String>,
 }
@@ -168,7 +163,6 @@ struct MeteoAlarmFeed {
 
 /// Single alert entry from MeteoAlarm Atom feed
 #[derive(Debug, Deserialize)]
-#[allow(dead_code)]
 struct MeteoAlarmEntry {
     id: String,
     title: Option<String>,
@@ -178,27 +172,17 @@ struct MeteoAlarmEntry {
     cap_event: Option<String>,
     #[serde(rename = "severity")]
     cap_severity: Option<String>,
-    #[serde(rename = "urgency")]
-    cap_urgency: Option<String>,
-    #[serde(rename = "areaDesc")]
-    cap_area_desc: Option<String>,
     #[serde(rename = "sent")]
     cap_sent: Option<String>,
     #[serde(rename = "expires")]
     cap_expires: Option<String>,
-    #[serde(rename = "effective")]
-    cap_effective: Option<String>,
-    /// Geocode containing EMMA_ID for region filtering
     #[serde(rename = "geocode")]
     cap_geocode: Option<MeteoAlarmGeocode>,
 }
 
 /// Geocode element containing EMMA_ID area identifier.
 #[derive(Debug, Deserialize)]
-#[allow(dead_code)]
 struct MeteoAlarmGeocode {
-    #[serde(rename = "valueName")]
-    value_name: Option<String>,
     value: Option<String>,
 }
 
@@ -216,26 +200,19 @@ struct EcccCapAlert {
 
 /// Info block from ECCC CAP alert (one per language)
 #[derive(Debug, Deserialize)]
-#[allow(dead_code)]
 struct EcccCapInfo {
     language: Option<String>,
-    category: Option<String>,
     event: Option<String>,
-    urgency: Option<String>,
     severity: Option<String>,
-    certainty: Option<String>,
-    effective: Option<String>,
     expires: Option<String>,
     headline: Option<String>,
     description: Option<String>,
-    instruction: Option<String>,
     #[serde(rename = "area", default)]
     areas: Vec<EcccCapArea>,
 }
 
 /// Area element from ECCC CAP alert
 #[derive(Debug, Deserialize)]
-#[allow(dead_code)]
 struct EcccCapArea {
     #[serde(rename = "areaDesc")]
     area_desc: Option<String>,
@@ -249,18 +226,12 @@ struct NominatimResponse {
 }
 
 /// Address details from Nominatim.
-/// Some fields reserved for future use with other European regions.
 #[derive(Debug, Deserialize)]
-#[allow(dead_code)]
 struct NominatimAddress {
     city: Option<String>,
     town: Option<String>,
-    village: Option<String>,
-    municipality: Option<String>,
     county: Option<String>,
     state: Option<String>,
-    #[serde(rename = "ISO3166-2-lvl4")]
-    iso_state: Option<String>,
 }
 
 /// MeteoAlarm codenames mapping (EMMA_ID -> region name)
@@ -312,19 +283,19 @@ struct DailyData {
     sunset: Vec<String>,
 }
 
-/// Fetches weather data from Open-Meteo API
+/// Fetches weather data from Open-Meteo API.
 pub async fn fetch_weather(
     latitude: f64,
     longitude: f64,
     temperature_unit: &str,
     windspeed_unit: &str,
-) -> Result<WeatherData, Box<dyn std::error::Error>> {
+) -> Result<WeatherData> {
     let url = format!(
         "https://api.open-meteo.com/v1/forecast?latitude={}&longitude={}&current=temperature_2m,weathercode,windspeed_10m,relative_humidity_2m,apparent_temperature,wind_direction_10m,wind_gusts_10m,uv_index,visibility,surface_pressure,cloud_cover,dewpoint_2m&hourly=temperature_2m,weathercode,precipitation_probability&daily=temperature_2m_max,temperature_2m_min,weathercode,sunrise,sunset&temperature_unit={}&windspeed_unit={}&timezone=auto&forecast_days=7&forecast_hours=24",
         latitude, longitude, temperature_unit, windspeed_unit
     );
 
-    let response = http_client().get(&url).send().await?;
+    let response = http_client()?.get(&url).send().await?;
     let data: OpenMeteoResponse = response.json().await?;
 
     // Process hourly forecast (limit to 12 hours)
@@ -442,17 +413,14 @@ pub fn detect_region(lat: f64, lon: f64) -> Region {
     Region::Unknown
 }
 
-/// Fetches air quality data from Open-Meteo Air Quality API
-pub async fn fetch_air_quality(
-    latitude: f64,
-    longitude: f64,
-) -> Result<AirQualityData, Box<dyn std::error::Error + Send + Sync>> {
+/// Fetches air quality data from Open-Meteo Air Quality API.
+pub async fn fetch_air_quality(latitude: f64, longitude: f64) -> Result<AirQualityData> {
     let url = format!(
         "https://air-quality-api.open-meteo.com/v1/air-quality?latitude={}&longitude={}&current=us_aqi,european_aqi,pm2_5,pm10,ozone,nitrogen_dioxide,carbon_monoxide&timezone=auto",
         latitude, longitude
     );
 
-    let response = http_client().get(&url).send().await?;
+    let response = http_client()?.get(&url).send().await?;
     let data: AirQualityResponse = response.json().await?;
 
     let (aqi, standard) = match detect_region(latitude, longitude) {
@@ -545,16 +513,14 @@ impl LocationResult {
     }
 }
 
-/// Searches for a location by city name using Open-Meteo Geocoding API
-pub async fn search_city(
-    city_name: &str,
-) -> Result<Vec<LocationResult>, Box<dyn std::error::Error>> {
+/// Searches for a location by city name using Open-Meteo Geocoding API.
+pub async fn search_city(city_name: &str) -> Result<Vec<LocationResult>> {
     let url = format!(
         "https://geocoding-api.open-meteo.com/v1/search?name={}&count=10&language=en&format=json",
         urlencoding::encode(city_name)
     );
 
-    let response = http_client().get(&url).send().await?;
+    let response = http_client()?.get(&url).send().await?;
     let data: GeocodingResponse = response.json().await?;
 
     if let Some(results) = data.results {
@@ -569,15 +535,15 @@ pub async fn search_city(
         }
     }
 
-    Err(format!("No results found for '{}'", city_name).into())
+    anyhow::bail!("no results found for '{}'", city_name)
 }
 
 /// Detects user location automatically using IP-based geolocation.
 /// Returns (latitude, longitude, display_name, country).
-pub async fn detect_location() -> Result<(f64, f64, String, String), Box<dyn std::error::Error>> {
+pub async fn detect_location() -> Result<(f64, f64, String, String)> {
     let url = "http://ip-api.com/json/?fields=status,lat,lon,city,regionName,country";
 
-    let response = http_client().get(url).send().await?;
+    let response = http_client()?.get(url).send().await?;
     let data: IpApiResponse = response.json().await?;
 
     if data.status == "success" {
@@ -598,7 +564,7 @@ pub async fn detect_location() -> Result<(f64, f64, String, String), Box<dyn std
         }
     }
 
-    Err("Failed to detect location from IP address".into())
+    anyhow::bail!("failed to detect location from IP address")
 }
 
 /// Returns true if the country uses imperial units (Fahrenheit, mph, miles).
@@ -653,17 +619,14 @@ fn get_meteoalarm_info(country: &str) -> Option<(&'static str, &'static str)> {
 }
 
 /// Detects country from coordinates using reverse geocoding.
-async fn detect_country_from_coords(
-    latitude: f64,
-    longitude: f64,
-) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+async fn detect_country_from_coords(latitude: f64, longitude: f64) -> Result<String> {
     // Use Open-Meteo geocoding API for reverse lookup
     let url = format!(
         "https://geocoding-api.open-meteo.com/v1/search?name=&latitude={}&longitude={}&count=1",
         latitude, longitude
     );
 
-    let response = http_client().get(&url).send().await;
+    let response = http_client()?.get(&url).send().await;
     if let Ok(resp) = response {
         if let Ok(data) = resp.json::<GeocodingResponse>().await {
             if let Some(results) = data.results {
@@ -719,23 +682,20 @@ fn approximate_european_country(lat: f64, lon: f64) -> &'static str {
 }
 
 /// Fetches active weather alerts from the NWS API for US locations.
-async fn fetch_nws_alerts(
-    latitude: f64,
-    longitude: f64,
-) -> Result<Vec<Alert>, Box<dyn std::error::Error + Send + Sync>> {
+async fn fetch_nws_alerts(latitude: f64, longitude: f64) -> Result<Vec<Alert>> {
     let url = format!(
         "https://api.weather.gov/alerts/active?point={},{}",
         latitude, longitude
     );
 
-    let response = http_client()
+    let response = http_client()?
         .get(&url)
         .header("Accept", "application/geo+json")
         .send()
         .await?;
 
     if !response.status().is_success() {
-        return Err(format!("NWS API returned status: {}", response.status()).into());
+        anyhow::bail!("NWS API returned status: {}", response.status());
     }
 
     let data: NwsAlertsResponse = response.json().await?;
@@ -769,12 +729,8 @@ async fn fetch_nws_alerts(
                     .as_deref()
                     .map(AlertSeverity::from_cap_string)
                     .unwrap_or(AlertSeverity::Unknown),
-                urgency: props.urgency.unwrap_or_else(|| "Unknown".to_string()),
                 headline: props.headline.unwrap_or_default(),
                 description: props.description.unwrap_or_default(),
-                instruction: props.instruction,
-                area_desc: props.area_desc,
-                sent,
                 expires,
             })
         })
@@ -797,6 +753,7 @@ async fn resolve_user_emma_id(
     );
 
     let response = http_client()
+        .ok()?
         .get(&nominatim_url)
         .send()
         .await
@@ -826,7 +783,7 @@ async fn resolve_user_emma_id(
     // Fetch MeteoAlarm codenames
     let codenames_url =
         "https://raw.githubusercontent.com/ktrue/Meteoalarm-warning/master/meteoalarm-codenames.json";
-    let codenames_response = http_client().get(codenames_url).send().await.ok()?;
+    let codenames_response = http_client().ok()?.get(codenames_url).send().await.ok()?;
     let codenames: MeteoAlarmCodenames = codenames_response.json().await.ok()?;
 
     // Find matching EMMA_ID for this country
@@ -862,7 +819,7 @@ async fn fetch_meteoalarm_alerts(
     latitude: f64,
     longitude: f64,
     country: &str,
-) -> Result<Vec<Alert>, Box<dyn std::error::Error + Send + Sync>> {
+) -> Result<Vec<Alert>> {
     let (slug, country_code) = match get_meteoalarm_info(country) {
         Some(info) => info,
         None => {
@@ -879,9 +836,9 @@ async fn fetch_meteoalarm_alerts(
         slug
     );
 
-    let response = http_client().get(&url).send().await?;
+    let response = http_client()?.get(&url).send().await?;
     if !response.status().is_success() {
-        return Err(format!("MeteoAlarm returned status: {}", response.status()).into());
+        anyhow::bail!("MeteoAlarm returned status: {}", response.status());
     }
 
     let xml_text = response.text().await?;
@@ -957,12 +914,8 @@ fn parse_meteoalarm_entry(entry: MeteoAlarmEntry, user_emma_id: &Option<String>)
         id: entry.cap_identifier.unwrap_or(entry.id),
         event,
         severity,
-        urgency: entry.cap_urgency.unwrap_or_else(|| "Unknown".to_string()),
         headline,
-        description: String::new(), // MeteoAlarm feeds don't include descriptions
-        instruction: None,
-        area_desc: entry.cap_area_desc.unwrap_or_default(),
-        sent,
+        description: String::new(),
         expires,
     })
 }
@@ -1060,13 +1013,10 @@ fn point_in_polygon(lat: f64, lon: f64, polygon_str: &str) -> bool {
 }
 
 /// Fetches active weather alerts from ECCC (Environment and Climate Change Canada).
-async fn fetch_eccc_alerts(
-    latitude: f64,
-    longitude: f64,
-) -> Result<Vec<Alert>, Box<dyn std::error::Error + Send + Sync>> {
+async fn fetch_eccc_alerts(latitude: f64, longitude: f64) -> Result<Vec<Alert>> {
     let offices = get_eccc_office_codes(latitude, longitude);
     let today = chrono::Utc::now().format("%Y%m%d").to_string();
-    let client = http_client();
+    let client = http_client()?;
 
     let mut all_alerts: Vec<Alert> = Vec::new();
     let mut seen_ids: std::collections::HashSet<String> = std::collections::HashSet::new();
@@ -1253,12 +1203,8 @@ fn parse_eccc_cap(
             .as_deref()
             .map(AlertSeverity::from_cap_string)
             .unwrap_or(AlertSeverity::Unknown),
-        urgency: info.urgency.clone().unwrap_or_else(|| "Unknown".to_string()),
         headline,
         description: info.description.clone().unwrap_or_default(),
-        instruction: info.instruction.clone(),
-        area_desc,
-        sent,
         expires,
     })
 }
@@ -1322,22 +1268,18 @@ struct BomWarning {
     short_title: Option<String>,
     warning_group_type: Option<String>,
     phase: Option<String>,
-    issue_time: Option<String>,
     expiry_time: Option<String>,
 }
 
 /// Fetches weather alerts from Australian Bureau of Meteorology.
-async fn fetch_bom_alerts(
-    latitude: f64,
-    longitude: f64,
-) -> Result<Vec<Alert>, Box<dyn std::error::Error + Send + Sync>> {
+async fn fetch_bom_alerts(latitude: f64, longitude: f64) -> Result<Vec<Alert>> {
     let geohash = encode_geohash(latitude, longitude, 6);
     let url = format!(
         "https://api.weather.bom.gov.au/v1/locations/{}/warnings",
         geohash
     );
 
-    let response = http_client().get(&url).send().await?;
+    let response = http_client()?.get(&url).send().await?;
 
     if !response.status().is_success() {
         return Ok(vec![]);
@@ -1362,12 +1304,6 @@ async fn fetch_bom_alerts(
                 _ => AlertSeverity::Unknown,
             };
 
-            let sent = w.issue_time
-                .as_ref()
-                .and_then(|t| DateTime::parse_from_rfc3339(t).ok())
-                .map(|dt| dt.with_timezone(&Utc))
-                .unwrap_or(now);
-
             let expires = w.expiry_time
                 .as_ref()
                 .and_then(|t| DateTime::parse_from_rfc3339(t).ok())
@@ -1389,12 +1325,8 @@ async fn fetch_bom_alerts(
                 id: w.id.clone(),
                 event,
                 severity,
-                urgency: "Expected".to_string(),
                 headline,
                 description: String::new(),
-                instruction: None,
-                area_desc: "Australia".to_string(),
-                sent,
                 expires,
             })
         })
@@ -1405,10 +1337,7 @@ async fn fetch_bom_alerts(
 
 /// Fetches active weather alerts based on location.
 /// Dispatches to appropriate regional API based on detected region.
-pub async fn fetch_alerts(
-    latitude: f64,
-    longitude: f64,
-) -> Result<Vec<Alert>, Box<dyn std::error::Error + Send + Sync>> {
+pub async fn fetch_alerts(latitude: f64, longitude: f64) -> Result<Vec<Alert>> {
     match detect_region(latitude, longitude) {
         Region::Us => fetch_nws_alerts(latitude, longitude).await,
         Region::Europe => {
@@ -1443,68 +1372,56 @@ pub fn weathercode_to_description(code: i32) -> &'static str {
     }
 }
 
+/// Converts 24-hour to 12-hour format with AM/PM.
+fn hour_to_12h(hour: u32) -> (u32, &'static str) {
+    match hour {
+        0 => (12, "AM"),
+        1..=11 => (hour, "AM"),
+        12 => (12, "PM"),
+        _ => (hour - 12, "PM"),
+    }
+}
+
+/// Parses ISO timestamp and formats with chrono, trimming leading zeros.
+fn format_datetime_12h(time_str: &str) -> Option<String> {
+    chrono::DateTime::parse_from_rfc3339(time_str)
+        .ok()
+        .map(|dt| dt.format("%I:%M %p").to_string().trim_start_matches('0').to_string())
+}
+
 /// Formats ISO timestamp to hour (e.g., "2025-01-20T14:00" -> "2:00 PM")
 pub fn format_hour(time_str: &str) -> String {
-    if let Ok(datetime) = chrono::DateTime::parse_from_rfc3339(time_str) {
-        datetime
-            .format("%I:%M %p")
-            .to_string()
-            .trim_start_matches('0')
-            .to_string()
-    } else {
-        // Fallback: try to extract hour from string like "2025-01-20T14:00"
-        if let Some(time_part) = time_str.split('T').nth(1) {
-            if let Some(hour_str) = time_part.split(':').next() {
-                if let Ok(hour) = hour_str.parse::<u32>() {
-                    let (display_hour, period) = if hour == 0 {
-                        (12, "AM")
-                    } else if hour < 12 {
-                        (hour, "AM")
-                    } else if hour == 12 {
-                        (12, "PM")
-                    } else {
-                        (hour - 12, "PM")
-                    };
-                    return format!("{}:00 {}", display_hour, period);
-                }
-            }
-        }
-        time_str.to_string()
+    if let Some(formatted) = format_datetime_12h(time_str) {
+        return formatted;
     }
+
+    // Fallback: parse "2025-01-20T14:00" manually
+    if let Some(hour) = time_str.split('T').nth(1).and_then(|t| t.split(':').next()?.parse().ok()) {
+        let (display_hour, period) = hour_to_12h(hour);
+        return format!("{}:00 {}", display_hour, period);
+    }
+
+    time_str.to_string()
 }
 
 /// Formats ISO timestamp to time (e.g., "2025-01-20T06:30:00" -> "6:30 AM")
 pub fn format_time(time_str: &str) -> String {
-    if let Ok(datetime) = chrono::DateTime::parse_from_rfc3339(time_str) {
-        datetime
-            .format("%I:%M %p")
-            .to_string()
-            .trim_start_matches('0')
-            .to_string()
-    } else {
-        // Fallback: try to extract time from string like "2025-01-20T06:30:00"
-        if let Some(time_part) = time_str.split('T').nth(1) {
-            let time_components: Vec<&str> = time_part.split(':').collect();
-            if time_components.len() >= 2 {
-                if let (Ok(hour), Ok(minute)) = (
-                    time_components[0].parse::<u32>(),
-                    time_components[1].parse::<u32>(),
-                ) {
-                    let (display_hour, period) = if hour == 0 {
-                        (12, "AM")
-                    } else if hour < 12 {
-                        (hour, "AM")
-                    } else if hour == 12 {
-                        (12, "PM")
-                    } else {
-                        (hour - 12, "PM")
-                    };
-                    return format!("{}:{:02} {}", display_hour, minute, period);
-                }
-            }
-        }
-        time_str.to_string()
+    if let Some(formatted) = format_datetime_12h(time_str) {
+        return formatted;
     }
+
+    // Fallback: parse "2025-01-20T06:30:00" manually
+    if let Some(time_part) = time_str.split('T').nth(1) {
+        let parts: Vec<&str> = time_part.split(':').collect();
+        if let (Some(Ok(hour)), Some(Ok(minute))) =
+            (parts.first().map(|s| s.parse::<u32>()), parts.get(1).map(|s| s.parse::<u32>()))
+        {
+            let (display_hour, period) = hour_to_12h(hour);
+            return format!("{}:{:02} {}", display_hour, minute, period);
+        }
+    }
+
+    time_str.to_string()
 }
 
 /// Determines if current time is night (before sunrise or after sunset).
