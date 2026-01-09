@@ -92,6 +92,19 @@ A [justfile](./justfile) is included with common recipes:
 - `just check` - Run clippy linter
 - `just check-json` - LSP-compatible linter output
 
+## Changelog
+
+### 1.8.1
+
+Internal code quality improvements and translation updates.
+
+- Added Simplified Chinese translation, updated German and French via Weblate
+- Migrated error handling to anyhow for better error context and cleaner code
+- Removed dead code and unused struct fields across weather and config modules
+- Fixed a potential panic in HTTP client initialization
+- Consolidated duplicate VERSION constant and time parsing logic
+- Refactored popup rendering into focused per-tab methods
+
 ## License
 
 GPL-3.0-only - See [LICENSE](./LICENSE)

@@ -47,6 +47,18 @@
   </categories>
 
   <releases>
+    <release version="1.8.1" date="2026-01-09">
+      <description>
+        <p>Internal code quality improvements and translation updates</p>
+        <ul>
+          <li>Added Simplified Chinese translation, updated German and French via Weblate</li>
+          <li>Migrated error handling to anyhow for better error context</li>
+          <li>Removed dead code and unused struct fields</li>
+          <li>Fixed potential panic in HTTP client initialization</li>
+          <li>Refactored popup rendering into focused per-tab methods</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.8.0" date="2025-12-31">
       <description>
         <p>Panel customization and Australian weather alerts</p>

@@ -1053,8 +1053,9 @@ dependencies = [
 
 [[package]]
 name = "cosmic-ext-applet-tempest"
-version = "1.7.2"
+version = "1.8.1"
 dependencies = [
+ "anyhow",
  "async-stream",
  "chrono",
  "i18n-embed 0.15.4",

@@ -20,7 +20,7 @@ use crate::weather::{
     WeatherData,
 };
 
-const VERSION: &str = env!("CARGO_PKG_VERSION");
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// This is the struct that represents your application.
 /// It is used to define the data that will be used by your application.
@@ -325,24 +325,6 @@ impl Application for Tempest {
     }
 
     fn view_window(&self, _id: Id) -> Element<'_, Self::Message> {
-        // Pre-bind all localized strings at the start to ensure proper lifetimes
-        let l_loading = crate::fl!("loading");
-        let l_failed_to_load = crate::fl!("failed-to-load");
-        let l_retry = crate::fl!("retry");
-        let l_tab_current = crate::fl!("tab-current");
-        let l_tab_hourly = crate::fl!("tab-hourly");
-        let l_tab_forecast = crate::fl!("tab-forecast");
-        let l_tab_air_quality = crate::fl!("tab-air-quality");
-        let l_air_quality_unavailable = crate::fl!("air-quality-unavailable");
-        let l_alerts_disabled = crate::fl!("alerts-disabled");
-        let l_alerts_enable_hint = crate::fl!("alerts-enable-hint");
-        let l_no_active_alerts = crate::fl!("no-active-alerts");
-        let l_area_clear = crate::fl!("area-clear");
-        let l_forecast_day = crate::fl!("forecast-day");
-        let l_forecast_high = crate::fl!("forecast-high");
-        let l_forecast_low = crate::fl!("forecast-low");
-        let l_forecast_conditions = crate::fl!("forecast-conditions");
-
         let mut column = widget::column()
             .spacing(10)
             .padding(10)
@@ -408,9 +390,9 @@ impl Application for Tempest {
                     widget::column()
                         .spacing(10)
                         .push(widget::icon::from_name("dialog-error-symbolic").size(48))
-                        .push(text(l_failed_to_load).size(18))
+                        .push(text(crate::fl!("failed-to-load")).size(18))
                         .push(text(error).size(14))
-                        .push(widget::button::standard(l_retry).on_press(Message::RefreshWeather)),
+                        .push(widget::button::standard(crate::fl!("retry")).on_press(Message::RefreshWeather)),
                 )
                 .align_x(cosmic::iced::alignment::Horizontal::Center)
                 .width(cosmic::iced::Length::Fill),
@@ -422,22 +404,21 @@ impl Application for Tempest {
                         .spacing(10)
                         .align_x(cosmic::iced::alignment::Horizontal::Center)
                         .push(widget::icon::from_name("content-loading-symbolic").size(48))
-                        .push(text(l_loading).size(18)),
+                        .push(text(crate::fl!("loading")).size(18)),
                 )
                 .align_x(cosmic::iced::alignment::Horizontal::Center)
                 .width(cosmic::iced::Length::Fill),
             );
         } else if let Some(ref weather) = self.weather_data {
-            // Tab bar - 4 tabs only (Alerts/Settings accessible via header buttons)
+            // Tab bar
             let tab_bar = widget::row()
                 .spacing(8)
                 .align_y(cosmic::iced::Alignment::Center)
-                .push(self.tab_button(l_tab_current, PopupTab::Current))
-                .push(self.tab_button(l_tab_hourly, PopupTab::Hourly))
-                .push(self.tab_button(l_tab_forecast, PopupTab::Forecast))
-                .push(self.tab_button(l_tab_air_quality, PopupTab::AirQuality));
+                .push(self.tab_button(crate::fl!("tab-current"), PopupTab::Current))
+                .push(self.tab_button(crate::fl!("tab-hourly"), PopupTab::Hourly))
+                .push(self.tab_button(crate::fl!("tab-forecast"), PopupTab::Forecast))
+                .push(self.tab_button(crate::fl!("tab-air-quality"), PopupTab::AirQuality));
 
-            // Tab bar
             column = column.push(
                 widget::container(tab_bar)
                     .align_x(cosmic::iced::alignment::Horizontal::Center)
@@ -445,518 +426,15 @@ impl Application for Tempest {
             );
             column = column.push(widget::divider::horizontal::default());
 
-            // Tab content
+            // Tab content - delegated to helper methods
             match self.active_tab {
-                PopupTab::Current => {
-                    // Temperature and condition
-                    column = column.push(
-                        widget::row()
-                            .spacing(10)
-                            .push(
-                                text(self.config.temperature_unit.format(weather.current.temperature))
-                                    .size(32),
-                            )
-                            .push(text(weathercode_to_description(
-                                weather.current.weathercode,
-                            ))),
-                    );
-
-                    // Feels like and humidity
-                    let feels_like_temp = format!("{:.0}{}", weather.current.feels_like, self.config.temperature_unit.symbol());
-                    let l_feels_like = crate::fl!("feels-like", temp = feels_like_temp.as_str());
-                    let l_humidity = crate::fl!("humidity", value = weather.current.humidity);
-                    column = column.push(
-                        widget::row()
-                            .spacing(20)
-                            .push(
-                                text(l_feels_like)
-                                .size(14),
-                            )
-                            .push(
-                                text(l_humidity).size(14),
-                            ),
-                    );
-
-                    // Wind information
-                    let wind_unit = self.config.measurement_system.wind_speed_unit();
-                    let wind_speed = format!("{:.1}", weather.current.windspeed);
-                    let wind_dir = wind_direction_to_compass(weather.current.wind_direction);
-                    let gust_speed = format!("{:.1}", weather.current.wind_gusts);
-                    let l_wind = crate::fl!("wind", speed = wind_speed.as_str(), unit = wind_unit, direction = wind_dir);
-                    let l_gusts = crate::fl!("gusts", speed = gust_speed.as_str(), unit = wind_unit);
-                    column = column.push(
-                        widget::row()
-                            .spacing(20)
-                            .push(
-                                text(l_wind)
-                                .size(14),
-                            )
-                            .push(
-                                text(l_gusts)
-                                .size(14),
-                            ),
-                    );
-
-                    // UV and cloud cover
-                    let uv_val = format!("{:.1}", weather.current.uv_index);
-                    let l_uv_index = crate::fl!("uv-index", value = uv_val.as_str());
-                    let l_cloud_cover = crate::fl!("cloud-cover", value = weather.current.cloud_cover);
-                    column = column.push(
-                        widget::row()
-                            .spacing(20)
-                            .push(
-                                text(l_uv_index).size(14),
-                            )
-                            .push(
-                                text(l_cloud_cover)
-                                    .size(14),
-                            ),
-                    );
-
-                    // Visibility and pressure
-                    let visibility = self
-                        .config
-                        .measurement_system
-                        .convert_visibility(weather.current.visibility);
-                    let visibility_unit = self.config.measurement_system.visibility_unit();
-                    let vis_val = format!("{:.1}", visibility);
-                    let pressure_val = format!("{:.0}", weather.current.pressure);
-                    let l_visibility = crate::fl!("visibility", value = vis_val.as_str(), unit = visibility_unit);
-                    let l_pressure = crate::fl!("pressure", value = pressure_val.as_str());
-                    column = column.push(
-                        widget::row()
-                            .spacing(20)
-                            .push(
-                                text(l_visibility)
-                                    .size(14),
-                            )
-                            .push(
-                                text(l_pressure)
-                                    .size(14),
-                            ),
-                    );
-
-                    // Sunrise/Sunset
-                    if let Some(first_day) = weather.forecast.first() {
-                        let sunrise_time = format_time(&first_day.sunrise);
-                        let sunset_time = format_time(&first_day.sunset);
-                        let l_sunrise = crate::fl!("sunrise", time = sunrise_time.as_str());
-                        let l_sunset = crate::fl!("sunset", time = sunset_time.as_str());
-                        column = column.push(
-                            widget::row()
-                                .spacing(20)
-                                .push(
-                                    text(l_sunrise)
-                                        .size(14),
-                                )
-                                .push(
-                                    text(l_sunset)
-                                        .size(14),
-                                ),
-                        );
-                    }
-                }
-                PopupTab::AirQuality => {
-                    if let Some(ref aq) = self.air_quality {
-                        let label = aqi_standard_label(aq.standard);
-                        let description = aqi_to_description(aq.aqi, aq.standard);
-
-                        column = column.push(
-                            widget::row()
-                                .spacing(20)
-                                .push(text(format!("{}: {}", label, aq.aqi)).size(16))
-                                .push(text(description).size(14)),
-                        );
-
-                        let pm25_val = format!("{:.1}", aq.pm2_5);
-                        let pm10_val = format!("{:.1}", aq.pm10);
-                        let l_pm25 = crate::fl!("pm25", value = pm25_val.as_str());
-                        let l_pm10 = crate::fl!("pm10", value = pm10_val.as_str());
-                        column = column.push(
-                            widget::row()
-                                .spacing(20)
-                                .push(text(l_pm25).size(14))
-                                .push(text(l_pm10).size(14)),
-                        );
-
-                        let ozone_val = format!("{:.1}", aq.ozone);
-                        let no2_val = format!("{:.1}", aq.nitrogen_dioxide);
-                        let l_ozone = crate::fl!("ozone", value = ozone_val.as_str());
-                        let l_no2 = crate::fl!("no2", value = no2_val.as_str());
-                        column = column.push(
-                            widget::row()
-                                .spacing(20)
-                                .push(text(l_ozone).size(14))
-                                .push(
-                                    text(l_no2).size(14),
-                                ),
-                        );
-
-                        let co_val = format!("{:.1}", aq.carbon_monoxide);
-                        let l_co = crate::fl!("co", value = co_val.as_str());
-                        column =
-                            column.push(text(l_co).size(14));
-                    } else {
-                        column = column.push(text(l_air_quality_unavailable).size(14));
-                    }
-                }
-                PopupTab::Alerts => {
-                    if !self.config.alerts_enabled {
-                        column = column.push(
-                            widget::container(
-                                widget::column()
-                                    .spacing(10)
-                                    .align_x(cosmic::iced::alignment::Horizontal::Center)
-                                    .push(text(l_alerts_disabled).size(14))
-                                    .push(text(l_alerts_enable_hint).size(12)),
-                            )
-                            .align_x(cosmic::iced::alignment::Horizontal::Center)
-                            .width(cosmic::iced::Length::Fill),
-                        );
-                    } else if self.alerts.is_empty() {
-                        column = column.push(
-                            widget::container(
-                                widget::column()
-                                    .spacing(10)
-                                    .align_x(cosmic::iced::alignment::Horizontal::Center)
-                                    .push(
-                                        widget::icon::from_name("weather-clear-symbolic")
-                                            .size(48)
-                                            .symbolic(true),
-                                    )
-                                    .push(text(l_no_active_alerts).size(16))
-                                    .push(text(l_area_clear).size(12)),
-                            )
-                            .align_x(cosmic::iced::alignment::Horizontal::Center)
-                            .width(cosmic::iced::Length::Fill),
-                        );
-                    } else {
-                        for alert in &self.alerts {
-                            let severity_icon = match alert.severity {
-                                AlertSeverity::Extreme => "dialog-error-symbolic",
-                                AlertSeverity::Severe => "dialog-warning-symbolic",
-                                AlertSeverity::Moderate => "dialog-information-symbolic",
-                                _ => "weather-severe-alert-symbolic",
-                            };
-
-                            column = column.push(
-                                widget::container(
-                                    widget::column()
-                                        .spacing(4)
-                                        .push(
-                                            widget::row()
-                                                .spacing(8)
-                                                .push(
-                                                    widget::icon::from_name(severity_icon)
-                                                        .size(20)
-                                                        .symbolic(true),
-                                                )
-                                                .push(text(&alert.event).size(14)),
-                                        )
-                                        .push(text(&alert.headline).size(12))
-                                        .push_maybe(if alert.description.is_empty() {
-                                            None
-                                        } else {
-                                            Some(
-                                                widget::container(
-                                                    widget::scrollable(
-                                                        text(&alert.description).size(11),
-                                                    )
-                                                    .height(cosmic::iced::Length::Fixed(100.0)),
-                                                )
-                                                .padding([4, 0, 4, 0]),
-                                            )
-                                        })
-                                        .push({
-                                            let expires_time = alert.expires.format("%b %d %I:%M %p").to_string();
-                                            text(crate::fl!("expires", time = expires_time.as_str()))
-                                            .size(10)
-                                        }),
-                                )
-                                .padding(8)
-                                .width(cosmic::iced::Length::Fill),
-                            );
-                            column = column.push(widget::divider::horizontal::default());
-                        }
-                    }
-                }
-                PopupTab::Hourly => {
-                    // 4-column grid layout for hourly forecast
-                    let hours_per_row = 4;
-                    for chunk in weather.hourly.chunks(hours_per_row) {
-                        let mut row = widget::row().spacing(8);
-
-                        for hour in chunk {
-                            let cell = widget::column()
-                                .spacing(4)
-                                .align_x(cosmic::iced::alignment::Horizontal::Center)
-                                .push(text(format_hour(&hour.time)).size(12))
-                                .push(
-                                    widget::icon::from_name(weathercode_to_icon_name(
-                                        hour.weathercode,
-                                        false,
-                                    ))
-                                    .size(20)
-                                    .symbolic(true),
-                                )
-                                .push(
-                                    text(self.config.temperature_unit.format(hour.temperature))
-                                        .size(14),
-                                )
-                                .push(
-                                    text(format!("{}%", hour.precipitation_probability)).size(11),
-                                );
-
-                            row = row.push(
-                                widget::container(cell)
-                                    .width(cosmic::iced::Length::FillPortion(1))
-                                    .align_x(cosmic::iced::alignment::Horizontal::Center),
-                            );
-                        }
-
-                        // Pad incomplete rows with empty space
-                        for _ in chunk.len()..hours_per_row {
-                            row = row.push(
-                                widget::container(widget::Space::new(0, 0))
-                                    .width(cosmic::iced::Length::FillPortion(1)),
-                            );
-                        }
-
-                        column = column.push(row);
-                    }
-                }
-                PopupTab::Forecast => {
-                    // Table header
-                    column = column.push(
-                        widget::row()
-                            .spacing(8)
-                            .push(
-                                text(l_forecast_day)
-                                    .size(12)
-                                    .width(cosmic::iced::Length::Fixed(80.0)),
-                            )
-                            .push(widget::Space::new(24, 0))
-                            .push(
-                                text(l_forecast_high)
-                                    .size(12)
-                                    .width(cosmic::iced::Length::Fixed(45.0)),
-                            )
-                            .push(
-                                text(l_forecast_low)
-                                    .size(12)
-                                    .width(cosmic::iced::Length::Fixed(45.0)),
-                            )
-                            .push(text(l_forecast_conditions).size(12)),
-                    );
-                    column = column.push(widget::divider::horizontal::default());
-
-                    // Data rows
-                    for day in &weather.forecast {
-                        column = column.push(
-                            widget::row()
-                                .spacing(8)
-                                .align_y(cosmic::iced::Alignment::Center)
-                                .push(
-                                    text(format_date(&day.date))
-                                        .size(13)
-                                        .width(cosmic::iced::Length::Fixed(80.0)),
-                                )
-                                .push(
-                                    widget::icon::from_name(weathercode_to_icon_name(
-                                        day.weathercode,
-                                        false,
-                                    ))
-                                    .size(20)
-                                    .symbolic(true),
-                                )
-                                .push(
-                                    text(self.config.temperature_unit.format(day.temp_max))
-                                        .size(13)
-                                        .width(cosmic::iced::Length::Fixed(45.0)),
-                                )
-                                .push(
-                                    text(self.config.temperature_unit.format(day.temp_min))
-                                        .size(13)
-                                        .width(cosmic::iced::Length::Fixed(45.0)),
-                                )
-                                .push(text(weathercode_to_description(day.weathercode)).size(12)),
-                        );
-                    }
-                }
-                PopupTab::Settings => {
-                    // Pre-bind all localized strings to extend their lifetime
-                    let l_temp_unit = crate::fl!("settings-temperature-unit");
-                    let l_auto_units = crate::fl!("settings-auto-units");
-                    let l_auto_units_hint = crate::fl!("settings-auto-units-hint");
-                    let l_auto_location = crate::fl!("settings-auto-location");
-                    let l_detect_now = crate::fl!("settings-detect-now");
-                    let l_current_location = crate::fl!("settings-current-location");
-                    let l_search_location = crate::fl!("settings-search-location");
-                    let l_search_placeholder = crate::fl!("settings-search-placeholder");
-                    let l_search = crate::fl!("settings-search");
-                    let l_refresh_interval = crate::fl!("settings-refresh-interval");
-                    let l_minutes = crate::fl!("settings-minutes");
-                    let l_weather_alerts = crate::fl!("settings-weather-alerts");
-                    let l_alerts_hint = crate::fl!("settings-alerts-hint");
-                    let l_show_aqi = crate::fl!("settings-show-aqi");
-                    let l_version = crate::fl!("settings-version");
-                    let l_support = crate::fl!("settings-support");
-                    let l_tip_kofi = crate::fl!("settings-tip-kofi");
-
-                    // Units section
-                    column = column.push(settings::item(
-                        l_temp_unit,
-                        widget::button::standard(self.config.temperature_unit.as_str())
-                            .on_press(Message::ToggleTemperatureUnit),
-                    ));
-
-                    column = column.push(settings::item(
-                        l_auto_units,
-                        widget::row()
-                            .spacing(8)
-                            .align_y(cosmic::iced::Alignment::Center)
-                            .push(
-                                widget::toggler(self.config.auto_units)
-                                    .on_toggle(|_| Message::ToggleAutoUnits),
-                            )
-                            .push(text(l_auto_units_hint).size(11)),
-                    ));
-
-                    column = column.push(widget::divider::horizontal::default());
-
-                    // Location section
-                    column = column.push(settings::item(
-                        l_auto_location,
-                        widget::toggler(self.config.use_auto_location)
-                            .on_toggle(|_| Message::ToggleAutoLocation),
-                    ));
-
-                    if self.config.use_auto_location {
-                        column = column.push(settings::item(
-                            "",
-                            widget::button::standard(l_detect_now)
-                                .on_press(Message::DetectLocation),
-                        ));
-                    }
-
-                    column = column.push(settings::item(
-                        l_current_location,
-                        text(&self.config.location_name).size(13),
-                    ));
-
-                    if !self.config.use_auto_location {
-                        column = column.push(settings::item(
-                            l_search_location,
-                            widget::row()
-                                .spacing(8)
-                                .push(
-                                    widget::text_input(l_search_placeholder, &self.city_input)
-                                        .on_input(Message::UpdateCityInput)
-                                        .on_submit(|_| Message::SearchCity)
-                                        .width(cosmic::iced::Length::Fixed(180.0)),
-                                )
-                                .push(
-                                    widget::button::standard(l_search)
-                                        .on_press(Message::SearchCity),
-                                ),
-                        ));
-
-                        if !self.search_results.is_empty() {
-                            for (idx, result) in self.search_results.iter().enumerate() {
-                                column = column.push(
-                                    widget::button::text(&result.display_name)
-                                        .on_press(Message::SelectLocation(idx))
-                                        .padding(8)
-                                        .width(cosmic::iced::Length::Fill),
-                                );
-                            }
-                        }
-                    }
-
-                    column = column.push(widget::divider::horizontal::default());
-
-                    // Refresh & Alerts section
-                    column = column.push(settings::item(
-                        l_refresh_interval,
-                        widget::row()
-                            .spacing(8)
-                            .align_y(cosmic::iced::Alignment::Center)
-                            .push(
-                                widget::text_input("15", &self.refresh_input)
-                                    .on_input(Message::UpdateRefreshInterval)
-                                    .width(cosmic::iced::Length::Fixed(60.0)),
-                            )
-                            .push(text(l_minutes).size(13)),
-                    ));
-
-                    column = column.push(settings::item(
-                        l_weather_alerts,
-                        widget::row()
-                            .spacing(8)
-                            .align_y(cosmic::iced::Alignment::Center)
-                            .push(
-                                widget::toggler(self.config.alerts_enabled)
-                                    .on_toggle(|_| Message::ToggleAlertsEnabled),
-                            )
-                            .push(text(l_alerts_hint).size(11)),
-                    ));
-
-                    // Panel display options
-                    let l_panel_display = crate::fl!("panel-display");
-                    let l_show_icon = crate::fl!("show-icon");
-                    let l_show_pressure = crate::fl!("show-pressure");
-                    let l_show_dew_point = crate::fl!("show-dew-point");
-                    let l_show_sunrise_sunset = crate::fl!("show-sunrise-sunset");
-
-                    column = column.push(text(l_panel_display).size(14));
-
-                    column = column.push(settings::item(
-                        l_show_icon,
-                        widget::toggler(self.config.show_icon_in_panel)
-                            .on_toggle(|_| Message::ToggleShowIconInPanel),
-                    ));
-
-                    column = column.push(settings::item(
-                        l_show_aqi,
-                        widget::toggler(self.config.show_aqi_in_panel)
-                            .on_toggle(|_| Message::ToggleShowAqiInPanel),
-                    ));
-
-                    column = column.push(settings::item(
-                        l_show_pressure,
-                        widget::toggler(self.config.show_pressure_in_panel)
-                            .on_toggle(|_| Message::ToggleShowPressureInPanel),
-                    ));
-
-                    column = column.push(settings::item(
-                        l_show_dew_point,
-                        widget::toggler(self.config.show_dew_point_in_panel)
-                            .on_toggle(|_| Message::ToggleShowDewPointInPanel),
-                    ));
-
-                    column = column.push(settings::item(
-                        l_show_sunrise_sunset,
-                        widget::toggler(self.config.show_sunrise_sunset_in_panel)
-                            .on_toggle(|_| Message::ToggleShowSunriseSunsetInPanel),
-                    ));
-
-                    column = column.push(widget::divider::horizontal::default());
-
-                    // About section
-                    column = column.push(settings::item(
-                        l_version,
-                        text(VERSION).size(13),
-                    ));
-
-                    column = column.push(settings::item(
-                        l_support,
-                        widget::button::text(l_tip_kofi).on_press(Message::OpenUrl(
-                            "https://ko-fi.com/vintagetechie".to_string(),
-                        )),
-                    ));
-                }
+                PopupTab::Current => column = column.push(self.render_current_tab(weather)),
+                PopupTab::AirQuality => column = column.push(self.render_air_quality_tab()),
+                PopupTab::Alerts => column = column.push(self.render_alerts_tab()),
+                PopupTab::Hourly => column = column.push(self.render_hourly_tab(weather)),
+                PopupTab::Forecast => column = column.push(self.render_forecast_tab(weather)),
+                PopupTab::Settings => column = column.push(self.render_settings_tab()),
             }
-
         }
 
         let scrollable = widget::scrollable(column).height(cosmic::iced::Length::Fill);
@@ -1302,6 +780,405 @@ impl Tempest {
         } else {
             btn.into()
         }
+    }
+
+    /// Renders the Current weather tab content.
+    fn render_current_tab(&self, weather: &WeatherData) -> Element<'_, Message> {
+        let mut col = widget::column().spacing(8);
+
+        // Temperature and condition
+        col = col.push(
+            widget::row()
+                .spacing(10)
+                .push(text(self.config.temperature_unit.format(weather.current.temperature)).size(32))
+                .push(text(weathercode_to_description(weather.current.weathercode))),
+        );
+
+        // Feels like and humidity
+        let feels_like_temp = format!("{:.0}{}", weather.current.feels_like, self.config.temperature_unit.symbol());
+        let l_feels_like = crate::fl!("feels-like", temp = feels_like_temp.as_str());
+        let l_humidity = crate::fl!("humidity", value = weather.current.humidity);
+        col = col.push(
+            widget::row()
+                .spacing(20)
+                .push(text(l_feels_like).size(14))
+                .push(text(l_humidity).size(14)),
+        );
+
+        // Wind information
+        let wind_unit = self.config.measurement_system.wind_speed_unit();
+        let wind_speed = format!("{:.1}", weather.current.windspeed);
+        let wind_dir = wind_direction_to_compass(weather.current.wind_direction);
+        let gust_speed = format!("{:.1}", weather.current.wind_gusts);
+        let l_wind = crate::fl!("wind", speed = wind_speed.as_str(), unit = wind_unit, direction = wind_dir);
+        let l_gusts = crate::fl!("gusts", speed = gust_speed.as_str(), unit = wind_unit);
+        col = col.push(
+            widget::row()
+                .spacing(20)
+                .push(text(l_wind).size(14))
+                .push(text(l_gusts).size(14)),
+        );
+
+        // UV and cloud cover
+        let uv_val = format!("{:.1}", weather.current.uv_index);
+        let l_uv_index = crate::fl!("uv-index", value = uv_val.as_str());
+        let l_cloud_cover = crate::fl!("cloud-cover", value = weather.current.cloud_cover);
+        col = col.push(
+            widget::row()
+                .spacing(20)
+                .push(text(l_uv_index).size(14))
+                .push(text(l_cloud_cover).size(14)),
+        );
+
+        // Visibility and pressure
+        let visibility = self.config.measurement_system.convert_visibility(weather.current.visibility);
+        let visibility_unit = self.config.measurement_system.visibility_unit();
+        let vis_val = format!("{:.1}", visibility);
+        let pressure_val = format!("{:.0}", weather.current.pressure);
+        let l_visibility = crate::fl!("visibility", value = vis_val.as_str(), unit = visibility_unit);
+        let l_pressure = crate::fl!("pressure", value = pressure_val.as_str());
+        col = col.push(
+            widget::row()
+                .spacing(20)
+                .push(text(l_visibility).size(14))
+                .push(text(l_pressure).size(14)),
+        );
+
+        // Sunrise/Sunset
+        if let Some(first_day) = weather.forecast.first() {
+            let sunrise_time = format_time(&first_day.sunrise);
+            let sunset_time = format_time(&first_day.sunset);
+            let l_sunrise = crate::fl!("sunrise", time = sunrise_time.as_str());
+            let l_sunset = crate::fl!("sunset", time = sunset_time.as_str());
+            col = col.push(
+                widget::row()
+                    .spacing(20)
+                    .push(text(l_sunrise).size(14))
+                    .push(text(l_sunset).size(14)),
+            );
+        }
+
+        col.into()
+    }
+
+    /// Renders the Air Quality tab content.
+    fn render_air_quality_tab(&self) -> Element<'_, Message> {
+        let mut col = widget::column().spacing(8);
+
+        if let Some(ref aq) = self.air_quality {
+            let label = aqi_standard_label(aq.standard);
+            let description = aqi_to_description(aq.aqi, aq.standard);
+
+            col = col.push(
+                widget::row()
+                    .spacing(20)
+                    .push(text(format!("{}: {}", label, aq.aqi)).size(16))
+                    .push(text(description).size(14)),
+            );
+
+            let pm25_val = format!("{:.1}", aq.pm2_5);
+            let pm10_val = format!("{:.1}", aq.pm10);
+            let l_pm25 = crate::fl!("pm25", value = pm25_val.as_str());
+            let l_pm10 = crate::fl!("pm10", value = pm10_val.as_str());
+            col = col.push(
+                widget::row()
+                    .spacing(20)
+                    .push(text(l_pm25).size(14))
+                    .push(text(l_pm10).size(14)),
+            );
+
+            let ozone_val = format!("{:.1}", aq.ozone);
+            let no2_val = format!("{:.1}", aq.nitrogen_dioxide);
+            let l_ozone = crate::fl!("ozone", value = ozone_val.as_str());
+            let l_no2 = crate::fl!("no2", value = no2_val.as_str());
+            col = col.push(
+                widget::row()
+                    .spacing(20)
+                    .push(text(l_ozone).size(14))
+                    .push(text(l_no2).size(14)),
+            );
+
+            let co_val = format!("{:.1}", aq.carbon_monoxide);
+            let l_co = crate::fl!("co", value = co_val.as_str());
+            col = col.push(text(l_co).size(14));
+        } else {
+            col = col.push(text(crate::fl!("air-quality-unavailable")).size(14));
+        }
+
+        col.into()
+    }
+
+    /// Renders the Alerts tab content.
+    fn render_alerts_tab(&self) -> Element<'_, Message> {
+        let mut col = widget::column().spacing(8);
+
+        if !self.config.alerts_enabled {
+            col = col.push(
+                widget::container(
+                    widget::column()
+                        .spacing(10)
+                        .align_x(cosmic::iced::alignment::Horizontal::Center)
+                        .push(text(crate::fl!("alerts-disabled")).size(14))
+                        .push(text(crate::fl!("alerts-enable-hint")).size(12)),
+                )
+                .align_x(cosmic::iced::alignment::Horizontal::Center)
+                .width(cosmic::iced::Length::Fill),
+            );
+        } else if self.alerts.is_empty() {
+            col = col.push(
+                widget::container(
+                    widget::column()
+                        .spacing(10)
+                        .align_x(cosmic::iced::alignment::Horizontal::Center)
+                        .push(widget::icon::from_name("weather-clear-symbolic").size(48).symbolic(true))
+                        .push(text(crate::fl!("no-active-alerts")).size(16))
+                        .push(text(crate::fl!("area-clear")).size(12)),
+                )
+                .align_x(cosmic::iced::alignment::Horizontal::Center)
+                .width(cosmic::iced::Length::Fill),
+            );
+        } else {
+            for alert in &self.alerts {
+                let severity_icon = match alert.severity {
+                    AlertSeverity::Extreme => "dialog-error-symbolic",
+                    AlertSeverity::Severe => "dialog-warning-symbolic",
+                    AlertSeverity::Moderate => "dialog-information-symbolic",
+                    _ => "weather-severe-alert-symbolic",
+                };
+
+                col = col.push(
+                    widget::container(
+                        widget::column()
+                            .spacing(4)
+                            .push(
+                                widget::row()
+                                    .spacing(8)
+                                    .push(widget::icon::from_name(severity_icon).size(20).symbolic(true))
+                                    .push(text(&alert.event).size(14)),
+                            )
+                            .push(text(&alert.headline).size(12))
+                            .push_maybe(if alert.description.is_empty() {
+                                None
+                            } else {
+                                Some(
+                                    widget::container(
+                                        widget::scrollable(text(&alert.description).size(11))
+                                            .height(cosmic::iced::Length::Fixed(100.0)),
+                                    )
+                                    .padding([4, 0, 4, 0]),
+                                )
+                            })
+                            .push({
+                                let expires_time = alert.expires.format("%b %d %I:%M %p").to_string();
+                                text(crate::fl!("expires", time = expires_time.as_str())).size(10)
+                            }),
+                    )
+                    .padding(8)
+                    .width(cosmic::iced::Length::Fill),
+                );
+                col = col.push(widget::divider::horizontal::default());
+            }
+        }
+
+        col.into()
+    }
+
+    /// Renders the Hourly forecast tab content.
+    fn render_hourly_tab(&self, weather: &WeatherData) -> Element<'_, Message> {
+        let mut col = widget::column().spacing(8);
+        let hours_per_row = 4;
+
+        for chunk in weather.hourly.chunks(hours_per_row) {
+            let mut row = widget::row().spacing(8);
+
+            for hour in chunk {
+                let cell = widget::column()
+                    .spacing(4)
+                    .align_x(cosmic::iced::alignment::Horizontal::Center)
+                    .push(text(format_hour(&hour.time)).size(12))
+                    .push(widget::icon::from_name(weathercode_to_icon_name(hour.weathercode, false)).size(20).symbolic(true))
+                    .push(text(self.config.temperature_unit.format(hour.temperature)).size(14))
+                    .push(text(format!("{}%", hour.precipitation_probability)).size(11));
+
+                row = row.push(
+                    widget::container(cell)
+                        .width(cosmic::iced::Length::FillPortion(1))
+                        .align_x(cosmic::iced::alignment::Horizontal::Center),
+                );
+            }
+
+            // Pad incomplete rows
+            for _ in chunk.len()..hours_per_row {
+                row = row.push(widget::container(widget::Space::new(0, 0)).width(cosmic::iced::Length::FillPortion(1)));
+            }
+
+            col = col.push(row);
+        }
+
+        col.into()
+    }
+
+    /// Renders the 7-day Forecast tab content.
+    fn render_forecast_tab(&self, weather: &WeatherData) -> Element<'_, Message> {
+        let mut col = widget::column().spacing(8);
+
+        // Table header
+        col = col.push(
+            widget::row()
+                .spacing(8)
+                .push(text(crate::fl!("forecast-day")).size(12).width(cosmic::iced::Length::Fixed(80.0)))
+                .push(widget::Space::new(24, 0))
+                .push(text(crate::fl!("forecast-high")).size(12).width(cosmic::iced::Length::Fixed(45.0)))
+                .push(text(crate::fl!("forecast-low")).size(12).width(cosmic::iced::Length::Fixed(45.0)))
+                .push(text(crate::fl!("forecast-conditions")).size(12)),
+        );
+        col = col.push(widget::divider::horizontal::default());
+
+        // Data rows
+        for day in &weather.forecast {
+            col = col.push(
+                widget::row()
+                    .spacing(8)
+                    .align_y(cosmic::iced::Alignment::Center)
+                    .push(text(format_date(&day.date)).size(13).width(cosmic::iced::Length::Fixed(80.0)))
+                    .push(widget::icon::from_name(weathercode_to_icon_name(day.weathercode, false)).size(20).symbolic(true))
+                    .push(text(self.config.temperature_unit.format(day.temp_max)).size(13).width(cosmic::iced::Length::Fixed(45.0)))
+                    .push(text(self.config.temperature_unit.format(day.temp_min)).size(13).width(cosmic::iced::Length::Fixed(45.0)))
+                    .push(text(weathercode_to_description(day.weathercode)).size(12)),
+            );
+        }
+
+        col.into()
+    }
+
+    /// Renders the Settings tab content.
+    fn render_settings_tab(&self) -> Element<'_, Message> {
+        let mut col = widget::column().spacing(8);
+
+        // Units section
+        col = col.push(settings::item(
+            crate::fl!("settings-temperature-unit"),
+            widget::button::standard(self.config.temperature_unit.as_str()).on_press(Message::ToggleTemperatureUnit),
+        ));
+
+        col = col.push(settings::item(
+            crate::fl!("settings-auto-units"),
+            widget::row()
+                .spacing(8)
+                .align_y(cosmic::iced::Alignment::Center)
+                .push(widget::toggler(self.config.auto_units).on_toggle(|_| Message::ToggleAutoUnits))
+                .push(text(crate::fl!("settings-auto-units-hint")).size(11)),
+        ));
+
+        col = col.push(widget::divider::horizontal::default());
+
+        // Location section
+        col = col.push(settings::item(
+            crate::fl!("settings-auto-location"),
+            widget::toggler(self.config.use_auto_location).on_toggle(|_| Message::ToggleAutoLocation),
+        ));
+
+        if self.config.use_auto_location {
+            col = col.push(settings::item(
+                "",
+                widget::button::standard(crate::fl!("settings-detect-now")).on_press(Message::DetectLocation),
+            ));
+        }
+
+        col = col.push(settings::item(
+            crate::fl!("settings-current-location"),
+            text(&self.config.location_name).size(13),
+        ));
+
+        if !self.config.use_auto_location {
+            col = col.push(settings::item(
+                crate::fl!("settings-search-location"),
+                widget::row()
+                    .spacing(8)
+                    .push(
+                        widget::text_input(crate::fl!("settings-search-placeholder"), &self.city_input)
+                            .on_input(Message::UpdateCityInput)
+                            .on_submit(|_| Message::SearchCity)
+                            .width(cosmic::iced::Length::Fixed(180.0)),
+                    )
+                    .push(widget::button::standard(crate::fl!("settings-search")).on_press(Message::SearchCity)),
+            ));
+
+            for (idx, result) in self.search_results.iter().enumerate() {
+                col = col.push(
+                    widget::button::text(&result.display_name)
+                        .on_press(Message::SelectLocation(idx))
+                        .padding(8)
+                        .width(cosmic::iced::Length::Fill),
+                );
+            }
+        }
+
+        col = col.push(widget::divider::horizontal::default());
+
+        // Refresh & Alerts section
+        col = col.push(settings::item(
+            crate::fl!("settings-refresh-interval"),
+            widget::row()
+                .spacing(8)
+                .align_y(cosmic::iced::Alignment::Center)
+                .push(
+                    widget::text_input("15", &self.refresh_input)
+                        .on_input(Message::UpdateRefreshInterval)
+                        .width(cosmic::iced::Length::Fixed(60.0)),
+                )
+                .push(text(crate::fl!("settings-minutes")).size(13)),
+        ));
+
+        col = col.push(settings::item(
+            crate::fl!("settings-weather-alerts"),
+            widget::row()
+                .spacing(8)
+                .align_y(cosmic::iced::Alignment::Center)
+                .push(widget::toggler(self.config.alerts_enabled).on_toggle(|_| Message::ToggleAlertsEnabled))
+                .push(text(crate::fl!("settings-alerts-hint")).size(11)),
+        ));
+
+        // Panel display options
+        col = col.push(text(crate::fl!("panel-display")).size(14));
+
+        col = col.push(settings::item(
+            crate::fl!("show-icon"),
+            widget::toggler(self.config.show_icon_in_panel).on_toggle(|_| Message::ToggleShowIconInPanel),
+        ));
+
+        col = col.push(settings::item(
+            crate::fl!("settings-show-aqi"),
+            widget::toggler(self.config.show_aqi_in_panel).on_toggle(|_| Message::ToggleShowAqiInPanel),
+        ));
+
+        col = col.push(settings::item(
+            crate::fl!("show-pressure"),
+            widget::toggler(self.config.show_pressure_in_panel).on_toggle(|_| Message::ToggleShowPressureInPanel),
+        ));
+
+        col = col.push(settings::item(
+            crate::fl!("show-dew-point"),
+            widget::toggler(self.config.show_dew_point_in_panel).on_toggle(|_| Message::ToggleShowDewPointInPanel),
+        ));
+
+        col = col.push(settings::item(
+            crate::fl!("show-sunrise-sunset"),
+            widget::toggler(self.config.show_sunrise_sunset_in_panel).on_toggle(|_| Message::ToggleShowSunriseSunsetInPanel),
+        ));
+
+        col = col.push(widget::divider::horizontal::default());
+
+        // About section
+        col = col.push(settings::item(crate::fl!("settings-version"), text(VERSION).size(13)));
+
+        col = col.push(settings::item(
+            crate::fl!("settings-support"),
+            widget::button::text(crate::fl!("settings-tip-kofi"))
+                .on_press(Message::OpenUrl("https://ko-fi.com/vintagetechie".to_string())),
+        ));
+
+        col.into()
     }
 
     /// Returns the size limits for the popup window.

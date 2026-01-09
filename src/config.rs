@@ -60,15 +60,6 @@ pub enum MeasurementSystem {
 }
 
 impl MeasurementSystem {
-    /// Returns a display string for the measurement system.
-    #[allow(dead_code)]
-    pub fn as_str(self) -> &'static str {
-        match self {
-            Self::Imperial => "Imperial",
-            Self::Metric => "Metric",
-        }
-    }
-
     /// Returns the wind speed unit label.
     pub fn wind_speed_unit(&self) -> &'static str {
         match self {
