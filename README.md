@@ -4,11 +4,17 @@ A weather applet for COSMIC Desktop with automatic location detection.
 
 ## Screenshots
 
-| Main | Air Quality | 7-Day Forecast | Settings |
-|------|-------------|----------------|----------|
-| ![Main](screenshots/tempest-main.png) | ![Air Quality](screenshots/tempest-aiq.png) | ![7-Day](screenshots/tempest-7day.png) | ![Settings](screenshots/tempest-settings.png) |
+| Main | Air Quality | 7-Day Forecast |
+|------|-------------|----------------|
+| ![Main](screenshots/tempest-main.png) | ![Air Quality](screenshots/tempest-aiq.png) | ![7-Day](screenshots/tempest-7day.png) |
 
-*Note: Hourly and Alerts tabs not shown above.*
+| Hourly | Alerts |
+|--------|--------|
+| ![Hourly](screenshots/tempest-hourly.png) | ![Alerts](screenshots/tempest-alerts.png) |
+
+| Settings (Auto-detect) | Settings (Manual) |
+|------------------------|-------------------|
+| ![Settings](screenshots/tempest-settings.png) | ![Settings 2](screenshots/tempest-settings2.png) |
 
 ## Features
 
@@ -94,16 +100,13 @@ A [justfile](./justfile) is included with common recipes:
 
 ## Changelog
 
+### 2.0.0
+
+Redesigned settings interface with improved COSMIC integration. The tab bar now uses the standard segmented control with recessed styling to match other COSMIC applets. Settings got a complete overhaul with section headers, segmented controls for temperature and measurement units, and a cleaner layout that adapts based on whether auto-detect is enabled. Auto-select units now applies immediately when toggled. Pinned libcosmic to a stable commit after an upstream regression broke builds.
+
 ### 1.8.1
 
-Internal code quality improvements and translation updates.
-
-- Added Simplified Chinese translation, updated German and French via Weblate
-- Migrated error handling to anyhow for better error context and cleaner code
-- Removed dead code and unused struct fields across weather and config modules
-- Fixed a potential panic in HTTP client initialization
-- Consolidated duplicate VERSION constant and time parsing logic
-- Refactored popup rendering into focused per-tab methods
+Internal code quality improvements and translation updates. Added Simplified Chinese translation, updated German and French via Weblate. Migrated error handling to anyhow for better error context. Removed dead code and unused struct fields across weather and config modules. Fixed a potential panic in HTTP client initialization.
 
 ## License
 

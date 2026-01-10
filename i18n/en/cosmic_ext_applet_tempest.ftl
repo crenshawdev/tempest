@@ -49,7 +49,36 @@ forecast-high = High
 forecast-low = Low
 forecast-conditions = Conditions
 
+# Settings sections
+section-location = LOCATION
+section-units = UNITS
+section-updates = UPDATES
+section-panel-display = PANEL DISPLAY
+
 # Settings
+settings-auto-detect = Auto-detect
+detected-via-ip = Detected via IP
+manually-selected = Manually selected
+settings-refresh = Refresh
+settings-search-placeholder = Search city...
+settings-search = Search
+settings-temperature = Temperature
+settings-measurement = Measurement
+unit-metric = Metric
+unit-imperial = Imperial
+settings-refresh-interval = Refresh Interval
+settings-min = min
+settings-weather-alerts = Weather alerts
+show-icon = Weather icon
+show-aqi = AQI
+show-pressure = Pressure
+show-dew-point = Dew point
+show-sunrise-sunset = Sunrise/Sunset
+settings-version = Version
+settings-support = Support
+settings-tip-kofi = Tip me on Ko-fi
+
+# Deprecated - kept for compatibility
 settings-temperature-unit = Temperature Unit
 settings-auto-units = Auto-select Units
 settings-auto-units-hint = Based on location
@@ -57,18 +86,8 @@ settings-auto-location = Auto-detect Location
 settings-detect-now = Detect Now
 settings-current-location = Current Location
 settings-search-location = Search Location
-settings-search-placeholder = Enter city name...
-settings-search = Search
-settings-refresh-interval = Refresh Interval
 settings-minutes = minutes
 settings-weather-alerts = Weather Alerts
 settings-alerts-hint = US, Canada, Europe & Australia
 settings-show-aqi = Show AQI in Panel
 panel-display = Panel Display
-show-icon = Show Weather Icon
-show-pressure = Show Pressure
-show-dew-point = Show Dew Point
-show-sunrise-sunset = Show Sunrise/Sunset
-settings-version = Version
-settings-support = Support
-settings-tip-kofi = Tip me on Ko-fi

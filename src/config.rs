@@ -11,14 +11,6 @@ pub enum TemperatureUnit {
 }
 
 impl TemperatureUnit {
-    /// Returns a display string for the unit.
-    pub fn as_str(self) -> &'static str {
-        match self {
-            Self::Fahrenheit => "Fahrenheit",
-            Self::Celsius => "Celsius",
-        }
-    }
-
     pub fn symbol(&self) -> &'static str {
         match self {
             Self::Fahrenheit => "°F",

@@ -47,6 +47,18 @@
   </categories>
 
   <releases>
+    <release version="2.0.0" date="2026-01-10">
+      <description>
+        <p>Redesigned settings interface with improved COSMIC integration</p>
+        <ul>
+          <li>Settings tab redesigned with section headers and cleaner layout</li>
+          <li>Tab bar now uses COSMIC segmented control with recessed styling</li>
+          <li>Temperature and measurement units use segmented controls instead of toggles</li>
+          <li>Auto-select units now immediately applies when toggled</li>
+          <li>Pinned libcosmic to stable commit for build reliability</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.8.1" date="2026-01-09">
       <description>
         <p>Internal code quality improvements and translation updates</p>
@@ -243,8 +255,12 @@
       <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-alerts.png</image>
     </screenshot>
     <screenshot>
-      <caption>Settings and configuration</caption>
+      <caption>Settings with auto-detect enabled</caption>
       <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-settings.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Settings with manual location</caption>
+      <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-settings2.png</image>
     </screenshot>
   </screenshots>
 

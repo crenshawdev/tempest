@@ -6,7 +6,7 @@ use cosmic::iced::platform_specific::shell::wayland::commands::popup::{destroy_p
 use cosmic::iced::window::Id;
 use cosmic::iced::{Limits, Subscription};
 use cosmic::iced_futures::Subscription as IcedSubscription;
-use cosmic::widget::{self, settings, text};
+use cosmic::widget::{self, segmented_button, settings, text};
 use cosmic::{Action, Application, Element};
 use std::collections::HashSet;
 use std::time::Duration;
@@ -58,13 +58,89 @@ pub struct Tempest {
     error_message: Option<String>,
     /// Active tab in the popup
     active_tab: PopupTab,
+    /// Segmented control model for tab selection
+    tab_model: segmented_button::SingleSelectModel,
+    /// Segmented control model for temperature unit selection
+    temperature_model: segmented_button::SingleSelectModel,
+    /// Segmented control model for measurement system selection
+    measurement_model: segmented_button::SingleSelectModel,
     /// Cached formatted timestamp for display (avoids recomputing on every render)
     last_updated_display: Option<String>,
+}
+
+/// Returns the tab as an Option, with Settings/Alerts mapped to None
+/// since they're not part of the segmented control.
+fn tab_for_segmented_control(tab: PopupTab) -> Option<PopupTab> {
+    match tab {
+        PopupTab::Settings | PopupTab::Alerts => None,
+        other => Some(other),
+    }
+}
+
+/// Builds the segmented control model for tab selection.
+/// Pass `None` to build with no active selection (for Settings/Alerts tabs).
+fn build_tab_model(active: Option<PopupTab>) -> segmented_button::SingleSelectModel {
+    let mut model = segmented_button::SingleSelectModel::default();
+
+    let tabs = [
+        (PopupTab::Current, crate::fl!("tab-current")),
+        (PopupTab::Hourly, crate::fl!("tab-hourly")),
+        (PopupTab::Forecast, crate::fl!("tab-forecast")),
+        (PopupTab::AirQuality, crate::fl!("tab-air-quality")),
+    ];
+
+    for (tab, label) in tabs {
+        let id = model.insert().text(label).data(tab).id();
+        if active == Some(tab) {
+            model.activate(id);
+        }
+    }
+
+    model
+}
+
+/// Builds the segmented control model for temperature unit selection.
+fn build_temperature_model(active: TemperatureUnit) -> segmented_button::SingleSelectModel {
+    let mut model = segmented_button::SingleSelectModel::default();
+
+    let units = [
+        (TemperatureUnit::Celsius, TemperatureUnit::Celsius.symbol()),
+        (TemperatureUnit::Fahrenheit, TemperatureUnit::Fahrenheit.symbol()),
+    ];
+
+    for (unit, label) in units {
+        let id = model.insert().text(label).data(unit).id();
+        if unit == active {
+            model.activate(id);
+        }
+    }
+
+    model
+}
+
+/// Builds the segmented control model for measurement system selection.
+fn build_measurement_model(active: MeasurementSystem) -> segmented_button::SingleSelectModel {
+    let mut model = segmented_button::SingleSelectModel::default();
+
+    let systems = [
+        (MeasurementSystem::Metric, crate::fl!("unit-metric")),
+        (MeasurementSystem::Imperial, crate::fl!("unit-imperial")),
+    ];
+
+    for (system, label) in systems {
+        let id = model.insert().text(label).data(system).id();
+        if system == active {
+            model.activate(id);
+        }
+    }
+
+    model
 }
 
 impl Default for Tempest {
     fn default() -> Self {
         let config = Config::default();
+        let active_tab = PopupTab::default();
         Self {
             core: Default::default(),
             popup: None,
@@ -80,7 +156,10 @@ impl Default for Tempest {
             current_aqi: None,
             is_loading: true,
             error_message: None,
-            active_tab: PopupTab::default(),
+            active_tab,
+            tab_model: build_tab_model(tab_for_segmented_control(active_tab)),
+            temperature_model: build_temperature_model(config.temperature_unit),
+            measurement_model: build_measurement_model(config.measurement_system),
             last_updated_display: None,
             config,
             config_handler: None,
@@ -98,14 +177,13 @@ pub enum Message {
     AirQualityUpdated(Result<AirQualityData, String>),
     AlertsUpdated(Result<Vec<Alert>, String>),
     Tick,
-    ToggleTemperatureUnit,
     ToggleAlertsEnabled,
+    ToggleAutoUnits,
     ToggleShowAqiInPanel,
     ToggleShowIconInPanel,
     ToggleShowPressureInPanel,
     ToggleShowDewPointInPanel,
     ToggleShowSunriseSunsetInPanel,
-    ToggleAutoUnits,
     UpdateCityInput(String),
     SearchCity,
     CitySearchResult(Result<Vec<LocationResult>, String>),
@@ -115,7 +193,9 @@ pub enum Message {
     LocationDetected(Result<(f64, f64, String, String), String>),
     ToggleAutoLocation,
     SelectTab(PopupTab),
-    OpenUrl(String),
+    TabActivated(segmented_button::Entity),
+    TemperatureUnitActivated(segmented_button::Entity),
+    MeasurementActivated(segmented_button::Entity),
 }
 
 /// Implement the `Application` trait for your application.
@@ -159,6 +239,9 @@ impl Application for Tempest {
 
         let refresh_input = config.refresh_interval_minutes.to_string();
         let active_tab = config.default_tab;
+        let tab_model = build_tab_model(tab_for_segmented_control(active_tab));
+        let temperature_model = build_temperature_model(config.temperature_unit);
+        let measurement_model = build_measurement_model(config.measurement_system);
 
         let app = Tempest {
             core,
@@ -169,6 +252,9 @@ impl Application for Tempest {
             search_results: Vec::new(),
             display_label: "...".to_string(),
             active_tab,
+            tab_model,
+            temperature_model,
+            measurement_model,
             ..Default::default()
         };
 
@@ -410,20 +496,11 @@ impl Application for Tempest {
                 .width(cosmic::iced::Length::Fill),
             );
         } else if let Some(ref weather) = self.weather_data {
-            // Tab bar
-            let tab_bar = widget::row()
-                .spacing(8)
-                .align_y(cosmic::iced::Alignment::Center)
-                .push(self.tab_button(crate::fl!("tab-current"), PopupTab::Current))
-                .push(self.tab_button(crate::fl!("tab-hourly"), PopupTab::Hourly))
-                .push(self.tab_button(crate::fl!("tab-forecast"), PopupTab::Forecast))
-                .push(self.tab_button(crate::fl!("tab-air-quality"), PopupTab::AirQuality));
+            // Tab bar using segmented control for recessed styling
+            let tab_control = widget::segmented_control::horizontal(&self.tab_model)
+                .on_activate(Message::TabActivated);
 
-            column = column.push(
-                widget::container(tab_bar)
-                    .align_x(cosmic::iced::alignment::Horizontal::Center)
-                    .width(cosmic::iced::Length::Fill),
-            );
+            column = column.push(cosmic::applet::padded_control(tab_control));
             column = column.push(widget::divider::horizontal::default());
 
             // Tab content - delegated to helper methods
@@ -573,27 +650,22 @@ impl Application for Tempest {
             Message::Tick => {
                 return Task::perform(async { Message::RefreshWeather }, Action::App);
             }
-            Message::ToggleTemperatureUnit => {
-                // Toggle temperature unit and sync measurement system
-                match self.config.temperature_unit {
-                    TemperatureUnit::Fahrenheit => {
-                        self.config.temperature_unit = TemperatureUnit::Celsius;
-                        self.config.measurement_system = MeasurementSystem::Metric;
-                    }
-                    TemperatureUnit::Celsius => {
-                        self.config.temperature_unit = TemperatureUnit::Fahrenheit;
-                        self.config.measurement_system = MeasurementSystem::Imperial;
-                    }
-                };
-                // Manual unit change disables auto-units
-                self.config.auto_units = false;
-                self.save_config();
-                return Task::perform(async { Message::RefreshWeather }, Action::App);
-            }
             Message::ToggleAlertsEnabled => {
                 self.config.alerts_enabled = !self.config.alerts_enabled;
                 if !self.config.alerts_enabled {
                     self.alerts.clear();
+                }
+                self.save_config();
+                return Task::perform(async { Message::RefreshWeather }, Action::App);
+            }
+            Message::ToggleAutoUnits => {
+                self.config.auto_units = !self.config.auto_units;
+                if self.config.auto_units {
+                    // Extract country from location name (last part after comma)
+                    if let Some(country) = self.config.location_name.split(',').next_back() {
+                        let country = country.trim().to_string();
+                        self.apply_units_for_country(&country);
+                    }
                 }
                 self.save_config();
                 return Task::perform(async { Message::RefreshWeather }, Action::App);
@@ -616,10 +688,6 @@ impl Application for Tempest {
             }
             Message::ToggleShowSunriseSunsetInPanel => {
                 self.config.show_sunrise_sunset_in_panel = !self.config.show_sunrise_sunset_in_panel;
-                self.save_config();
-            }
-            Message::ToggleAutoUnits => {
-                self.config.auto_units = !self.config.auto_units;
                 self.save_config();
             }
             Message::UpdateCityInput(value) => {
@@ -726,11 +794,32 @@ impl Application for Tempest {
             Message::SelectTab(tab) => {
                 self.active_tab = tab;
                 self.config.default_tab = tab;
+                // Rebuild the model to sync selection state
+                self.tab_model = build_tab_model(tab_for_segmented_control(tab));
                 self.save_config();
             }
-            Message::OpenUrl(url) => {
-                if let Err(e) = open::that(&url) {
-                    tracing::error!("Failed to open URL {}: {}", url, e);
+            Message::TabActivated(entity) => {
+                self.tab_model.activate(entity);
+                if let Some(&tab) = self.tab_model.data::<PopupTab>(entity) {
+                    self.active_tab = tab;
+                    self.config.default_tab = tab;
+                    self.save_config();
+                }
+            }
+            Message::TemperatureUnitActivated(entity) => {
+                self.temperature_model.activate(entity);
+                if let Some(&unit) = self.temperature_model.data::<TemperatureUnit>(entity) {
+                    self.config.temperature_unit = unit;
+                    self.save_config();
+                    return Task::perform(async { Message::RefreshWeather }, Action::App);
+                }
+            }
+            Message::MeasurementActivated(entity) => {
+                self.measurement_model.activate(entity);
+                if let Some(&system) = self.measurement_model.data::<MeasurementSystem>(entity) {
+                    self.config.measurement_system = system;
+                    self.save_config();
+                    return Task::perform(async { Message::RefreshWeather }, Action::App);
                 }
             }
         }
@@ -769,16 +858,6 @@ impl Tempest {
             .show()
         {
             tracing::warn!("Failed to send alert notification: {}", e);
-        }
-    }
-
-    /// Creates a tab button, highlighted if it matches the active tab.
-    fn tab_button(&self, label: String, tab: PopupTab) -> Element<'_, Message> {
-        let btn = widget::button::text(label).on_press(Message::SelectTab(tab));
-        if self.active_tab == tab {
-            btn.class(cosmic::theme::Button::Suggested).into()
-        } else {
-            btn.into()
         }
     }
 
@@ -1051,59 +1130,55 @@ impl Tempest {
         col.into()
     }
 
+    /// Creates a styled section header for the settings tab.
+    fn section_header(label: String) -> Element<'static, Message> {
+        text(label)
+            .size(12)
+            .class(cosmic::theme::Text::Accent)
+            .into()
+    }
+
     /// Renders the Settings tab content.
     fn render_settings_tab(&self) -> Element<'_, Message> {
-        let mut col = widget::column().spacing(8);
+        let mut col = widget::column().spacing(12).padding([0, 10, 0, 0]);
 
-        // Units section
-        col = col.push(settings::item(
-            crate::fl!("settings-temperature-unit"),
-            widget::button::standard(self.config.temperature_unit.as_str()).on_press(Message::ToggleTemperatureUnit),
-        ));
+        // LOCATION section
+        col = col.push(Self::section_header(crate::fl!("section-location")));
 
         col = col.push(settings::item(
-            crate::fl!("settings-auto-units"),
-            widget::row()
-                .spacing(8)
-                .align_y(cosmic::iced::Alignment::Center)
-                .push(widget::toggler(self.config.auto_units).on_toggle(|_| Message::ToggleAutoUnits))
-                .push(text(crate::fl!("settings-auto-units-hint")).size(11)),
-        ));
-
-        col = col.push(widget::divider::horizontal::default());
-
-        // Location section
-        col = col.push(settings::item(
-            crate::fl!("settings-auto-location"),
+            crate::fl!("settings-auto-detect"),
             widget::toggler(self.config.use_auto_location).on_toggle(|_| Message::ToggleAutoLocation),
         ));
 
         if self.config.use_auto_location {
-            col = col.push(settings::item(
-                "",
-                widget::button::standard(crate::fl!("settings-detect-now")).on_press(Message::DetectLocation),
-            ));
-        }
-
-        col = col.push(settings::item(
-            crate::fl!("settings-current-location"),
-            text(&self.config.location_name).size(13),
-        ));
-
-        if !self.config.use_auto_location {
-            col = col.push(settings::item(
-                crate::fl!("settings-search-location"),
+            // Auto-detect enabled: show location with subtitle and refresh button
+            col = col.push(
+                widget::row()
+                    .spacing(8)
+                    .align_y(cosmic::iced::Alignment::Center)
+                    .push(
+                        widget::column()
+                            .push(text(&self.config.location_name).size(14))
+                            .push(text(crate::fl!("detected-via-ip")).size(11).class(cosmic::theme::Text::Accent))
+                            .width(cosmic::iced::Length::Fill),
+                    )
+                    .push(widget::button::standard(crate::fl!("settings-refresh")).on_press(Message::DetectLocation)),
+            );
+        } else {
+            // Manual mode: show search input
+            col = col.push(
                 widget::row()
                     .spacing(8)
                     .push(
                         widget::text_input(crate::fl!("settings-search-placeholder"), &self.city_input)
                             .on_input(Message::UpdateCityInput)
                             .on_submit(|_| Message::SearchCity)
-                            .width(cosmic::iced::Length::Fixed(180.0)),
+                            .width(cosmic::iced::Length::Fill),
                     )
                     .push(widget::button::standard(crate::fl!("settings-search")).on_press(Message::SearchCity)),
-            ));
+            );
 
+            // Search results
             for (idx, result) in self.search_results.iter().enumerate() {
                 col = col.push(
                     widget::button::text(&result.display_name)
@@ -1112,35 +1187,73 @@ impl Tempest {
                         .width(cosmic::iced::Length::Fill),
                 );
             }
+
+            // Show current location with "Manually selected" subtitle
+            col = col.push(
+                widget::column()
+                    .push(text(&self.config.location_name).size(14))
+                    .push(text(crate::fl!("manually-selected")).size(11).class(cosmic::theme::Text::Accent)),
+            );
         }
 
+        // UNITS section
         col = col.push(widget::divider::horizontal::default());
+        col = col.push(Self::section_header(crate::fl!("section-units")));
 
-        // Refresh & Alerts section
+        col = col.push(
+            widget::row()
+                .align_y(cosmic::iced::Alignment::Center)
+                .push(text(crate::fl!("settings-temperature")).width(cosmic::iced::Length::Fill))
+                .push(
+                    widget::segmented_control::horizontal(&self.temperature_model)
+                        .on_activate(Message::TemperatureUnitActivated),
+                ),
+        );
+
+        col = col.push(
+            widget::row()
+                .align_y(cosmic::iced::Alignment::Center)
+                .push(text(crate::fl!("settings-measurement")).width(cosmic::iced::Length::Fill))
+                .push(
+                    widget::segmented_control::horizontal(&self.measurement_model)
+                        .on_activate(Message::MeasurementActivated),
+                ),
+        );
+
+        col = col.push(settings::item(
+            crate::fl!("settings-auto-units"),
+            widget::row()
+                .spacing(8)
+                .align_y(cosmic::iced::Alignment::Center)
+                .push(text(crate::fl!("settings-auto-units-hint")).size(11))
+                .push(widget::toggler(self.config.auto_units).on_toggle(|_| Message::ToggleAutoUnits)),
+        ));
+
+        // UPDATES section
+        col = col.push(widget::divider::horizontal::default());
+        col = col.push(Self::section_header(crate::fl!("section-updates")));
+
         col = col.push(settings::item(
             crate::fl!("settings-refresh-interval"),
             widget::row()
                 .spacing(8)
                 .align_y(cosmic::iced::Alignment::Center)
+                .push(text(crate::fl!("settings-min")).size(13))
                 .push(
                     widget::text_input("15", &self.refresh_input)
                         .on_input(Message::UpdateRefreshInterval)
                         .width(cosmic::iced::Length::Fixed(60.0)),
-                )
-                .push(text(crate::fl!("settings-minutes")).size(13)),
+                ),
         ));
 
         col = col.push(settings::item(
             crate::fl!("settings-weather-alerts"),
-            widget::row()
-                .spacing(8)
-                .align_y(cosmic::iced::Alignment::Center)
-                .push(widget::toggler(self.config.alerts_enabled).on_toggle(|_| Message::ToggleAlertsEnabled))
-                .push(text(crate::fl!("settings-alerts-hint")).size(11)),
+            widget::toggler(self.config.alerts_enabled).on_toggle(|_| Message::ToggleAlertsEnabled),
         ));
 
-        // Panel display options
-        col = col.push(text(crate::fl!("panel-display")).size(14));
+        // PANEL DISPLAY section
+        col = col.push(widget::divider::horizontal::default());
+        col = col.push(Self::section_header(crate::fl!("section-panel-display")));
 
         col = col.push(settings::item(
             crate::fl!("show-icon"),
@@ -1148,7 +1261,7 @@ impl Tempest {
         ));
 
         col = col.push(settings::item(
-            crate::fl!("settings-show-aqi"),
+            crate::fl!("show-aqi"),
             widget::toggler(self.config.show_aqi_in_panel).on_toggle(|_| Message::ToggleShowAqiInPanel),
         ));
 
@@ -1165,17 +1278,6 @@ impl Tempest {
         col = col.push(settings::item(
             crate::fl!("show-sunrise-sunset"),
             widget::toggler(self.config.show_sunrise_sunset_in_panel).on_toggle(|_| Message::ToggleShowSunriseSunsetInPanel),
-        ));
-
-        col = col.push(widget::divider::horizontal::default());
-
-        // About section
-        col = col.push(settings::item(crate::fl!("settings-version"), text(VERSION).size(13)));
-
-        col = col.push(settings::item(
-            crate::fl!("settings-support"),
-            widget::button::text(crate::fl!("settings-tip-kofi"))
-                .on_press(Message::OpenUrl("https://ko-fi.com/vintagetechie".to_string())),
         ));
 
         col.into()
@@ -1200,6 +1302,9 @@ impl Tempest {
                 self.config.temperature_unit = TemperatureUnit::Celsius;
                 self.config.measurement_system = MeasurementSystem::Metric;
             }
+            // Sync the segmented control models with the new values
+            self.temperature_model = build_temperature_model(self.config.temperature_unit);
+            self.measurement_model = build_measurement_model(self.config.measurement_system);
         }
     }
 }
