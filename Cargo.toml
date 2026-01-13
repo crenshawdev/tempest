@@ -1,6 +1,6 @@
 [package]
 name = "cosmic-ext-applet-tempest"
-version = "2.0.0"
+version = "2.0.1"
 edition = "2021"
 authors = ["VintageTechie (John Crenshaw) <john@vintagetechie.com>"]
 license = "GPL-3.0-only"
@@ -31,7 +31,6 @@ features = ["fluent-system", "desktop-requester"]
 
 [dependencies.libcosmic]
 git = "https://github.com/pop-os/libcosmic.git"
-rev = "dd3610b8"
 default-features = false
 features = ["applet", "tokio", "wayland"]
 
