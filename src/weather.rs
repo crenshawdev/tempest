@@ -1372,56 +1372,74 @@ pub fn weathercode_to_description(code: i32) -> &'static str {
     }
 }
 
-/// Converts 24-hour to 12-hour format with AM/PM.
-fn hour_to_12h(hour: u32) -> (u32, &'static str) {
-    match hour {
-        0 => (12, "AM"),
-        1..=11 => (hour, "AM"),
-        12 => (12, "PM"),
-        _ => (hour - 12, "PM"),
-    }
-}
-
-/// Parses ISO timestamp and formats with chrono, trimming leading zeros.
-fn format_datetime_12h(time_str: &str) -> Option<String> {
-    chrono::DateTime::parse_from_rfc3339(time_str)
-        .ok()
-        .map(|dt| dt.format("%I:%M %p").to_string().trim_start_matches('0').to_string())
-}
-
-/// Formats ISO timestamp to hour (e.g., "2025-01-20T14:00" -> "2:00 PM")
-pub fn format_hour(time_str: &str) -> String {
-    if let Some(formatted) = format_datetime_12h(time_str) {
-        return formatted;
+/// Formats ISO timestamp to hour only (e.g., "14:00" or "2:00 PM").
+pub fn format_hour(time_str: &str, military_time: bool) -> String {
+    // Try RFC3339 parsing first
+    if let Ok(dt) = chrono::DateTime::parse_from_rfc3339(time_str) {
+        return format_chrono_time(&dt, military_time);
     }
 
     // Fallback: parse "2025-01-20T14:00" manually
-    if let Some(hour) = time_str.split('T').nth(1).and_then(|t| t.split(':').next()?.parse().ok()) {
-        let (display_hour, period) = hour_to_12h(hour);
-        return format!("{}:00 {}", display_hour, period);
+    if let Some(hour) = time_str
+        .split('T')
+        .nth(1)
+        .and_then(|t| t.split(':').next()?.parse::<u32>().ok())
+    {
+        return format_hour_minute(hour, 0, military_time);
     }
 
     time_str.to_string()
 }
 
-/// Formats ISO timestamp to time (e.g., "2025-01-20T06:30:00" -> "6:30 AM")
-pub fn format_time(time_str: &str) -> String {
-    if let Some(formatted) = format_datetime_12h(time_str) {
-        return formatted;
+/// Formats ISO timestamp to display time (e.g., "14:30" or "2:30 PM").
+pub fn format_time(time_str: &str, military_time: bool) -> String {
+    // Try RFC3339 parsing first
+    if let Ok(dt) = chrono::DateTime::parse_from_rfc3339(time_str) {
+        return format_chrono_time(&dt, military_time);
     }
 
     // Fallback: parse "2025-01-20T06:30:00" manually
     if let Some(time_part) = time_str.split('T').nth(1) {
         let parts: Vec<&str> = time_part.split(':').collect();
-        if let (Some(Ok(hour)), Some(Ok(minute))) =
-            (parts.first().map(|s| s.parse::<u32>()), parts.get(1).map(|s| s.parse::<u32>()))
-        {
-            let (display_hour, period) = hour_to_12h(hour);
-            return format!("{}:{:02} {}", display_hour, minute, period);
+        if let (Some(Ok(hour)), Some(Ok(minute))) = (
+            parts.first().map(|s| s.parse::<u32>()),
+            parts.get(1).map(|s| s.parse::<u32>()),
+        ) {
+            return format_hour_minute(hour, minute, military_time);
         }
     }
 
     time_str.to_string()
+}
+
+/// Formats a chrono DateTime according to the time format preference.
+fn format_chrono_time<Tz: chrono::TimeZone>(dt: &chrono::DateTime<Tz>, military_time: bool) -> String
+where
+    Tz::Offset: std::fmt::Display,
+{
+    if military_time {
+        dt.format("%H:%M").to_string()
+    } else {
+        dt.format("%I:%M %p")
+            .to_string()
+            .trim_start_matches('0')
+            .to_string()
+    }
+}
+
+/// Formats hour and minute values according to the time format preference.
+fn format_hour_minute(hour: u32, minute: u32, military_time: bool) -> String {
+    if military_time {
+        format!("{:02}:{:02}", hour, minute)
+    } else {
+        let (display_hour, period) = match hour {
+            0 => (12, "AM"),
+            1..=11 => (hour, "AM"),
+            12 => (12, "PM"),
+            _ => (hour - 12, "PM"),
+        };
+        format!("{}:{:02} {}", display_hour, minute, period)
+    }
 }
 
 /// Determines if current time is night (before sunrise or after sunset).

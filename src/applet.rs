@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use cosmic::app::{Core, Task};
-use cosmic::cosmic_config::CosmicConfigEntry;
+use cosmic::cosmic_config::{self, cosmic_config_derive::CosmicConfigEntry, CosmicConfigEntry};
+use serde::{Deserialize, Serialize};
 use cosmic::iced::platform_specific::shell::wayland::commands::popup::{destroy_popup, get_popup};
 use cosmic::iced::window::Id;
 use cosmic::iced::{Limits, Subscription};
@@ -21,6 +22,14 @@ use crate::weather::{
 };
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+
+/// System-wide time format preference from COSMIC time applet.
+#[derive(Debug, Clone, Default, PartialEq, Eq, CosmicConfigEntry, Deserialize, Serialize)]
+#[version = 1]
+pub struct TimeAppletConfig {
+    #[serde(default)]
+    pub military_time: bool,
+}
 
 /// This is the struct that represents your application.
 /// It is used to define the data that will be used by your application.
@@ -66,6 +75,8 @@ pub struct Tempest {
     measurement_model: segmented_button::SingleSelectModel,
     /// Cached formatted timestamp for display (avoids recomputing on every render)
     last_updated_display: Option<String>,
+    /// 24-hour time format when true, 12-hour with AM/PM when false.
+    military_time: bool,
 }
 
 /// Returns the tab as an Option, with Settings/Alerts mapped to None
@@ -161,6 +172,7 @@ impl Default for Tempest {
             temperature_model: build_temperature_model(config.temperature_unit),
             measurement_model: build_measurement_model(config.measurement_system),
             last_updated_display: None,
+            military_time: false,
             config,
             config_handler: None,
         }
@@ -196,6 +208,7 @@ pub enum Message {
     TabActivated(segmented_button::Entity),
     TemperatureUnitActivated(segmented_button::Entity),
     MeasurementActivated(segmented_button::Entity),
+    SystemTimeConfig(TimeAppletConfig),
 }
 
 /// Implement the `Application` trait for your application.
@@ -243,6 +256,16 @@ impl Application for Tempest {
         let temperature_model = build_temperature_model(config.temperature_unit);
         let measurement_model = build_measurement_model(config.measurement_system);
 
+        // Read system time format preference for immediate correct display
+        let military_time = cosmic::cosmic_config::Config::new(
+            "com.system76.CosmicAppletTime",
+            TimeAppletConfig::VERSION,
+        )
+        .ok()
+        .and_then(|h| TimeAppletConfig::get_entry(&h).ok())
+        .map(|c| c.military_time)
+        .unwrap_or(false);
+
         let app = Tempest {
             core,
             config: config.clone(),
@@ -255,6 +278,7 @@ impl Application for Tempest {
             tab_model,
             temperature_model,
             measurement_model,
+            military_time,
             ..Default::default()
         };
 
@@ -274,8 +298,8 @@ impl Application for Tempest {
     fn subscription(&self) -> Subscription<Self::Message> {
         let interval_minutes = self.config.refresh_interval_minutes;
 
-        // Use the interval value as part of the ID so subscription restarts when it changes
-        IcedSubscription::run_with_id(
+        // Periodic weather refresh
+        let tick = IcedSubscription::run_with_id(
             (std::any::TypeId::of::<Self>(), interval_minutes),
             async_stream::stream! {
                 let interval = Duration::from_secs(interval_minutes * 60);
@@ -284,7 +308,15 @@ impl Application for Tempest {
                     yield Message::Tick;
                 }
             },
-        )
+        );
+
+        // Watch system time config for 12/24 hour format changes
+        let time_config = self
+            .core
+            .watch_config::<TimeAppletConfig>("com.system76.CosmicAppletTime")
+            .map(|update| Message::SystemTimeConfig(update.config));
+
+        Subscription::batch([tick, time_config])
     }
 
     fn on_close_requested(&self, id: Id) -> Option<Message> {
@@ -359,8 +391,8 @@ impl Application for Tempest {
                 }
                 if self.config.show_sunrise_sunset_in_panel {
                     if let Some(first_day) = weather.forecast.first() {
-                        let sunrise = format_time(&first_day.sunrise);
-                        let sunset = format_time(&first_day.sunset);
+                        let sunrise = format_time(&first_day.sunrise, self.military_time);
+                        let sunset = format_time(&first_day.sunset, self.military_time);
                         row = row.push(text("|").size(12));
                         row = row.push(text(format!("{}/{}", sunrise, sunset)));
                     }
@@ -394,8 +426,8 @@ impl Application for Tempest {
                 }
                 if self.config.show_sunrise_sunset_in_panel {
                     if let Some(first_day) = weather.forecast.first() {
-                        let sunrise = format_time(&first_day.sunrise);
-                        let sunset = format_time(&first_day.sunset);
+                        let sunrise = format_time(&first_day.sunrise, self.military_time);
+                        let sunset = format_time(&first_day.sunset, self.military_time);
                         col = col.push(text(format!("{}/{}", sunrise, sunset)).size(12));
                     }
                 }
@@ -605,12 +637,13 @@ impl Application for Tempest {
                         // Update last updated timestamp and cache formatted display
                         let now = chrono::Local::now();
                         self.config.last_updated = Some(now.timestamp());
-                        self.last_updated_display = Some(
-                            now.format("%I:%M %p")
-                                .to_string()
-                                .trim_start_matches('0')
-                                .to_string(),
-                        );
+                        let fmt = if self.military_time { "%H:%M" } else { "%I:%M %p" };
+                        let formatted = now.format(fmt).to_string();
+                        self.last_updated_display = Some(if self.military_time {
+                            formatted
+                        } else {
+                            formatted.trim_start_matches('0').to_string()
+                        });
                         self.save_config();
                     }
                     Err(e) => {
@@ -822,6 +855,22 @@ impl Application for Tempest {
                     return Task::perform(async { Message::RefreshWeather }, Action::App);
                 }
             }
+            Message::SystemTimeConfig(config) => {
+                self.military_time = config.military_time;
+                // Refresh the cached timestamp display with new format
+                if let Some(timestamp) = self.config.last_updated {
+                    if let Some(dt) = chrono::DateTime::from_timestamp(timestamp, 0) {
+                        let local = dt.with_timezone(&chrono::Local);
+                        let fmt = if self.military_time { "%H:%M" } else { "%I:%M %p" };
+                        let formatted = local.format(fmt).to_string();
+                        self.last_updated_display = Some(if self.military_time {
+                            formatted
+                        } else {
+                            formatted.trim_start_matches('0').to_string()
+                        });
+                    }
+                }
+            }
         }
         Task::none()
     }
@@ -925,8 +974,8 @@ impl Tempest {
 
         // Sunrise/Sunset
         if let Some(first_day) = weather.forecast.first() {
-            let sunrise_time = format_time(&first_day.sunrise);
-            let sunset_time = format_time(&first_day.sunset);
+            let sunrise_time = format_time(&first_day.sunrise, self.military_time);
+            let sunset_time = format_time(&first_day.sunset, self.military_time);
             let l_sunrise = crate::fl!("sunrise", time = sunrise_time.as_str());
             let l_sunset = crate::fl!("sunset", time = sunset_time.as_str());
             col = col.push(
@@ -1048,7 +1097,8 @@ impl Tempest {
                                 )
                             })
                             .push({
-                                let expires_time = alert.expires.format("%b %d %I:%M %p").to_string();
+                                let time_fmt = if self.military_time { "%b %d %H:%M" } else { "%b %d %I:%M %p" };
+                                let expires_time = alert.expires.format(time_fmt).to_string();
                                 text(crate::fl!("expires", time = expires_time.as_str())).size(10)
                             }),
                     )
@@ -1074,7 +1124,7 @@ impl Tempest {
                 let cell = widget::column()
                     .spacing(4)
                     .align_x(cosmic::iced::alignment::Horizontal::Center)
-                    .push(text(format_hour(&hour.time)).size(12))
+                    .push(text(format_hour(&hour.time, self.military_time)).size(12))
                     .push(widget::icon::from_name(weathercode_to_icon_name(hour.weathercode, false)).size(20).symbolic(true))
                     .push(text(self.config.temperature_unit.format(hour.temperature)).size(14))
                     .push(text(format!("{}%", hour.precipitation_probability)).size(11));
