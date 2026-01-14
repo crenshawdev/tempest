@@ -1,0 +1,15 @@
+label-feels-like = Feels like
+label-humidity = Humidity
+label-wind = Wind
+label-gusts = Gusts
+label-uv-index = UV Index
+label-cloud-cover = Cloud cover
+label-visibility = Visibility
+label-pressure = Pressure
+label-sunrise = Sunrise
+label-sunset = Sunset
+label-pm25 = PM2.5
+label-pm10 = PM10
+label-ozone = Ozone
+label-no2 = NO2
+label-co = CO
