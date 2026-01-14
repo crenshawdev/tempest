@@ -16,6 +16,18 @@ tab-hourly = Hourly
 tab-forecast = 7-Day
 tab-air-quality = Air
 
+# Current conditions - labels
+label-feels-like = Feels like
+label-humidity = Humidity
+label-wind = Wind
+label-gusts = Gusts
+label-uv-index = UV Index
+label-cloud-cover = Cloud cover
+label-visibility = Visibility
+label-pressure = Pressure
+label-sunrise = Sunrise
+label-sunset = Sunset
+
 # Current conditions
 feels-like = Feels like: { $temp }
 humidity = Humidity: { $value }%
@@ -27,6 +39,13 @@ visibility = Visibility: { $value } { $unit }
 pressure = Pressure: { $value } hPa
 sunrise = Sunrise: { $time }
 sunset = Sunset: { $time }
+
+# Air quality - labels
+label-pm25 = PM2.5
+label-pm10 = PM10
+label-ozone = Ozone
+label-no2 = NO2
+label-co = CO
 
 # Air quality
 air-quality-unavailable = Air quality data unavailable

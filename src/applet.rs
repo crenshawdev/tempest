@@ -527,8 +527,8 @@ impl Application for Tempest {
                 .width(cosmic::iced::Length::Fill),
             );
         } else if let Some(ref weather) = self.weather_data {
-            // Tab bar using segmented control for recessed styling
-            let tab_control = widget::segmented_control::horizontal(&self.tab_model)
+            let tab_control = widget::tab_bar::horizontal(&self.tab_model)
+                .button_alignment(cosmic::iced::Alignment::Center)
                 .on_activate(Message::TabActivated);
 
             column = column.push(cosmic::applet::padded_control(tab_control));
@@ -908,120 +908,125 @@ impl Tempest {
         }
     }
 
+    /// Creates a stat cell with label and bold value stacked vertically.
+    fn stat_cell(label: String, value: String) -> Element<'static, Message> {
+        let bold_font = cosmic::iced::Font {
+            weight: cosmic::iced::font::Weight::Bold,
+            ..Default::default()
+        };
+        widget::column()
+            .spacing(2)
+            .push(text(label).size(12))
+            .push(text(value).size(14).font(bold_font))
+            .width(cosmic::iced::Length::FillPortion(1))
+            .into()
+    }
+
+    /// Creates a row with two stat cells.
+    fn stat_row(
+        left_label: String,
+        left_value: String,
+        right_label: String,
+        right_value: String,
+    ) -> Element<'static, Message> {
+        widget::row()
+            .push(Self::stat_cell(left_label, left_value))
+            .push(Self::stat_cell(right_label, right_value))
+            .into()
+    }
+
     /// Renders the Current weather tab content.
     fn render_current_tab(&self, weather: &WeatherData) -> Element<'_, Message> {
-        let mut col = widget::column().spacing(8);
+        let mut col = widget::column().spacing(16).padding([0, 8]);
 
-        // Temperature and condition
+        // Temperature and condition grouped together
         col = col.push(
-            widget::row()
-                .spacing(10)
-                .push(text(self.config.temperature_unit.format(weather.current.temperature)).size(32))
-                .push(text(weathercode_to_description(weather.current.weathercode))),
+            widget::column()
+                .spacing(4)
+                .push(text(self.config.temperature_unit.format(weather.current.temperature)).size(36))
+                .push(text(weathercode_to_description(weather.current.weathercode)).size(14)),
         );
 
-        // Feels like and humidity
-        let feels_like_temp = format!("{:.0}{}", weather.current.feels_like, self.config.temperature_unit.symbol());
-        let l_feels_like = crate::fl!("feels-like", temp = feels_like_temp.as_str());
-        let l_humidity = crate::fl!("humidity", value = weather.current.humidity);
-        col = col.push(
-            widget::row()
-                .spacing(20)
-                .push(text(l_feels_like).size(14))
-                .push(text(l_humidity).size(14)),
-        );
+        col = col.push(widget::divider::horizontal::default());
 
-        // Wind information
+        // Stats table
         let wind_unit = self.config.measurement_system.wind_speed_unit();
-        let wind_speed = format!("{:.1}", weather.current.windspeed);
         let wind_dir = wind_direction_to_compass(weather.current.wind_direction);
-        let gust_speed = format!("{:.1}", weather.current.wind_gusts);
-        let l_wind = crate::fl!("wind", speed = wind_speed.as_str(), unit = wind_unit, direction = wind_dir);
-        let l_gusts = crate::fl!("gusts", speed = gust_speed.as_str(), unit = wind_unit);
-        col = col.push(
-            widget::row()
-                .spacing(20)
-                .push(text(l_wind).size(14))
-                .push(text(l_gusts).size(14)),
-        );
-
-        // UV and cloud cover
-        let uv_val = format!("{:.1}", weather.current.uv_index);
-        let l_uv_index = crate::fl!("uv-index", value = uv_val.as_str());
-        let l_cloud_cover = crate::fl!("cloud-cover", value = weather.current.cloud_cover);
-        col = col.push(
-            widget::row()
-                .spacing(20)
-                .push(text(l_uv_index).size(14))
-                .push(text(l_cloud_cover).size(14)),
-        );
-
-        // Visibility and pressure
         let visibility = self.config.measurement_system.convert_visibility(weather.current.visibility);
         let visibility_unit = self.config.measurement_system.visibility_unit();
-        let vis_val = format!("{:.1}", visibility);
-        let pressure_val = format!("{:.0}", weather.current.pressure);
-        let l_visibility = crate::fl!("visibility", value = vis_val.as_str(), unit = visibility_unit);
-        let l_pressure = crate::fl!("pressure", value = pressure_val.as_str());
-        col = col.push(
-            widget::row()
-                .spacing(20)
-                .push(text(l_visibility).size(14))
-                .push(text(l_pressure).size(14)),
-        );
 
-        // Sunrise/Sunset
+        // Feels like / Humidity
+        col = col.push(Self::stat_row(
+            crate::fl!("label-feels-like"),
+            format!("{:.0}{}", weather.current.feels_like, self.config.temperature_unit.symbol()),
+            crate::fl!("label-humidity"),
+            format!("{}%", weather.current.humidity),
+        ));
+
+        // Wind / Gusts
+        col = col.push(Self::stat_row(
+            crate::fl!("label-wind"),
+            format!("{:.1} {} {}", weather.current.windspeed, wind_unit, wind_dir),
+            crate::fl!("label-gusts"),
+            format!("{:.1} {}", weather.current.wind_gusts, wind_unit),
+        ));
+
+        // UV Index / Cloud cover
+        col = col.push(Self::stat_row(
+            crate::fl!("label-uv-index"),
+            format!("{:.1}", weather.current.uv_index),
+            crate::fl!("label-cloud-cover"),
+            format!("{}%", weather.current.cloud_cover),
+        ));
+
+        // Visibility / Pressure
+        col = col.push(Self::stat_row(
+            crate::fl!("label-visibility"),
+            format!("{:.1} {}", visibility, visibility_unit),
+            crate::fl!("label-pressure"),
+            format!("{:.0} hPa", weather.current.pressure),
+        ));
+
+        // Sunrise / Sunset
         if let Some(first_day) = weather.forecast.first() {
-            let sunrise_time = format_time(&first_day.sunrise, self.military_time);
-            let sunset_time = format_time(&first_day.sunset, self.military_time);
-            let l_sunrise = crate::fl!("sunrise", time = sunrise_time.as_str());
-            let l_sunset = crate::fl!("sunset", time = sunset_time.as_str());
-            col = col.push(
-                widget::row()
-                    .spacing(20)
-                    .push(text(l_sunrise).size(14))
-                    .push(text(l_sunset).size(14)),
-            );
+            col = col.push(Self::stat_row(
+                crate::fl!("label-sunrise"),
+                format_time(&first_day.sunrise, self.military_time),
+                crate::fl!("label-sunset"),
+                format_time(&first_day.sunset, self.military_time),
+            ));
         }
 
         // Air Quality
         if let Some(ref aq) = self.air_quality {
             col = col.push(widget::divider::horizontal::default());
 
-            let label = aqi_standard_label(aq.standard);
-            let description = aqi_to_description(aq.aqi, aq.standard);
-            col = col.push(
-                widget::row()
-                    .spacing(20)
-                    .push(text(format!("{}: {}", label, aq.aqi)).size(16))
-                    .push(text(description).size(14)),
-            );
+            let aqi_label = aqi_standard_label(aq.standard);
+            let aqi_description = aqi_to_description(aq.aqi, aq.standard);
 
-            let pm25_val = format!("{:.1}", aq.pm2_5);
-            let pm10_val = format!("{:.1}", aq.pm10);
-            let l_pm25 = crate::fl!("pm25", value = pm25_val.as_str());
-            let l_pm10 = crate::fl!("pm10", value = pm10_val.as_str());
-            col = col.push(
-                widget::row()
-                    .spacing(20)
-                    .push(text(l_pm25).size(14))
-                    .push(text(l_pm10).size(14)),
-            );
+            // AQI / PM2.5
+            col = col.push(Self::stat_row(
+                aqi_label.to_string(),
+                format!("{} ({})", aq.aqi, aqi_description),
+                crate::fl!("label-pm25"),
+                format!("{:.1} ug/m3", aq.pm2_5),
+            ));
 
-            let ozone_val = format!("{:.1}", aq.ozone);
-            let no2_val = format!("{:.1}", aq.nitrogen_dioxide);
-            let l_ozone = crate::fl!("ozone", value = ozone_val.as_str());
-            let l_no2 = crate::fl!("no2", value = no2_val.as_str());
-            col = col.push(
-                widget::row()
-                    .spacing(20)
-                    .push(text(l_ozone).size(14))
-                    .push(text(l_no2).size(14)),
-            );
+            // PM10 / Ozone
+            col = col.push(Self::stat_row(
+                crate::fl!("label-pm10"),
+                format!("{:.1} ug/m3", aq.pm10),
+                crate::fl!("label-ozone"),
+                format!("{:.1} ug/m3", aq.ozone),
+            ));
 
-            let co_val = format!("{:.1}", aq.carbon_monoxide);
-            let l_co = crate::fl!("co", value = co_val.as_str());
-            col = col.push(text(l_co).size(14));
+            // NO2 / CO
+            col = col.push(Self::stat_row(
+                crate::fl!("label-no2"),
+                format!("{:.1} ug/m3", aq.nitrogen_dioxide),
+                crate::fl!("label-co"),
+                format!("{:.1} ug/m3", aq.carbon_monoxide),
+            ));
         } else {
             col = col.push(widget::divider::horizontal::default());
             col = col.push(text(crate::fl!("air-quality-unavailable")).size(14));
