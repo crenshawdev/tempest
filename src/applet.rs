@@ -97,7 +97,6 @@ fn build_tab_model(active: Option<PopupTab>) -> segmented_button::SingleSelectMo
         (PopupTab::Current, crate::fl!("tab-current")),
         (PopupTab::Hourly, crate::fl!("tab-hourly")),
         (PopupTab::Forecast, crate::fl!("tab-forecast")),
-        (PopupTab::AirQuality, crate::fl!("tab-air-quality")),
     ];
 
     for (tab, label) in tabs {
@@ -538,7 +537,6 @@ impl Application for Tempest {
             // Tab content - delegated to helper methods
             match self.active_tab {
                 PopupTab::Current => column = column.push(self.render_current_tab(weather)),
-                PopupTab::AirQuality => column = column.push(self.render_air_quality_tab()),
                 PopupTab::Alerts => column = column.push(self.render_alerts_tab()),
                 PopupTab::Hourly => column = column.push(self.render_hourly_tab(weather)),
                 PopupTab::Forecast => column = column.push(self.render_forecast_tab(weather)),
@@ -986,17 +984,12 @@ impl Tempest {
             );
         }
 
-        col.into()
-    }
-
-    /// Renders the Air Quality tab content.
-    fn render_air_quality_tab(&self) -> Element<'_, Message> {
-        let mut col = widget::column().spacing(8);
-
+        // Air Quality
         if let Some(ref aq) = self.air_quality {
+            col = col.push(widget::divider::horizontal::default());
+
             let label = aqi_standard_label(aq.standard);
             let description = aqi_to_description(aq.aqi, aq.standard);
-
             col = col.push(
                 widget::row()
                     .spacing(20)
@@ -1030,6 +1023,7 @@ impl Tempest {
             let l_co = crate::fl!("co", value = co_val.as_str());
             col = col.push(text(l_co).size(14));
         } else {
+            col = col.push(widget::divider::horizontal::default());
             col = col.push(text(crate::fl!("air-quality-unavailable")).size(14));
         }
 
