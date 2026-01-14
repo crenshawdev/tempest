@@ -36,7 +36,6 @@ impl TemperatureUnit {
 pub enum PopupTab {
     #[default]
     Current,
-    AirQuality,
     Alerts,
     Hourly,
     Forecast,
@@ -101,6 +100,7 @@ pub struct Config {
     pub manual_location_name: Option<String>,
     pub last_updated: Option<i64>,
     /// Last selected tab, restored on popup open.
+    #[serde(default)]
     pub default_tab: PopupTab,
     /// Enable weather alerts (US via NWS, EU via MeteoAlarm).
     #[serde(default = "default_alerts_enabled")]
