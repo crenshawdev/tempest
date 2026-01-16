@@ -47,6 +47,18 @@
   </categories>
 
   <releases>
+    <release version="2.1.0" date="2026-01-16">
+      <description>
+        <p>Tab bar navigation and integrated air quality</p>
+        <ul>
+          <li>Switched to tab bar navigation for a cleaner look</li>
+          <li>Air quality info now lives in the Current tab with a dedicated pollutants subview</li>
+          <li>Times throughout the app now respect the system 12/24 hour preference</li>
+          <li>Polished spacing and alignment across all tabs</li>
+          <li>Added Czech translation</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.0.0" date="2026-01-10">
       <description>
         <p>Redesigned settings interface with improved COSMIC integration</p>
@@ -239,6 +251,10 @@
       <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-main.png</image>
     </screenshot>
     <screenshot>
+      <caption>Current weather with air quality</caption>
+      <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-main1.png</image>
+    </screenshot>
+    <screenshot>
       <caption>Hourly forecast</caption>
       <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-hourly.png</image>
     </screenshot>
@@ -247,7 +263,7 @@
       <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-7day.png</image>
     </screenshot>
     <screenshot>
-      <caption>Air quality information</caption>
+      <caption>Air quality pollutants</caption>
       <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-aiq.png</image>
     </screenshot>
     <screenshot>
@@ -255,11 +271,11 @@
       <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-alerts.png</image>
     </screenshot>
     <screenshot>
-      <caption>Settings with auto-detect enabled</caption>
+      <caption>Settings</caption>
       <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-settings.png</image>
     </screenshot>
     <screenshot>
-      <caption>Settings with manual location</caption>
+      <caption>Settings</caption>
       <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-settings2.png</image>
     </screenshot>
   </screenshots>

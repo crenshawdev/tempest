@@ -4,16 +4,16 @@ A weather applet for COSMIC Desktop with automatic location detection.
 
 ## Screenshots
 
-| Main | Air Quality | 7-Day Forecast |
-|------|-------------|----------------|
-| ![Main](screenshots/tempest-main.png) | ![Air Quality](screenshots/tempest-aiq.png) | ![7-Day](screenshots/tempest-7day.png) |
+| Main | Main | 7-Day Forecast |
+|------|------|----------------|
+| ![Main](screenshots/tempest-main.png) | ![Main](screenshots/tempest-main1.png) | ![7-Day](screenshots/tempest-7day.png) |
 
-| Hourly | Alerts |
-|--------|--------|
-| ![Hourly](screenshots/tempest-hourly.png) | ![Alerts](screenshots/tempest-alerts.png) |
+| Hourly | Air Quality | Alerts |
+|--------|-------------|--------|
+| ![Hourly](screenshots/tempest-hourly.png) | ![Air Quality](screenshots/tempest-aiq.png) | ![Alerts](screenshots/tempest-alerts.png) |
 
-| Settings (Auto-detect) | Settings (Manual) |
-|------------------------|-------------------|
+| Settings | Settings |
+|----------|----------|
 | ![Settings](screenshots/tempest-settings.png) | ![Settings 2](screenshots/tempest-settings2.png) |
 
 ## Features
@@ -21,18 +21,15 @@ A weather applet for COSMIC Desktop with automatic location detection.
 - Real-time weather data from Open-Meteo API (no API key required)
 - Customizable panel display (temperature, weather icon, AQI, pressure, dew point, sunrise/sunset)
 - Detailed popup with tabbed interface:
-  - Current conditions (temperature, feels-like, humidity)
-  - Wind information (speed, direction, gusts)
-  - UV index, cloud cover, visibility, pressure
-  - Sunrise and sunset times
-  - **Air Quality tab**: AQI (US/EU standards), PM2.5, PM10, Ozone, NO2, CO levels
-  - **Alerts tab**: Weather alerts from NWS (US), ECCC (Canada), MeteoAlarm (EU), BOM (Australia)
-  - **Hourly tab**: Next 12 hours forecast with precipitation probability
-  - **7-Day tab**: Weekly forecast with high/low temperatures
-  - **Settings tab**: All configuration options
+  - **Current**: Temperature, feels-like, humidity, wind, UV index, cloud cover, visibility, pressure, sunrise/sunset, and air quality (AQI with pollutants subview)
+  - **Hourly**: Next 12 hours forecast with precipitation probability
+  - **7-Day**: Weekly forecast with high/low temperatures and conditions
+  - **Alerts**: Weather alerts from NWS (US), ECCC (Canada), MeteoAlarm (EU), BOM (Australia)
+  - **Settings**: All configuration options
+- Air quality data with US/EU AQI standards, PM2.5, PM10, Ozone, NO2, CO levels
 - Automatic location detection via IP geolocation
 - Manual location override with city search
-- Remembers last selected tab between sessions
+- Respects system 12/24 hour time format
 - Configurable temperature unit (Fahrenheit/Celsius)
 - Configurable measurement system (Imperial/Metric) for wind and visibility
 - Configurable refresh interval
@@ -99,6 +96,10 @@ A [justfile](./justfile) is included with common recipes:
 - `just check-json` - LSP-compatible linter output
 
 ## Changelog
+
+### 2.1.0
+
+Switched to tab bar navigation for a cleaner look. Air quality info now lives in the Current tab with a dedicated pollutants subview. Times throughout the app now respect the system 12/24 hour preference. Polished spacing and alignment across all tabs. Added Czech translation.
 
 ### 2.0.0
 
