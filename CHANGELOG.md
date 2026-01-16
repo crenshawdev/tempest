@@ -5,6 +5,17 @@ All notable changes to Tempest will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-01-16
+
+### Changed
+- Switched to tab bar navigation for a cleaner look
+- Air quality info now lives in the Current tab with a dedicated pollutants subview
+- Times throughout the app now respect the system 12/24 hour preference
+- Polished spacing and alignment across all tabs
+
+### Added
+- Czech translation
+
 ## [2.0.0] - 2026-01-10
 
 ### Changed
@@ -121,6 +132,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Persistent configuration storage
 - Global weather coverage
 
+[2.1.0]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v2.1.0
 [2.0.0]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v2.0.0
 [1.7.3]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v1.7.3
 [1.7.0]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v1.7.0

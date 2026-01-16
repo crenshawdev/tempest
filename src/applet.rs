@@ -2,23 +2,22 @@
 
 use cosmic::app::{Core, Task};
 use cosmic::cosmic_config::{self, cosmic_config_derive::CosmicConfigEntry, CosmicConfigEntry};
-use serde::{Deserialize, Serialize};
 use cosmic::iced::platform_specific::shell::wayland::commands::popup::{destroy_popup, get_popup};
 use cosmic::iced::window::Id;
 use cosmic::iced::{Limits, Subscription};
 use cosmic::iced_futures::Subscription as IcedSubscription;
 use cosmic::widget::{self, segmented_button, settings, text};
 use cosmic::{Action, Application, Element};
+use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::time::Duration;
 
 use crate::config::{Config, MeasurementSystem, PopupTab, TemperatureUnit};
 use crate::weather::{
-    aqi_standard_label, aqi_to_description, detect_location, fetch_air_quality, fetch_alerts,
-    fetch_weather, format_date, format_hour, format_time, is_night_time, search_city,
-    uses_imperial_units, weathercode_to_description, weathercode_to_icon_name,
-    wind_direction_to_compass, AirQualityData, Alert, AlertSeverity, AqiStandard, LocationResult,
-    WeatherData,
+    aqi_to_description, detect_location, fetch_air_quality, fetch_alerts, fetch_weather,
+    format_date, format_hour, format_time, is_night_time, search_city, uses_imperial_units,
+    weathercode_to_description, weathercode_to_icon_name, wind_direction_to_compass,
+    AirQualityData, Alert, AlertSeverity, AqiStandard, LocationResult, WeatherData,
 };
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -77,6 +76,8 @@ pub struct Tempest {
     last_updated_display: Option<String>,
     /// 24-hour time format when true, 12-hour with AM/PM when false.
     military_time: bool,
+    /// Whether the pollutants sub-view is currently displayed.
+    showing_pollutants: bool,
 }
 
 /// Returns the tab as an Option, with Settings/Alerts mapped to None
@@ -115,7 +116,10 @@ fn build_temperature_model(active: TemperatureUnit) -> segmented_button::SingleS
 
     let units = [
         (TemperatureUnit::Celsius, TemperatureUnit::Celsius.symbol()),
-        (TemperatureUnit::Fahrenheit, TemperatureUnit::Fahrenheit.symbol()),
+        (
+            TemperatureUnit::Fahrenheit,
+            TemperatureUnit::Fahrenheit.symbol(),
+        ),
     ];
 
     for (unit, label) in units {
@@ -172,6 +176,7 @@ impl Default for Tempest {
             measurement_model: build_measurement_model(config.measurement_system),
             last_updated_display: None,
             military_time: false,
+            showing_pollutants: false,
             config,
             config_handler: None,
         }
@@ -208,6 +213,8 @@ pub enum Message {
     TemperatureUnitActivated(segmented_button::Entity),
     MeasurementActivated(segmented_button::Entity),
     SystemTimeConfig(TimeAppletConfig),
+    ShowPollutants,
+    HidePollutants,
 }
 
 /// Implement the `Application` trait for your application.
@@ -361,9 +368,7 @@ impl Application for Tempest {
             .symbolic(true);
 
         let data = if self.core.applet.is_horizontal() {
-            let mut row = widget::row()
-                .align_y(Alignment::Center)
-                .spacing(4);
+            let mut row = widget::row().align_y(Alignment::Center).spacing(4);
             if has_alerts {
                 row = row.push(alert_icon);
             }
@@ -379,14 +384,23 @@ impl Application for Tempest {
             }
             if let Some(weather) = &self.weather_data {
                 if self.config.show_dew_point_in_panel {
-                    let dew_point_str = self.config.temperature_unit.format(weather.current.dew_point);
+                    let dew_point_str = self
+                        .config
+                        .temperature_unit
+                        .format(weather.current.dew_point);
                     row = row.push(text("|").size(12));
-                    row = row.push(text(crate::fl!("panel-dew-point", value = dew_point_str.as_str())));
+                    row = row.push(text(crate::fl!(
+                        "panel-dew-point",
+                        value = dew_point_str.as_str()
+                    )));
                 }
                 if self.config.show_pressure_in_panel {
                     let pressure_str = format!("{:.0}", weather.current.pressure);
                     row = row.push(text("|").size(12));
-                    row = row.push(text(crate::fl!("panel-pressure", value = pressure_str.as_str())));
+                    row = row.push(text(crate::fl!(
+                        "panel-pressure",
+                        value = pressure_str.as_str()
+                    )));
                 }
                 if self.config.show_sunrise_sunset_in_panel {
                     if let Some(first_day) = weather.forecast.first() {
@@ -399,9 +413,7 @@ impl Application for Tempest {
             }
             Element::from(row)
         } else {
-            let mut col = widget::column()
-                .align_x(Alignment::Center)
-                .spacing(4);
+            let mut col = widget::column().align_x(Alignment::Center).spacing(4);
             if has_alerts {
                 col = col.push(alert_icon);
             }
@@ -416,12 +428,23 @@ impl Application for Tempest {
             }
             if let Some(weather) = &self.weather_data {
                 if self.config.show_dew_point_in_panel {
-                    let dew_point_str = self.config.temperature_unit.format(weather.current.dew_point);
-                    col = col.push(text(crate::fl!("panel-dew-point", value = dew_point_str.as_str())).size(12));
+                    let dew_point_str = self
+                        .config
+                        .temperature_unit
+                        .format(weather.current.dew_point);
+                    col = col.push(
+                        text(crate::fl!(
+                            "panel-dew-point",
+                            value = dew_point_str.as_str()
+                        ))
+                        .size(12),
+                    );
                 }
                 if self.config.show_pressure_in_panel {
                     let pressure_str = format!("{:.0}", weather.current.pressure);
-                    col = col.push(text(crate::fl!("panel-pressure", value = pressure_str.as_str())).size(12));
+                    col = col.push(
+                        text(crate::fl!("panel-pressure", value = pressure_str.as_str())).size(12),
+                    );
                 }
                 if self.config.show_sunrise_sunset_in_panel {
                     if let Some(first_day) = weather.forecast.first() {
@@ -509,7 +532,10 @@ impl Application for Tempest {
                         .push(widget::icon::from_name("dialog-error-symbolic").size(48))
                         .push(text(crate::fl!("failed-to-load")).size(18))
                         .push(text(error).size(14))
-                        .push(widget::button::standard(crate::fl!("retry")).on_press(Message::RefreshWeather)),
+                        .push(
+                            widget::button::standard(crate::fl!("retry"))
+                                .on_press(Message::RefreshWeather),
+                        ),
                 )
                 .align_x(cosmic::iced::alignment::Horizontal::Center)
                 .width(cosmic::iced::Length::Fill),
@@ -526,13 +552,15 @@ impl Application for Tempest {
                 .align_x(cosmic::iced::alignment::Horizontal::Center)
                 .width(cosmic::iced::Length::Fill),
             );
+        } else if self.showing_pollutants {
+            // Pollutants sub-view replaces normal popup content
+            column = column.push(self.render_pollutants_view());
         } else if let Some(ref weather) = self.weather_data {
             let tab_control = widget::tab_bar::horizontal(&self.tab_model)
                 .button_alignment(cosmic::iced::Alignment::Center)
                 .on_activate(Message::TabActivated);
 
             column = column.push(cosmic::applet::padded_control(tab_control));
-            column = column.push(widget::divider::horizontal::default());
 
             // Tab content - delegated to helper methods
             match self.active_tab {
@@ -578,6 +606,7 @@ impl Application for Tempest {
             Message::PopupClosed(id) => {
                 if self.popup.as_ref() == Some(&id) {
                     self.popup = None;
+                    self.showing_pollutants = false;
                 }
             }
             Message::RefreshWeather => {
@@ -627,15 +656,21 @@ impl Application for Tempest {
                 match result {
                     Ok(data) => {
                         self.current_weathercode = data.current.weathercode;
-                        self.display_label =
-                            self.config.temperature_unit.format(data.current.temperature);
+                        self.display_label = self
+                            .config
+                            .temperature_unit
+                            .format(data.current.temperature);
                         self.weather_data = Some(data);
                         self.error_message = None;
 
                         // Update last updated timestamp and cache formatted display
                         let now = chrono::Local::now();
                         self.config.last_updated = Some(now.timestamp());
-                        let fmt = if self.military_time { "%H:%M" } else { "%I:%M %p" };
+                        let fmt = if self.military_time {
+                            "%H:%M"
+                        } else {
+                            "%I:%M %p"
+                        };
                         let formatted = now.format(fmt).to_string();
                         self.last_updated_display = Some(if self.military_time {
                             formatted
@@ -718,7 +753,8 @@ impl Application for Tempest {
                 self.save_config();
             }
             Message::ToggleShowSunriseSunsetInPanel => {
-                self.config.show_sunrise_sunset_in_panel = !self.config.show_sunrise_sunset_in_panel;
+                self.config.show_sunrise_sunset_in_panel =
+                    !self.config.show_sunrise_sunset_in_panel;
                 self.save_config();
             }
             Message::UpdateCityInput(value) => {
@@ -825,6 +861,7 @@ impl Application for Tempest {
             Message::SelectTab(tab) => {
                 self.active_tab = tab;
                 self.config.default_tab = tab;
+                self.showing_pollutants = false;
                 // Rebuild the model to sync selection state
                 self.tab_model = build_tab_model(tab_for_segmented_control(tab));
                 self.save_config();
@@ -834,6 +871,7 @@ impl Application for Tempest {
                 if let Some(&tab) = self.tab_model.data::<PopupTab>(entity) {
                     self.active_tab = tab;
                     self.config.default_tab = tab;
+                    self.showing_pollutants = false;
                     self.save_config();
                 }
             }
@@ -859,7 +897,11 @@ impl Application for Tempest {
                 if let Some(timestamp) = self.config.last_updated {
                     if let Some(dt) = chrono::DateTime::from_timestamp(timestamp, 0) {
                         let local = dt.with_timezone(&chrono::Local);
-                        let fmt = if self.military_time { "%H:%M" } else { "%I:%M %p" };
+                        let fmt = if self.military_time {
+                            "%H:%M"
+                        } else {
+                            "%I:%M %p"
+                        };
                         let formatted = local.format(fmt).to_string();
                         self.last_updated_display = Some(if self.military_time {
                             formatted
@@ -868,6 +910,12 @@ impl Application for Tempest {
                         });
                     }
                 }
+            }
+            Message::ShowPollutants => {
+                self.showing_pollutants = true;
+            }
+            Message::HidePollutants => {
+                self.showing_pollutants = false;
             }
         }
         Task::none()
@@ -937,13 +985,20 @@ impl Tempest {
 
     /// Renders the Current weather tab content.
     fn render_current_tab(&self, weather: &WeatherData) -> Element<'_, Message> {
-        let mut col = widget::column().spacing(16).padding([0, 8]);
+        let mut col = widget::column().spacing(16).padding([0, 8, 0, 20]);
 
         // Temperature and condition grouped together
         col = col.push(
             widget::column()
                 .spacing(4)
-                .push(text(self.config.temperature_unit.format(weather.current.temperature)).size(36))
+                .push(
+                    text(
+                        self.config
+                            .temperature_unit
+                            .format(weather.current.temperature),
+                    )
+                    .size(36),
+                )
                 .push(text(weathercode_to_description(weather.current.weathercode)).size(14)),
         );
 
@@ -952,13 +1007,20 @@ impl Tempest {
         // Stats table
         let wind_unit = self.config.measurement_system.wind_speed_unit();
         let wind_dir = wind_direction_to_compass(weather.current.wind_direction);
-        let visibility = self.config.measurement_system.convert_visibility(weather.current.visibility);
+        let visibility = self
+            .config
+            .measurement_system
+            .convert_visibility(weather.current.visibility);
         let visibility_unit = self.config.measurement_system.visibility_unit();
 
         // Feels like / Humidity
         col = col.push(Self::stat_row(
             crate::fl!("label-feels-like"),
-            format!("{:.0}{}", weather.current.feels_like, self.config.temperature_unit.symbol()),
+            format!(
+                "{:.0}{}",
+                weather.current.feels_like,
+                self.config.temperature_unit.symbol()
+            ),
             crate::fl!("label-humidity"),
             format!("{}%", weather.current.humidity),
         ));
@@ -966,7 +1028,10 @@ impl Tempest {
         // Wind / Gusts
         col = col.push(Self::stat_row(
             crate::fl!("label-wind"),
-            format!("{:.1} {} {}", weather.current.windspeed, wind_unit, wind_dir),
+            format!(
+                "{:.1} {} {}",
+                weather.current.windspeed, wind_unit, wind_dir
+            ),
             crate::fl!("label-gusts"),
             format!("{:.1} {}", weather.current.wind_gusts, wind_unit),
         ));
@@ -997,36 +1062,26 @@ impl Tempest {
             ));
         }
 
-        // Air Quality
+        // Air Quality row with chevron to open pollutants sub-view
         if let Some(ref aq) = self.air_quality {
             col = col.push(widget::divider::horizontal::default());
 
-            let aqi_label = aqi_standard_label(aq.standard);
             let aqi_description = aqi_to_description(aq.aqi, aq.standard);
+            let aqi_row = widget::button::custom(
+                widget::row()
+                    .align_y(cosmic::iced::Alignment::Center)
+                    .push(
+                        widget::column()
+                            .push(text(format!("{} {}", aq.aqi, aqi_description)).size(20))
+                            .push(text(crate::fl!("air-quality-index")).size(12)),
+                    )
+                    .push(widget::horizontal_space())
+                    .push(widget::icon::from_name("go-next-symbolic").size(16)),
+            )
+            .class(cosmic::theme::Button::Text)
+            .on_press(Message::ShowPollutants);
 
-            // AQI / PM2.5
-            col = col.push(Self::stat_row(
-                aqi_label.to_string(),
-                format!("{} ({})", aq.aqi, aqi_description),
-                crate::fl!("label-pm25"),
-                format!("{:.1} ug/m3", aq.pm2_5),
-            ));
-
-            // PM10 / Ozone
-            col = col.push(Self::stat_row(
-                crate::fl!("label-pm10"),
-                format!("{:.1} ug/m3", aq.pm10),
-                crate::fl!("label-ozone"),
-                format!("{:.1} ug/m3", aq.ozone),
-            ));
-
-            // NO2 / CO
-            col = col.push(Self::stat_row(
-                crate::fl!("label-no2"),
-                format!("{:.1} ug/m3", aq.nitrogen_dioxide),
-                crate::fl!("label-co"),
-                format!("{:.1} ug/m3", aq.carbon_monoxide),
-            ));
+            col = col.push(aqi_row);
         } else {
             col = col.push(widget::divider::horizontal::default());
             col = col.push(text(crate::fl!("air-quality-unavailable")).size(14));
@@ -1035,9 +1090,63 @@ impl Tempest {
         col.into()
     }
 
+    /// Renders the pollutants sub-view with Back button and pollutant list.
+    fn render_pollutants_view(&self) -> Element<'_, Message> {
+        let mut col = widget::column().spacing(8).padding([0, 8, 0, 20]);
+
+        // Back button
+        let back_btn = widget::button::custom(
+            widget::row()
+                .spacing(4)
+                .align_y(cosmic::iced::Alignment::Center)
+                .push(widget::icon::from_name("go-previous-symbolic").size(16))
+                .push(text(crate::fl!("air-quality-back")).size(14)),
+        )
+        .class(cosmic::theme::Button::Link)
+        .on_press(Message::HidePollutants);
+
+        col = col.push(back_btn);
+        col = col.push(widget::divider::horizontal::default());
+
+        // Pollutant list
+        if let Some(ref aq) = self.air_quality {
+            col = col.push(Self::pollutant_row(
+                crate::fl!("label-co"),
+                format!("{:.1} ug/m3", aq.carbon_monoxide),
+            ));
+            col = col.push(Self::pollutant_row(
+                crate::fl!("label-no2"),
+                format!("{:.1} ug/m3", aq.nitrogen_dioxide),
+            ));
+            col = col.push(Self::pollutant_row(
+                crate::fl!("label-ozone"),
+                format!("{:.1} ug/m3", aq.ozone),
+            ));
+            col = col.push(Self::pollutant_row(
+                crate::fl!("label-pm10"),
+                format!("{:.1} ug/m3", aq.pm10),
+            ));
+            col = col.push(Self::pollutant_row(
+                crate::fl!("label-pm25"),
+                format!("{:.1} ug/m3", aq.pm2_5),
+            ));
+        }
+
+        col.into()
+    }
+
+    /// Creates a row for a pollutant with label on left and value on right.
+    fn pollutant_row(label: String, value: String) -> Element<'static, Message> {
+        widget::row()
+            .push(text(label).size(14))
+            .push(widget::horizontal_space())
+            .push(text(value).size(14))
+            .into()
+    }
+
     /// Renders the Alerts tab content.
     fn render_alerts_tab(&self) -> Element<'_, Message> {
-        let mut col = widget::column().spacing(8);
+        let mut col = widget::column().spacing(8).padding([0, 8, 0, 20]);
 
         if !self.config.alerts_enabled {
             col = col.push(
@@ -1057,7 +1166,11 @@ impl Tempest {
                     widget::column()
                         .spacing(10)
                         .align_x(cosmic::iced::alignment::Horizontal::Center)
-                        .push(widget::icon::from_name("weather-clear-symbolic").size(48).symbolic(true))
+                        .push(
+                            widget::icon::from_name("weather-clear-symbolic")
+                                .size(48)
+                                .symbolic(true),
+                        )
                         .push(text(crate::fl!("no-active-alerts")).size(16))
                         .push(text(crate::fl!("area-clear")).size(12)),
                 )
@@ -1080,7 +1193,11 @@ impl Tempest {
                             .push(
                                 widget::row()
                                     .spacing(8)
-                                    .push(widget::icon::from_name(severity_icon).size(20).symbolic(true))
+                                    .push(
+                                        widget::icon::from_name(severity_icon)
+                                            .size(20)
+                                            .symbolic(true),
+                                    )
                                     .push(text(&alert.event).size(14)),
                             )
                             .push(text(&alert.headline).size(12))
@@ -1096,7 +1213,11 @@ impl Tempest {
                                 )
                             })
                             .push({
-                                let time_fmt = if self.military_time { "%b %d %H:%M" } else { "%b %d %I:%M %p" };
+                                let time_fmt = if self.military_time {
+                                    "%b %d %H:%M"
+                                } else {
+                                    "%b %d %I:%M %p"
+                                };
                                 let expires_time = alert.expires.format(time_fmt).to_string();
                                 text(crate::fl!("expires", time = expires_time.as_str())).size(10)
                             }),
@@ -1124,7 +1245,11 @@ impl Tempest {
                     .spacing(4)
                     .align_x(cosmic::iced::alignment::Horizontal::Center)
                     .push(text(format_hour(&hour.time, self.military_time)).size(12))
-                    .push(widget::icon::from_name(weathercode_to_icon_name(hour.weathercode, false)).size(20).symbolic(true))
+                    .push(
+                        widget::icon::from_name(weathercode_to_icon_name(hour.weathercode, false))
+                            .size(20)
+                            .symbolic(true),
+                    )
                     .push(text(self.config.temperature_unit.format(hour.temperature)).size(14))
                     .push(text(format!("{}%", hour.precipitation_probability)).size(11));
 
@@ -1137,7 +1262,10 @@ impl Tempest {
 
             // Pad incomplete rows
             for _ in chunk.len()..hours_per_row {
-                row = row.push(widget::container(widget::Space::new(0, 0)).width(cosmic::iced::Length::FillPortion(1)));
+                row = row.push(
+                    widget::container(widget::Space::new(0, 0))
+                        .width(cosmic::iced::Length::FillPortion(1)),
+                );
             }
 
             col = col.push(row);
@@ -1148,17 +1276,32 @@ impl Tempest {
 
     /// Renders the 7-day Forecast tab content.
     fn render_forecast_tab(&self, weather: &WeatherData) -> Element<'_, Message> {
-        let mut col = widget::column().spacing(8);
+        let mut col = widget::column()
+            .spacing(8)
+            .padding([0, 8, 0, 20])
+            .width(cosmic::iced::Length::Fill);
 
         // Table header
         col = col.push(
             widget::row()
-                .spacing(8)
-                .push(text(crate::fl!("forecast-day")).size(12).width(cosmic::iced::Length::Fixed(80.0)))
-                .push(widget::Space::new(24, 0))
-                .push(text(crate::fl!("forecast-high")).size(12).width(cosmic::iced::Length::Fixed(45.0)))
-                .push(text(crate::fl!("forecast-low")).size(12).width(cosmic::iced::Length::Fixed(45.0)))
-                .push(text(crate::fl!("forecast-conditions")).size(12)),
+                .spacing(24)
+                .push(
+                    widget::container(text(crate::fl!("forecast-day")).size(12))
+                        .width(cosmic::iced::Length::FillPortion(2)),
+                )
+                .push(widget::Space::new(20, 0))
+                .push(
+                    widget::container(text(crate::fl!("forecast-high")).size(12))
+                        .width(cosmic::iced::Length::FillPortion(1)),
+                )
+                .push(
+                    widget::container(text(crate::fl!("forecast-low")).size(12))
+                        .width(cosmic::iced::Length::FillPortion(1)),
+                )
+                .push(
+                    widget::container(text(crate::fl!("forecast-conditions")).size(12))
+                        .width(cosmic::iced::Length::FillPortion(3)),
+                ),
         );
         col = col.push(widget::divider::horizontal::default());
 
@@ -1166,13 +1309,35 @@ impl Tempest {
         for day in &weather.forecast {
             col = col.push(
                 widget::row()
-                    .spacing(8)
+                    .spacing(24)
                     .align_y(cosmic::iced::Alignment::Center)
-                    .push(text(format_date(&day.date)).size(13).width(cosmic::iced::Length::Fixed(80.0)))
-                    .push(widget::icon::from_name(weathercode_to_icon_name(day.weathercode, false)).size(20).symbolic(true))
-                    .push(text(self.config.temperature_unit.format(day.temp_max)).size(13).width(cosmic::iced::Length::Fixed(45.0)))
-                    .push(text(self.config.temperature_unit.format(day.temp_min)).size(13).width(cosmic::iced::Length::Fixed(45.0)))
-                    .push(text(weathercode_to_description(day.weathercode)).size(12)),
+                    .push(
+                        widget::container(text(format_date(&day.date)).size(14))
+                            .width(cosmic::iced::Length::FillPortion(2)),
+                    )
+                    .push(
+                        widget::icon::from_name(weathercode_to_icon_name(day.weathercode, false))
+                            .size(20)
+                            .symbolic(true),
+                    )
+                    .push(
+                        widget::container(
+                            text(self.config.temperature_unit.format(day.temp_max)).size(14),
+                        )
+                        .width(cosmic::iced::Length::FillPortion(1)),
+                    )
+                    .push(
+                        widget::container(
+                            text(self.config.temperature_unit.format(day.temp_min)).size(14),
+                        )
+                        .width(cosmic::iced::Length::FillPortion(1)),
+                    )
+                    .push(
+                        widget::container(
+                            text(weathercode_to_description(day.weathercode)).size(14),
+                        )
+                        .width(cosmic::iced::Length::FillPortion(3)),
+                    ),
             );
         }
 
@@ -1189,14 +1354,15 @@ impl Tempest {
 
     /// Renders the Settings tab content.
     fn render_settings_tab(&self) -> Element<'_, Message> {
-        let mut col = widget::column().spacing(12).padding([0, 10, 0, 0]);
+        let mut col = widget::column().spacing(12).padding([0, 8, 0, 20]);
 
         // LOCATION section
         col = col.push(Self::section_header(crate::fl!("section-location")));
 
         col = col.push(settings::item(
             crate::fl!("settings-auto-detect"),
-            widget::toggler(self.config.use_auto_location).on_toggle(|_| Message::ToggleAutoLocation),
+            widget::toggler(self.config.use_auto_location)
+                .on_toggle(|_| Message::ToggleAutoLocation),
         ));
 
         if self.config.use_auto_location {
@@ -1208,10 +1374,17 @@ impl Tempest {
                     .push(
                         widget::column()
                             .push(text(&self.config.location_name).size(14))
-                            .push(text(crate::fl!("detected-via-ip")).size(11).class(cosmic::theme::Text::Accent))
+                            .push(
+                                text(crate::fl!("detected-via-ip"))
+                                    .size(11)
+                                    .class(cosmic::theme::Text::Accent),
+                            )
                             .width(cosmic::iced::Length::Fill),
                     )
-                    .push(widget::button::standard(crate::fl!("settings-refresh")).on_press(Message::DetectLocation)),
+                    .push(
+                        widget::button::standard(crate::fl!("settings-refresh"))
+                            .on_press(Message::DetectLocation),
+                    ),
             );
         } else {
             // Manual mode: show search input
@@ -1219,12 +1392,18 @@ impl Tempest {
                 widget::row()
                     .spacing(8)
                     .push(
-                        widget::text_input(crate::fl!("settings-search-placeholder"), &self.city_input)
-                            .on_input(Message::UpdateCityInput)
-                            .on_submit(|_| Message::SearchCity)
-                            .width(cosmic::iced::Length::Fill),
+                        widget::text_input(
+                            crate::fl!("settings-search-placeholder"),
+                            &self.city_input,
+                        )
+                        .on_input(Message::UpdateCityInput)
+                        .on_submit(|_| Message::SearchCity)
+                        .width(cosmic::iced::Length::Fill),
                     )
-                    .push(widget::button::standard(crate::fl!("settings-search")).on_press(Message::SearchCity)),
+                    .push(
+                        widget::button::standard(crate::fl!("settings-search"))
+                            .on_press(Message::SearchCity),
+                    ),
             );
 
             // Search results
@@ -1241,7 +1420,11 @@ impl Tempest {
             col = col.push(
                 widget::column()
                     .push(text(&self.config.location_name).size(14))
-                    .push(text(crate::fl!("manually-selected")).size(11).class(cosmic::theme::Text::Accent)),
+                    .push(
+                        text(crate::fl!("manually-selected"))
+                            .size(11)
+                            .class(cosmic::theme::Text::Accent),
+                    ),
             );
         }
 
@@ -1275,7 +1458,9 @@ impl Tempest {
                 .spacing(8)
                 .align_y(cosmic::iced::Alignment::Center)
                 .push(text(crate::fl!("settings-auto-units-hint")).size(11))
-                .push(widget::toggler(self.config.auto_units).on_toggle(|_| Message::ToggleAutoUnits)),
+                .push(
+                    widget::toggler(self.config.auto_units).on_toggle(|_| Message::ToggleAutoUnits),
+                ),
         ));
 
         // UPDATES section
@@ -1306,27 +1491,32 @@ impl Tempest {
 
         col = col.push(settings::item(
             crate::fl!("show-icon"),
-            widget::toggler(self.config.show_icon_in_panel).on_toggle(|_| Message::ToggleShowIconInPanel),
+            widget::toggler(self.config.show_icon_in_panel)
+                .on_toggle(|_| Message::ToggleShowIconInPanel),
         ));
 
         col = col.push(settings::item(
             crate::fl!("show-aqi"),
-            widget::toggler(self.config.show_aqi_in_panel).on_toggle(|_| Message::ToggleShowAqiInPanel),
+            widget::toggler(self.config.show_aqi_in_panel)
+                .on_toggle(|_| Message::ToggleShowAqiInPanel),
         ));
 
         col = col.push(settings::item(
             crate::fl!("show-pressure"),
-            widget::toggler(self.config.show_pressure_in_panel).on_toggle(|_| Message::ToggleShowPressureInPanel),
+            widget::toggler(self.config.show_pressure_in_panel)
+                .on_toggle(|_| Message::ToggleShowPressureInPanel),
         ));
 
         col = col.push(settings::item(
             crate::fl!("show-dew-point"),
-            widget::toggler(self.config.show_dew_point_in_panel).on_toggle(|_| Message::ToggleShowDewPointInPanel),
+            widget::toggler(self.config.show_dew_point_in_panel)
+                .on_toggle(|_| Message::ToggleShowDewPointInPanel),
         ));
 
         col = col.push(settings::item(
             crate::fl!("show-sunrise-sunset"),
-            widget::toggler(self.config.show_sunrise_sunset_in_panel).on_toggle(|_| Message::ToggleShowSunriseSunsetInPanel),
+            widget::toggler(self.config.show_sunrise_sunset_in_panel)
+                .on_toggle(|_| Message::ToggleShowSunriseSunsetInPanel),
         ));
 
         col.into()

@@ -41,11 +41,13 @@ sunrise = Sunrise: { $time }
 sunset = Sunset: { $time }
 
 # Air quality - labels
-label-pm25 = PM2.5
-label-pm10 = PM10
-label-ozone = Ozone
-label-no2 = NO2
-label-co = CO
+label-pm25 = Particulates under 2.5 μm (PM2.5)
+label-pm10 = Particulates under 10 μm (PM10)
+label-ozone = Ozone (O3)
+label-no2 = Nitrogen Dioxide (NO2)
+label-co = Carbon Monoxide (CO)
+air-quality-index = Air quality index
+air-quality-back = Back
 
 # Air quality
 air-quality-unavailable = Air quality data unavailable

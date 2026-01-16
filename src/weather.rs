@@ -558,7 +558,9 @@ pub async fn detect_location() -> Result<(f64, f64, String, String)> {
 
             tracing::debug!(
                 "Auto-detected location: {}, {} ({})",
-                lat, lon, location_name
+                lat,
+                lon,
+                location_name
             );
             return Ok((lat, lon, location_name, country));
         }
@@ -741,23 +743,14 @@ async fn fetch_nws_alerts(latitude: f64, longitude: f64) -> Result<Vec<Alert>> {
 }
 
 /// Resolves the user's EMMA_ID by looking up their location and matching against codenames.
-async fn resolve_user_emma_id(
-    latitude: f64,
-    longitude: f64,
-    country_code: &str,
-) -> Option<String> {
+async fn resolve_user_emma_id(latitude: f64, longitude: f64, country_code: &str) -> Option<String> {
     // Get location details from Nominatim
     let nominatim_url = format!(
         "https://nominatim.openstreetmap.org/reverse?lat={}&lon={}&format=json",
         latitude, longitude
     );
 
-    let response = http_client()
-        .ok()?
-        .get(&nominatim_url)
-        .send()
-        .await
-        .ok()?;
+    let response = http_client().ok()?.get(&nominatim_url).send().await.ok()?;
 
     let nominatim: NominatimResponse = response.json().await.ok()?;
     let address = nominatim.address?;
@@ -800,7 +793,9 @@ async fn resolve_user_emma_id(
             {
                 tracing::debug!(
                     "Resolved EMMA_ID: {} ({}) for search term '{}'",
-                    emma_id, name, search_term
+                    emma_id,
+                    name,
+                    search_term
                 );
                 return Some(emma_id.clone());
             }
@@ -850,7 +845,11 @@ async fn fetch_meteoalarm_alerts(
         .filter_map(|entry| parse_meteoalarm_entry(entry, &user_emma_id))
         .collect();
 
-    tracing::debug!("Fetched {} alert(s) from MeteoAlarm ({})", alerts.len(), country);
+    tracing::debug!(
+        "Fetched {} alert(s) from MeteoAlarm ({})",
+        alerts.len(),
+        country
+    );
     Ok(alerts)
 }
 
@@ -861,10 +860,7 @@ fn parse_meteoalarm_entry(entry: MeteoAlarmEntry, user_emma_id: &Option<String>)
 
     // Filter by EMMA_ID if we resolved one for the user
     if let Some(user_id) = user_emma_id {
-        let entry_emma_id = entry
-            .cap_geocode
-            .as_ref()
-            .and_then(|gc| gc.value.as_ref());
+        let entry_emma_id = entry.cap_geocode.as_ref().and_then(|gc| gc.value.as_ref());
 
         match entry_emma_id {
             Some(entry_id) if entry_id != user_id => {
@@ -1162,7 +1158,10 @@ fn parse_eccc_cap(
         return None;
     }
 
-    let event = info.event.clone().unwrap_or_else(|| "Weather Alert".to_string());
+    let event = info
+        .event
+        .clone()
+        .unwrap_or_else(|| "Weather Alert".to_string());
 
     // Deduplicate by event type + area (ECCC issues updates with new identifiers)
     let dedup_key = format!("{}|{}", event, area_desc);
@@ -1304,7 +1303,8 @@ async fn fetch_bom_alerts(latitude: f64, longitude: f64) -> Result<Vec<Alert>> {
                 _ => AlertSeverity::Unknown,
             };
 
-            let expires = w.expiry_time
+            let expires = w
+                .expiry_time
                 .as_ref()
                 .and_then(|t| DateTime::parse_from_rfc3339(t).ok())
                 .map(|dt| dt.with_timezone(&Utc))
@@ -1315,8 +1315,12 @@ async fn fetch_bom_alerts(latitude: f64, longitude: f64) -> Result<Vec<Alert>> {
                 return None;
             }
 
-            let headline = w.short_title.clone().unwrap_or_else(|| "Weather Warning".to_string());
-            let event = w.warning_type
+            let headline = w
+                .short_title
+                .clone()
+                .unwrap_or_else(|| "Weather Warning".to_string());
+            let event = w
+                .warning_type
                 .as_ref()
                 .map(|t| t.replace('_', " "))
                 .unwrap_or_else(|| headline.clone());
@@ -1413,7 +1417,10 @@ pub fn format_time(time_str: &str, military_time: bool) -> String {
 }
 
 /// Formats a chrono DateTime according to the time format preference.
-fn format_chrono_time<Tz: chrono::TimeZone>(dt: &chrono::DateTime<Tz>, military_time: bool) -> String
+fn format_chrono_time<Tz: chrono::TimeZone>(
+    dt: &chrono::DateTime<Tz>,
+    military_time: bool,
+) -> String
 where
     Tz::Offset: std::fmt::Display,
 {
@@ -1459,9 +1466,7 @@ pub fn is_night_time(sunrise: &str, sunset: &str) -> bool {
     };
 
     match (parse_time(sunrise), parse_time(sunset)) {
-        (Some(sunrise_time), Some(sunset_time)) => {
-            now < sunrise_time || now > sunset_time
-        }
+        (Some(sunrise_time), Some(sunset_time)) => now < sunrise_time || now > sunset_time,
         _ => {
             // Fallback to hardcoded 6am-6pm if parsing fails
             let hour = now.hour();
@@ -1576,13 +1581,5 @@ pub fn aqi_to_description(aqi: i32, standard: AqiStandard) -> &'static str {
     match standard {
         AqiStandard::Us => us_aqi_to_description(aqi),
         AqiStandard::European => eu_aqi_to_description(aqi),
-    }
-}
-
-/// Returns label for the AQI standard
-pub fn aqi_standard_label(standard: AqiStandard) -> &'static str {
-    match standard {
-        AqiStandard::Us => "US AQI",
-        AqiStandard::European => "EU AQI",
     }
 }
