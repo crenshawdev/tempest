@@ -97,6 +97,10 @@ A [justfile](./justfile) is included with common recipes:
 
 ## Changelog
 
+### 2.2.1
+
+Restored version display and Ko-fi tip button to the settings tab. These got lost during the 2.0.0 settings redesign.
+
 ### 2.2.0
 
 Popup height now adapts to screen resolution. Uses cosmic-randr to query display size at startup and sets max popup height accordingly. Popup shrinks to fit content instead of always filling to max, so smaller tabs no longer have unnecessary empty space.
