@@ -29,7 +29,12 @@ jobs:
       - name: Build .deb package
         run: cargo deb --no-build
 
+      - name: Move .deb to release directory
+        run: mkdir -p release && cp target/debian/*.deb release/
+
       - name: Upload .deb to release
-        uses: https://github.com/softprops/action-gh-release@v1
+        uses: https://code.forgejo.org/actions/forgejo-release@v2
         with:
-          files: target/debian/*.deb
+          direction: upload
+          release-dir: release
+          token: ${{ secrets.GITHUB_TOKEN }}
