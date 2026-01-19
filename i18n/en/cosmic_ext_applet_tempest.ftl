@@ -108,7 +108,6 @@ settings-detect-now = Detect Now
 settings-current-location = Current Location
 settings-search-location = Search Location
 settings-minutes = minutes
-settings-weather-alerts = Weather Alerts
 settings-alerts-hint = US, Canada, Europe & Australia
 settings-show-aqi = Show AQI in Panel
 panel-display = Panel Display
