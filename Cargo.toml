@@ -1,6 +1,6 @@
 [package]
 name = "cosmic-ext-applet-tempest"
-version = "2.1.0"
+version = "2.2.0"
 edition = "2021"
 authors = ["VintageTechie (John Crenshaw) <john@vintagetechie.com>"]
 license = "GPL-3.0-only"
@@ -23,6 +23,8 @@ tokio = { version = "1", features = ["time"] }
 urlencoding = "2.1"
 notify-rust = "4"
 quick-xml = { version = "0.37", features = ["serialize"] }
+cosmic-randr-shell = { git = "https://github.com/pop-os/cosmic-randr" }
+futures = "0.3"
 
 
 [dependencies.i18n-embed]

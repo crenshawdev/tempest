@@ -78,6 +78,34 @@ pub struct Tempest {
     military_time: bool,
     /// Whether the pollutants sub-view is currently displayed.
     showing_pollutants: bool,
+    /// Cached max popup height based on screen resolution.
+    popup_max_height: f32,
+}
+
+/// Queries cosmic-randr for the primary display resolution.
+/// Returns (width, height) or None if unavailable.
+fn get_screen_resolution() -> Option<(u32, u32)> {
+    let list = futures::executor::block_on(cosmic_randr_shell::list()).ok()?;
+
+    for (_key, output) in &list.outputs {
+        if output.enabled {
+            if let Some(mode_key) = output.current {
+                if let Some(mode) = list.modes.get(mode_key) {
+                    return Some(mode.size);
+                }
+            }
+        }
+    }
+    None
+}
+
+/// Calculates popup max height based on screen resolution.
+/// Uses 70% of screen height, clamped between 400-900 pixels.
+fn calculate_popup_max_height() -> f32 {
+    match get_screen_resolution() {
+        Some((_width, height)) => (height as f32 * 0.7).clamp(400.0, 900.0),
+        None => 650.0, // Fallback assumes ~1080p
+    }
 }
 
 /// Returns the tab as an Option, with Settings/Alerts mapped to None
@@ -177,6 +205,7 @@ impl Default for Tempest {
             last_updated_display: None,
             military_time: false,
             showing_pollutants: false,
+            popup_max_height: calculate_popup_max_height(),
             config,
             config_handler: None,
         }
@@ -467,7 +496,7 @@ impl Application for Tempest {
     fn view_window(&self, _id: Id) -> Element<'_, Self::Message> {
         let mut column = widget::column()
             .spacing(10)
-            .padding(10)
+            .padding([10, 10, 20, 10])
             .width(cosmic::iced::Length::Fixed(420.0));
 
         // Header row with timestamp and action buttons
@@ -572,12 +601,12 @@ impl Application for Tempest {
             }
         }
 
-        let scrollable = widget::scrollable(column).height(cosmic::iced::Length::Fill);
+        let scrollable = widget::scrollable(column).height(cosmic::iced::Length::Shrink);
 
         self.core
             .applet
             .popup_container(scrollable)
-            .limits(Self::popup_limits())
+            .limits(self.popup_limits())
             .into()
     }
 
@@ -599,7 +628,7 @@ impl Application for Tempest {
                         None,
                         None,
                     );
-                    popup_settings.positioner.size_limits = Self::popup_limits();
+                    popup_settings.positioner.size_limits = self.popup_limits();
                     get_popup(popup_settings)
                 }
             }
@@ -1523,12 +1552,12 @@ impl Tempest {
     }
 
     /// Returns the size limits for the popup window.
-    fn popup_limits() -> Limits {
+    fn popup_limits(&self) -> Limits {
         Limits::NONE
             .min_width(440.0)
             .max_width(440.0)
             .min_height(180.0)
-            .max_height(550.0)
+            .max_height(self.popup_max_height)
     }
 
     /// Sets temperature and measurement units based on country if auto_units is enabled.
