@@ -38,3 +38,4 @@ jobs:
           direction: upload
           release-dir: release
           token: ${{ secrets.GITHUB_TOKEN }}
+          override: true
