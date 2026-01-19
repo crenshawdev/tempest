@@ -244,6 +244,7 @@ pub enum Message {
     SystemTimeConfig(TimeAppletConfig),
     ShowPollutants,
     HidePollutants,
+    OpenKofi,
 }
 
 /// Implement the `Application` trait for your application.
@@ -946,6 +947,11 @@ impl Application for Tempest {
             Message::HidePollutants => {
                 self.showing_pollutants = false;
             }
+            Message::OpenKofi => {
+                if let Err(e) = open::that("https://ko-fi.com/vintagetechie") {
+                    tracing::error!("Failed to open Ko-fi URL: {}", e);
+                }
+            }
         }
         Task::none()
     }
@@ -1547,6 +1553,25 @@ impl Tempest {
             widget::toggler(self.config.show_sunrise_sunset_in_panel)
                 .on_toggle(|_| Message::ToggleShowSunriseSunsetInPanel),
         ));
+
+        // SUPPORT section
+        col = col.push(widget::divider::horizontal::default());
+        col = col.push(Self::section_header(crate::fl!("settings-support")));
+
+        col = col.push(
+            widget::row()
+                .align_y(cosmic::iced::Alignment::Center)
+                .push(
+                    text(format!("{} {}", crate::fl!("settings-version"), VERSION))
+                        .size(13)
+                        .class(cosmic::theme::Text::Accent),
+                )
+                .push(widget::horizontal_space())
+                .push(
+                    widget::button::standard(crate::fl!("settings-tip-kofi"))
+                        .on_press(Message::OpenKofi),
+                ),
+        );
 
         col.into()
     }

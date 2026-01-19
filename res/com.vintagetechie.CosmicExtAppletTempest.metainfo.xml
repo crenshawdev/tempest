@@ -47,6 +47,14 @@
   </categories>
 
   <releases>
+    <release version="2.2.1" date="2026-01-19">
+      <description>
+        <p>Restore version and support info to settings</p>
+        <ul>
+          <li>Restored version display and Ko-fi tip button to settings tab</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.2.0" date="2026-01-19">
       <description>
         <p>Dynamic popup sizing based on screen resolution</p>
