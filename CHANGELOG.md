@@ -5,6 +5,13 @@ All notable changes to Tempest will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-01-19
+
+### Changed
+- Popup height now adapts to screen resolution using cosmic-randr
+- Popup shrinks to fit content instead of always filling to max height
+- Added bottom padding for better visual balance
+
 ## [2.1.0] - 2026-01-16
 
 ### Changed
@@ -132,6 +139,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Persistent configuration storage
 - Global weather coverage
 
+[2.2.0]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v2.2.0
 [2.1.0]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v2.1.0
 [2.0.0]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v2.0.0
 [1.7.3]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v1.7.3

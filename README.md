@@ -97,6 +97,10 @@ A [justfile](./justfile) is included with common recipes:
 
 ## Changelog
 
+### 2.2.0
+
+Popup height now adapts to screen resolution. Uses cosmic-randr to query display size at startup and sets max popup height accordingly. Popup shrinks to fit content instead of always filling to max, so smaller tabs no longer have unnecessary empty space.
+
 ### 2.1.0
 
 Switched to tab bar navigation for a cleaner look. Air quality info now lives in the Current tab with a dedicated pollutants subview. Times throughout the app now respect the system 12/24 hour preference. Polished spacing and alignment across all tabs. Added Czech translation.
