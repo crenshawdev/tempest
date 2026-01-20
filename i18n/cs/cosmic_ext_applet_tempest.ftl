@@ -99,15 +99,6 @@ settings-version = Verze
 settings-support = Podpora
 settings-tip-kofi = Podpořte mě na Ko-fi
 
-# Deprecated - kept for compatibility
-settings-temperature-unit = Jednotka teploty
 settings-auto-units = Automatický výběr jednotek
 settings-auto-units-hint = Podle polohy
-settings-auto-location = Automatická detekce polohy
-settings-detect-now = Zjistit nyní
-settings-current-location = Aktuální poloha
-settings-search-location = Hledat polohu
-settings-minutes = minut
-settings-alerts-hint = USA, Kanada, Evropa a Austrálie
-settings-show-aqi = Zobrazit AQI v panelu
 panel-display = Zobrazení panelu

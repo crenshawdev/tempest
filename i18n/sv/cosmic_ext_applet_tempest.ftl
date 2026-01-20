@@ -99,16 +99,6 @@ settings-version = Version
 settings-support = Support
 settings-tip-kofi = Dricksa mig på Ko-fi
 
-# Föråldrat - sparat för kompatibilitet
-settings-temperature-unit = Temperatur enhet
 settings-auto-units = Välj enheter automatiskt
 settings-auto-units-hint = Baserat på plats
-settings-auto-location = Automatisk platsdetektering
-settings-detect-now = Detektera nu
-settings-current-location = Nuvarande plats
-settings-search-location = Sök plats
-settings-minutes = minuter
-settings-weather-alerts = Väder-aviseringar
-settings-alerts-hint = USA, Kanada, Europa & Australien
-settings-show-aqi = Visa luftkvalitetsindex i panelen
 panel-display = Panelvisning
