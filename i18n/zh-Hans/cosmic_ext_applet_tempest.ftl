@@ -99,15 +99,6 @@ settings-version = 版本
 settings-support = 支持
 settings-tip-kofi = 在 Ko-fi 上给我打赏
 
-# Deprecated - kept for compatibility
-settings-temperature-unit = 温度单位
 settings-auto-units = 自动选择单位
 settings-auto-units-hint = 根据位置
-settings-auto-location = 自动检测位置
-settings-detect-now = 立刻检测
-settings-current-location = 目前位置
-settings-search-location = 搜索位置
-settings-minutes = 分钟
-settings-alerts-hint = 美国、加拿大、欧洲和澳大利亚
-settings-show-aqi = 在面板上显示空气质量指数（AQI）
 panel-display = 面板显示

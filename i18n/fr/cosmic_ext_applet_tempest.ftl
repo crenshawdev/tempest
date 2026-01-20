@@ -99,15 +99,6 @@ settings-version = Version
 settings-support = Support
 settings-tip-kofi = Donnez-moi un pourboire sur Ko-fi
 
-# Deprecated - kept for compatibility
-settings-temperature-unit = Unité de température
 settings-auto-units = Sélection automatique des unités
 settings-auto-units-hint = Basé sur l'emplacement
-settings-auto-location = Détection automatique de l'emplacement
-settings-detect-now = Détecter maintenant
-settings-current-location = Emplacement actuel
-settings-search-location = Rechercher un emplacement
-settings-minutes = minutes
-settings-alerts-hint = États-Unis, Canada, Europe et Australie
-settings-show-aqi = Afficher AQI dans le panneau
 panel-display = Affichage du panneau
