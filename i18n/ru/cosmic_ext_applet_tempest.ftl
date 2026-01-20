@@ -22,3 +22,4 @@ feels-like = Ощущается как: { $temp }
 humidity = Влажность: { $value }%
 wind = Ветер: { $speed } { $unit } { $direction }
 gusts = Порывы: { $speed } { $unit }
+uv-index = УФ-индекс: { $value }
