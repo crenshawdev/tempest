@@ -87,6 +87,17 @@ To contribute translations:
 
 No coding experience required - just knowledge of your language!
 
+### Translation Contributors
+
+Thanks to everyone who helped translate Tempest:
+
+| Language | Contributor |
+|----------|-------------|
+| Czech | lorduskordus |
+| Russian | FaNToMaSikkk |
+| Simplified Chinese | Geeson Wan |
+| Swedish | bittin |
+
 ## Development
 
 A [justfile](./justfile) is included with common recipes:
