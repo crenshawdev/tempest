@@ -100,10 +100,10 @@ fn get_screen_resolution() -> Option<(u32, u32)> {
 }
 
 /// Calculates popup max height based on screen resolution.
-/// Uses 70% of screen height, clamped between 400-900 pixels.
+/// Uses 75% of screen height, clamped between 400-1000 pixels.
 fn calculate_popup_max_height() -> f32 {
     match get_screen_resolution() {
-        Some((_width, height)) => (height as f32 * 0.7).clamp(400.0, 900.0),
+        Some((_width, height)) => (height as f32 * 0.75).clamp(400.0, 1000.0),
         None => 650.0, // Fallback assumes ~1080p
     }
 }
