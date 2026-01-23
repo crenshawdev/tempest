@@ -94,7 +94,6 @@ Thanks to everyone who helped translate Tempest:
 | Russian | FaNToMaSikkk |
 | Simplified Chinese | Geeson Wan |
 | Swedish | bittin |
-| Hungarian | therealmate |
 
 ## Development
 
