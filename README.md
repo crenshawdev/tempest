@@ -94,9 +94,10 @@ Thanks to everyone who helped translate Tempest:
 | Language | Contributor |
 |----------|-------------|
 | Czech | lorduskordus |
-| Russian | FaNToMaSikkk, therealmate |
+| Russian | FaNToMaSikkk |
 | Simplified Chinese | Geeson Wan |
 | Swedish | bittin |
+| Hungarian | therealmate |
 
 ## Development
 
