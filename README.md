@@ -4,17 +4,13 @@ A weather applet for COSMIC Desktop with automatic location detection.
 
 ## Screenshots
 
-| Main | Main | 7-Day Forecast |
-|------|------|----------------|
-| ![Main](screenshots/tempest-main.png) | ![Main](screenshots/tempest-main1.png) | ![7-Day](screenshots/tempest-7day.png) |
+| Main | Hourly | 7-Day |
+|------|--------|-------|
+| ![Main](screenshots/tempest-main.png) | ![Hourly](screenshots/tempest-hourly.png) | ![7-Day](screenshots/tempest-7day.png) |
 
-| Hourly | Air Quality | Alerts |
-|--------|-------------|--------|
-| ![Hourly](screenshots/tempest-hourly.png) | ![Air Quality](screenshots/tempest-aiq.png) | ![Alerts](screenshots/tempest-alerts.png) |
-
-| Settings | Settings |
-|----------|----------|
-| ![Settings](screenshots/tempest-settings.png) | ![Settings 2](screenshots/tempest-settings2.png) |
+| Air Quality | Alerts | Settings |
+|-------------|--------|----------|
+| ![Air Quality](screenshots/tempest-aiq.png) | ![Alerts](screenshots/tempest-alerts.png) | ![Settings](screenshots/tempest-settings.png) |
 
 ## Features
 
@@ -94,6 +90,7 @@ Thanks to everyone who helped translate Tempest:
 | Language | Contributor |
 |----------|-------------|
 | Czech | lorduskordus |
+| Hungarian | therealmate |
 | Russian | FaNToMaSikkk |
 | Simplified Chinese | Geeson Wan |
 | Swedish | bittin |
@@ -107,6 +104,10 @@ A [justfile](./justfile) is included with common recipes:
 - `just check-json` - LSP-compatible linter output
 
 ## Changelog
+
+### 2.3.0
+
+Added Hungarian and Russian translations. Improved popup max height calculation for better fit on various screen sizes. Minor spacing improvements in panel display. Cleaned up deprecated translation keys.
 
 ### 2.2.1
 

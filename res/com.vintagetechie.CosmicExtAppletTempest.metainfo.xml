@@ -47,6 +47,17 @@
   </categories>
 
   <releases>
+    <release version="2.3.0" date="2026-01-23">
+      <description>
+        <p>New translations and UI refinements</p>
+        <ul>
+          <li>Added Hungarian translation</li>
+          <li>Added Russian translation</li>
+          <li>Improved popup max height calculation</li>
+          <li>Minor spacing improvements in panel display</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.2.1" date="2026-01-19">
       <description>
         <p>Restore version and support info to settings</p>
@@ -269,10 +280,6 @@
       <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-main.png</image>
     </screenshot>
     <screenshot>
-      <caption>Current weather with air quality</caption>
-      <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-main1.png</image>
-    </screenshot>
-    <screenshot>
       <caption>Hourly forecast</caption>
       <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-hourly.png</image>
     </screenshot>
@@ -291,10 +298,6 @@
     <screenshot>
       <caption>Settings</caption>
       <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-settings.png</image>
-    </screenshot>
-    <screenshot>
-      <caption>Settings</caption>
-      <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-settings2.png</image>
     </screenshot>
   </screenshots>
 
