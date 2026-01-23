@@ -398,7 +398,7 @@ impl Application for Tempest {
             .symbolic(true);
 
         let data = if self.core.applet.is_horizontal() {
-            let mut row = widget::row().align_y(Alignment::Center).spacing(4);
+            let mut row = widget::row().align_y(Alignment::Center).spacing(6);
             if has_alerts {
                 row = row.push(alert_icon);
             }
@@ -443,7 +443,7 @@ impl Application for Tempest {
             }
             Element::from(row)
         } else {
-            let mut col = widget::column().align_x(Alignment::Center).spacing(4);
+            let mut col = widget::column().align_x(Alignment::Center).spacing(6);
             if has_alerts {
                 col = col.push(alert_icon);
             }

@@ -5,6 +5,22 @@ All notable changes to Tempest will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2026-01-23
+
+### Added
+- Hungarian translation
+- Russian translation
+
+### Changed
+- Improved popup max height calculation for better screen fit
+- Increased panel item spacing for readability
+- Removed deprecated translation keys
+
+## [2.2.1] - 2026-01-19
+
+### Fixed
+- Restored version display and Ko-fi tip button to settings tab
+
 ## [2.2.0] - 2026-01-19
 
 ### Changed
@@ -139,6 +155,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Persistent configuration storage
 - Global weather coverage
 
+[2.3.0]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v2.3.0
+[2.2.1]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v2.2.1
 [2.2.0]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v2.2.0
 [2.1.0]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v2.1.0
 [2.0.0]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v2.0.0
