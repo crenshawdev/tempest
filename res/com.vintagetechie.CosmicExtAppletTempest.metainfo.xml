@@ -47,6 +47,16 @@
   </categories>
 
   <releases>
+    <release version="2.3.1" date="2026-01-30">
+      <description>
+        <p>Polish translation and popup improvements</p>
+        <ul>
+          <li>Added Polish translation</li>
+          <li>Improved max popup height calculation</li>
+          <li>Updated dependencies</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.3.0" date="2026-01-23">
       <description>
         <p>New translations and UI refinements</p>

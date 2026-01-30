@@ -91,6 +91,7 @@ Thanks to everyone who helped translate Tempest:
 |----------|-------------|
 | Czech | lorduskordus |
 | Hungarian | therealmate |
+| Polish | VandaL |
 | Russian | FaNToMaSikkk |
 | Simplified Chinese | Geeson Wan |
 | Swedish | bittin |
@@ -104,6 +105,10 @@ A [justfile](./justfile) is included with common recipes:
 - `just check-json` - LSP-compatible linter output
 
 ## Changelog
+
+### 2.3.1
+
+Added Polish translation. Improved max popup height calculation. Updated dependencies.
 
 ### 2.3.0
 
