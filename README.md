@@ -137,3 +137,7 @@ Internal code quality improvements and translation updates. Added Simplified Chi
 ## License
 
 GPL-3.0-only - See [LICENSE](./LICENSE)
+
+## Author
+
+John Crenshaw — [blog.vintagetechie.com](https://blog.vintagetechie.com)
