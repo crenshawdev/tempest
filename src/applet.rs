@@ -561,7 +561,7 @@ impl Application for Tempest {
                         .spacing(10)
                         .push(widget::icon::from_name("dialog-error-symbolic").size(48))
                         .push(text(crate::fl!("failed-to-load")).size(18))
-                        .push(text(error).size(14))
+                        .push(text(error).size(14).width(cosmic::iced::Length::Fill))
                         .push(
                             widget::button::standard(crate::fl!("retry"))
                                 .on_press(Message::RefreshWeather),
@@ -711,14 +711,9 @@ impl Application for Tempest {
                     }
                     Err(e) => {
                         tracing::error!("Failed to fetch weather: {}", e);
-                        // TODO: the raw error string can contain full URLs with
-                        // the user's lat/lon coordinates. If someone screenshots
-                        // this for a bug report, their location is visible.
-                        // Show a generic message here and keep the detailed error
-                        // in the tracing log only.
                         self.display_label = "ERR".to_string();
                         self.current_weathercode = 0;
-                        self.error_message = Some(e);
+                        self.error_message = Some(crate::fl!("weather-fetch-error"));
                     }
                 }
             }
@@ -985,14 +980,12 @@ impl Tempest {
             _ => Urgency::Low,
         };
 
-        // TODO: sanitize alert.event and alert.headline before displaying.
-        // These come straight from external APIs (NWS, MeteoAlarm, ECCC, BOM)
-        // and some notification daemons render basic HTML in the body field.
-        // Strip tags and cap length to prevent a compromised API from injecting
-        // markup into desktop notifications.
+        let summary = sanitize_notification_text(&alert.event, 100);
+        let body = sanitize_notification_text(&alert.headline, 300);
+
         if let Err(e) = Notification::new()
-            .summary(&alert.event)
-            .body(&alert.headline)
+            .summary(&summary)
+            .body(&body)
             .icon("weather-severe-alert")
             .urgency(urgency)
             .show()
@@ -1332,7 +1325,7 @@ impl Tempest {
                 .spacing(24)
                 .push(
                     widget::container(text(crate::fl!("forecast-day")).size(12))
-                        .width(cosmic::iced::Length::FillPortion(2)),
+                        .width(cosmic::iced::Length::FillPortion(3)),
                 )
                 .push(widget::Space::new(20, 0))
                 .push(
@@ -1345,7 +1338,7 @@ impl Tempest {
                 )
                 .push(
                     widget::container(text(crate::fl!("forecast-conditions")).size(12))
-                        .width(cosmic::iced::Length::FillPortion(3)),
+                        .width(cosmic::iced::Length::FillPortion(2)),
                 ),
         );
         col = col.push(widget::divider::horizontal::default());
@@ -1358,7 +1351,7 @@ impl Tempest {
                     .align_y(cosmic::iced::Alignment::Center)
                     .push(
                         widget::container(text(format_date(&day.date)).size(14))
-                            .width(cosmic::iced::Length::FillPortion(2)),
+                            .width(cosmic::iced::Length::FillPortion(3)),
                     )
                     .push(
                         widget::icon::from_name(weathercode_to_icon_name(day.weathercode, false))
@@ -1381,7 +1374,7 @@ impl Tempest {
                         widget::container(
                             text(weathercode_to_description(day.weathercode)).size(14),
                         )
-                        .width(cosmic::iced::Length::FillPortion(3)),
+                        .width(cosmic::iced::Length::FillPortion(2)),
                     ),
             );
         }
@@ -1589,8 +1582,8 @@ impl Tempest {
     /// Returns the size limits for the popup window.
     fn popup_limits(&self) -> Limits {
         Limits::NONE
-            .min_width(440.0)
-            .max_width(440.0)
+            .min_width(520.0)
+            .max_width(520.0)
             .min_height(180.0)
             .max_height(self.popup_max_height)
     }
@@ -1610,4 +1603,30 @@ impl Tempest {
             self.measurement_model = build_measurement_model(self.config.measurement_system);
         }
     }
+}
+
+/// Strips HTML/XML tags and truncates to a maximum length.
+///
+/// Alert data from external APIs (NWS, MeteoAlarm, ECCC, BOM) can contain
+/// markup that some notification daemons render. This neutralizes tags and
+/// keeps the text to a reasonable size.
+fn sanitize_notification_text(input: &str, max_len: usize) -> String {
+    let mut output = String::with_capacity(input.len());
+    let mut inside_tag = false;
+
+    for ch in input.chars() {
+        match ch {
+            '<' => inside_tag = true,
+            '>' => inside_tag = false,
+            _ if !inside_tag => output.push(ch),
+            _ => {}
+        }
+    }
+
+    if output.len() > max_len {
+        output.truncate(max_len);
+        output.push_str("...");
+    }
+
+    output
 }

@@ -47,6 +47,17 @@
   </categories>
 
   <releases>
+    <release version="2.3.2" date="2026-02-09">
+      <description>
+        <p>Security fixes and UI improvements</p>
+        <ul>
+          <li>Sanitized error messages to prevent coordinate leaks in screenshots</li>
+          <li>Stripped HTML tags from alert notifications</li>
+          <li>Widened popup to 520px</li>
+          <li>Rebalanced forecast table columns</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.3.1" date="2026-01-30">
       <description>
         <p>Polish translation and popup improvements</p>
