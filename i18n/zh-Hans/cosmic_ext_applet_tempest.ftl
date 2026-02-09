@@ -91,3 +91,4 @@ settings-tip-kofi = 在 Ko-fi 上给我打赏
 settings-auto-units = 自动选择单位
 settings-auto-units-hint = 根据位置
 panel-display = 面板显示
+weather-fetch-error = 天气信息获取失败，请检查网络连接并重试
