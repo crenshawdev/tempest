@@ -711,6 +711,11 @@ impl Application for Tempest {
                     }
                     Err(e) => {
                         tracing::error!("Failed to fetch weather: {}", e);
+                        // TODO: the raw error string can contain full URLs with
+                        // the user's lat/lon coordinates. If someone screenshots
+                        // this for a bug report, their location is visible.
+                        // Show a generic message here and keep the detailed error
+                        // in the tracing log only.
                         self.display_label = "ERR".to_string();
                         self.current_weathercode = 0;
                         self.error_message = Some(e);
@@ -980,6 +985,11 @@ impl Tempest {
             _ => Urgency::Low,
         };
 
+        // TODO: sanitize alert.event and alert.headline before displaying.
+        // These come straight from external APIs (NWS, MeteoAlarm, ECCC, BOM)
+        // and some notification daemons render basic HTML in the body field.
+        // Strip tags and cap length to prevent a compromised API from injecting
+        // markup into desktop notifications.
         if let Err(e) = Notification::new()
             .summary(&alert.event)
             .body(&alert.headline)
