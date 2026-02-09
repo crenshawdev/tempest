@@ -4,6 +4,7 @@ loading = Loading weather data...
 updated = Updated: { $time }
 retry = Retry
 failed-to-load = Failed to load weather
+weather-fetch-error = Failure to retrieve Weather Data, check your network connection and try again
 
 # Panel
 aqi-label = AQI { $value }

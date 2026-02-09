@@ -5,6 +5,16 @@ All notable changes to Tempest will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.2] - 2026-02-09
+
+### Fixed
+- Error messages in the popup now show a user-friendly string instead of raw API URLs that could leak coordinates in screenshots
+- Alert notifications from external APIs (NWS, MeteoAlarm, ECCC, BOM) now have HTML tags stripped and length capped
+
+### Changed
+- Widened popup from 440px to 520px
+- Rebalanced forecast table column proportions so dates don't wrap
+
 ## [2.3.1] - 2026-01-30
 
 ### Added
@@ -164,6 +174,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Persistent configuration storage
 - Global weather coverage
 
+[2.3.2]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v2.3.2
 [2.3.1]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v2.3.1
 [2.3.0]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v2.3.0
 [2.2.1]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v2.2.1

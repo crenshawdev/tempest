@@ -106,6 +106,10 @@ A [justfile](./justfile) is included with common recipes:
 
 ## Changelog
 
+### 2.3.2
+
+Sanitized error messages shown in the popup to hide raw API URLs that could leak coordinates in screenshots. Alert notifications from external APIs now get HTML tags stripped and length capped before hitting the notification daemon. Widened the popup to 520px and rebalanced the forecast table columns so dates don't wrap.
+
 ### 2.3.1
 
 Added Polish translation. Improved max popup height calculation. Updated dependencies.
