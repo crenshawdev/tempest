@@ -6,32 +6,57 @@
   <project_group>COSMIC</project_group>
   <name>Tempest</name>
   <summary>Weather applet for COSMIC Desktop with automatic location detection</summary>
+  <summary xml:lang="cs">Applet počasí pro prostředí COSMIC s automatickým určením polohy</summary>
   <description>
     <p>
       Tempest is a weather applet for the COSMIC Desktop environment that provides
       real-time weather information with automatic location detection. It displays
       current conditions, temperature, and AQI directly in your panel.
     </p>
+    <p xml:lang="cs">
+      Tempest je applet počasí pro prostředí COSMIC, který poskytuje
+      aktuální informace o počasí s automatickým určením polohy. Zobrazuje
+      aktuální podmínky, teplotu a kvalitu ovzduší přímo v panelu.
+    </p>
     <p>Features:</p>
+    <p xml:lang="cs">Funkce:</p>
     <ul>
       <li>Real-time weather data from Open-Meteo API (no API key required)</li>
+      <li xml:lang="cs">Aktuální data o počasí z Open-Meteo API (není potřeba API klíč)</li>
       <li>Automatic location detection via IP geolocation</li>
+      <li xml:lang="cs">Automatické určení polohy pomocí geolokace IP</li>
       <li>Customizable panel display (temperature, icon, AQI, pressure, dew point, sunrise/sunset)</li>
+      <li xml:lang="cs">Přizpůsobitelné zobrazení v panelu (teplota, ikona, AQI, tlak, rosný bod, východ/západ slunce)</li>
       <li>Tabbed popup interface with weather, air quality, alerts, forecasts, and settings</li>
+      <li xml:lang="cs">Rozbalovací okno se záložkami pro počasí, kvalitu ovzduší, výstrahy, předpovědi a nastavení</li>
       <li>Current conditions including temperature, feels-like, and humidity</li>
+      <li xml:lang="cs">Aktuální podmínky včetně teploty, pocitové teploty a vlhkosti</li>
       <li>Wind information with speed, direction compass, and gusts</li>
+      <li xml:lang="cs">Informace o větru: rychlost, směr a nárazy</li>
       <li>UV index, cloud cover, visibility, and atmospheric pressure</li>
+      <li xml:lang="cs">UV index, oblačnost, viditelnost a atmosférický tlak</li>
       <li>Sunrise and sunset times with timezone support</li>
+      <li xml:lang="cs">Časy východu a západu slunce s podporou časového pásma</li>
       <li>Air quality data with PM2.5, PM10, ozone, NO2, and CO readings</li>
+      <li xml:lang="cs">Data o kvalitě ovzduší: PM2.5, PM10, ozón, NO2 a CO</li>
       <li>Auto-detects US or European AQI standard based on location</li>
+      <li xml:lang="cs">Automatické rozpoznání amerického nebo evropského standardu AQI podle polohy</li>
       <li>Weather alerts for US (NWS), Canada (ECCC), Europe (MeteoAlarm), and Australia (BOM)</li>
+      <li xml:lang="cs">Výstrahy počasí pro USA (NWS), Kanadu (ECCC), Evropu (MeteoAlarm) a Austrálii (BOM)</li>
       <li>Hourly forecast for next 12 hours</li>
+      <li xml:lang="cs">Hodinová předpověď na příštích 12 hodin</li>
       <li>7-day forecast with high/low temperatures</li>
+      <li xml:lang="cs">Předpověď na 7 dní s maximálními/minimálními teplotami</li>
       <li>Auto-select temperature and measurement units based on location</li>
+      <li xml:lang="cs">Automatický výběr jednotek teploty a měření podle polohy</li>
       <li>Configurable temperature units (Fahrenheit/Celsius)</li>
+      <li xml:lang="cs">Nastavitelné jednotky teploty (Fahrenheit/Celsius)</li>
       <li>Custom location support (latitude/longitude)</li>
+      <li xml:lang="cs">Podpora vlastní polohy (zeměpisná šířka/délka)</li>
       <li>Adjustable refresh interval</li>
+      <li xml:lang="cs">Nastavitelný interval aktualizace</li>
       <li>Persistent configuration</li>
+      <li xml:lang="cs">Trvalé uložení nastavení</li>
     </ul>
   </description>
   <url type="homepage">https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest</url>
@@ -298,26 +323,32 @@
   <screenshots>
     <screenshot type="default">
       <caption>Current weather conditions</caption>
+      <caption xml:lang="cs">Aktuální stav počasí</caption>
       <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-main.png</image>
     </screenshot>
     <screenshot>
       <caption>Hourly forecast</caption>
+      <caption xml:lang="cs">Hodinová předpověď</caption>
       <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-hourly.png</image>
     </screenshot>
     <screenshot>
       <caption>7-day weather forecast</caption>
+      <caption xml:lang="cs">Předpověď na 7 dní</caption>
       <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-7day.png</image>
     </screenshot>
     <screenshot>
       <caption>Air quality pollutants</caption>
+      <caption xml:lang="cs">Znečišťující látky v ovzduší</caption>
       <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-aiq.png</image>
     </screenshot>
     <screenshot>
       <caption>Weather alerts</caption>
+      <caption xml:lang="cs">Výstrahy počasí</caption>
       <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-alerts.png</image>
     </screenshot>
     <screenshot>
       <caption>Settings</caption>
+      <caption xml:lang="cs">Nastavení</caption>
       <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-settings.png</image>
     </screenshot>
   </screenshots>
