@@ -72,6 +72,17 @@
   </categories>
 
   <releases>
+    <release version="2.3.3" date="2026-02-20">
+      <description>
+        <p>Translation updates and metainfo localization</p>
+        <ul>
+          <li>Added Portuguese (Brazil) translation</li>
+          <li>Added Czech translation to appstream metainfo</li>
+          <li>Added weather-fetch-error string to Czech, Hungarian, Polish, Swedish, and Chinese</li>
+          <li>Refined Czech and Hungarian translation wording</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.3.2" date="2026-02-09">
       <description>
         <p>Security fixes and UI improvements</p>
