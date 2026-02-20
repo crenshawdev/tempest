@@ -92,6 +92,7 @@ Thanks to everyone who helped translate Tempest:
 | Czech | lorduskordus |
 | Hungarian | therealmate |
 | Polish | VandaL |
+| Portuguese (Brazil) | Marco Agostini |
 | Russian | FaNToMaSikkk |
 | Simplified Chinese | Geeson Wan |
 | Swedish | bittin |
