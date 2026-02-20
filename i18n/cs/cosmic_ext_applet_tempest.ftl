@@ -9,8 +9,8 @@ aqi-label = AQI { $value }
 panel-dew-point = Rosný bod { $value }
 panel-pressure = { $value } hPa
 # Tabs
-tab-current = Aktuální
-tab-hourly = Hodinová
+tab-current = Aktuálně
+tab-hourly = Hodinově
 tab-forecast = 7 dní
 tab-air-quality = Vzduch
 # Current conditions - labels
@@ -91,3 +91,4 @@ settings-tip-kofi = Podpořte mě na Ko-fi
 settings-auto-units = Automatický výběr jednotek
 settings-auto-units-hint = Podle polohy
 panel-display = Zobrazení panelu
+weather-fetch-error = Nepodařilo se získat data o počasí, zkontrolujte své síťové připojení a zkuste to znovu
