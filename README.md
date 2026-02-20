@@ -107,6 +107,10 @@ A [justfile](./justfile) is included with common recipes:
 
 ## Changelog
 
+### 2.3.3
+
+Added Portuguese (Brazil) translation and Czech appstream metainfo localization. Picked up the latest Weblate batch which added the weather-fetch-error string across Czech, Hungarian, Polish, Swedish, and Chinese, and refined some existing Czech and Hungarian wording.
+
 ### 2.3.2
 
 Sanitized error messages shown in the popup to hide raw API URLs that could leak coordinates in screenshots. Alert notifications from external APIs now get HTML tags stripped and length capped before hitting the notification daemon. Widened the popup to 520px and rebalanced the forecast table columns so dates don't wrap.
