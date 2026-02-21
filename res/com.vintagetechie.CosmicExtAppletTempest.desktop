@@ -1,12 +1,14 @@
 [Desktop Entry]
 Name=Tempest
+Name[uk]=Буря
 Exec=cosmic-ext-applet-tempest
 Terminal=false
 Type=Application
 StartupNotify=true
 Icon=com.vintagetechie.CosmicExtAppletTempest
 Categories=COSMIC;
-Keywords=COSMIC
+Keywords=COSMIC;
+Keywords[uk]=COSMIC;КОСМІК;
 MimeType=
 NoDisplay=true
 X-CosmicApplet=true
