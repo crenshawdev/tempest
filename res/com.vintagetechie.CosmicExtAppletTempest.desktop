@@ -1,5 +1,6 @@
 [Desktop Entry]
 Name=Tempest
+Name[pl]=Burzowa Pogoda
 Name[uk]=Буря
 Exec=cosmic-ext-applet-tempest
 Terminal=false
