@@ -386,7 +386,7 @@
     <screenshot type="default">
       <caption>Current weather conditions</caption>
       <caption xml:lang="cs">Aktuální stav počasí</caption>
-      <caption xml:lang="pl">Bierzące warunki pogodowe</caption>
+      <caption xml:lang="pl">Bieżące warunki pogodowe</caption>
       <caption xml:lang="uk">Поточні умови погоди</caption>
       <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-main.png</image>
     </screenshot>
