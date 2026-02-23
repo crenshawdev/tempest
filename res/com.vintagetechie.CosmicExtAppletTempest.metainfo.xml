@@ -5,8 +5,10 @@
   <project_license>GPL-3.0-only</project_license>
   <project_group>COSMIC</project_group>
   <name>Tempest</name>
+  <name xml:lang="uk">Буря</name>
   <summary>Weather applet for COSMIC Desktop with automatic location detection</summary>
   <summary xml:lang="cs">Applet počasí pro prostředí COSMIC s automatickým určením polohy</summary>
+  <summary xml:lang="uk">Віджет погоди COSMIC із автоматичним визначенням місцезнаходження</summary>
   <description>
     <p>
       Tempest is a weather applet for the COSMIC Desktop environment that provides
@@ -18,45 +20,69 @@
       aktuální informace o počasí s automatickým určením polohy. Zobrazuje
       aktuální podmínky, teplotu a kvalitu ovzduší přímo v panelu.
     </p>
+    <p xml:lang="uk">
+      Tempest -- віджет погоди для середовища COSMIC, який надає актуальну
+      інформацію про погоду з автоматичним визначенням місцезнаходження.
+      Відображає поточні умови, температуру та індекс якості повітря безпосередньо на панелі.
+    </p>
     <p>Features:</p>
     <p xml:lang="cs">Funkce:</p>
+    <p xml:lang="uk">Особливості:</p>
     <ul>
       <li>Real-time weather data from Open-Meteo API (no API key required)</li>
       <li xml:lang="cs">Aktuální data o počasí z Open-Meteo API (není potřeba API klíč)</li>
+      <li xml:lang="uk">Дані про погоду в реальному часі з Open-Meteo API (без ключа API)</li>
       <li>Automatic location detection via IP geolocation</li>
       <li xml:lang="cs">Automatické určení polohy pomocí geolokace IP</li>
+      <li xml:lang="uk">Автоматичне визначення місцезнаходження через IP</li>
       <li>Customizable panel display (temperature, icon, AQI, pressure, dew point, sunrise/sunset)</li>
       <li xml:lang="cs">Přizpůsobitelné zobrazení v panelu (teplota, ikona, AQI, tlak, rosný bod, východ/západ slunce)</li>
+      <li xml:lang="uk">Налаштування відображення на панелі (температура, іконка, AQI, тиск, точка роси, схід/захід сонця)</li>
       <li>Tabbed popup interface with weather, air quality, alerts, forecasts, and settings</li>
       <li xml:lang="cs">Rozbalovací okno se záložkami pro počasí, kvalitu ovzduší, výstrahy, předpovědi a nastavení</li>
+      <li xml:lang="uk">Вкладковий інтерфейс із погодою, якістю повітря, сповіщеннями, прогнозами та налаштуваннями</li>
       <li>Current conditions including temperature, feels-like, and humidity</li>
       <li xml:lang="cs">Aktuální podmínky včetně teploty, pocitové teploty a vlhkosti</li>
+      <li xml:lang="uk">Поточні умови: температура, відчуття, вологість</li>
       <li>Wind information with speed, direction compass, and gusts</li>
       <li xml:lang="cs">Informace o větru: rychlost, směr a nárazy</li>
+      <li xml:lang="uk">Інформація про вітер: швидкість, напрямок, пориви</li>
       <li>UV index, cloud cover, visibility, and atmospheric pressure</li>
       <li xml:lang="cs">UV index, oblačnost, viditelnost a atmosférický tlak</li>
+      <li xml:lang="uk">УФ-індекс, хмарність, видимість, атмосферний тиск</li>
       <li>Sunrise and sunset times with timezone support</li>
       <li xml:lang="cs">Časy východu a západu slunce s podporou časového pásma</li>
+      <li xml:lang="uk">Час сходу та заходу сонця з підтримкою часових поясів</li>
       <li>Air quality data with PM2.5, PM10, ozone, NO2, and CO readings</li>
       <li xml:lang="cs">Data o kvalitě ovzduší: PM2.5, PM10, ozón, NO2 a CO</li>
+      <li xml:lang="uk">Дані якості повітря: PM2.5, PM10, озон, NO2, CO</li>
       <li>Auto-detects US or European AQI standard based on location</li>
       <li xml:lang="cs">Automatické rozpoznání amerického nebo evropského standardu AQI podle polohy</li>
+      <li xml:lang="uk">Автоматичний вибір стандарту AQI США або Європи залежно від місцезнаходження</li>
       <li>Weather alerts for US (NWS), Canada (ECCC), Europe (MeteoAlarm), and Australia (BOM)</li>
       <li xml:lang="cs">Výstrahy počasí pro USA (NWS), Kanadu (ECCC), Evropu (MeteoAlarm) a Austrálii (BOM)</li>
+      <li xml:lang="uk">Сповіщення про погоду для США, Канади, Європи та Австралії</li>
       <li>Hourly forecast for next 12 hours</li>
       <li xml:lang="cs">Hodinová předpověď na příštích 12 hodin</li>
+      <li xml:lang="uk">Погодинний прогноз на наступні 12 годин</li>
       <li>7-day forecast with high/low temperatures</li>
       <li xml:lang="cs">Předpověď na 7 dní s maximálními/minimálními teplotami</li>
+      <li xml:lang="uk">Прогноз на 7 днів з мін./макс. температурою</li>
       <li>Auto-select temperature and measurement units based on location</li>
       <li xml:lang="cs">Automatický výběr jednotek teploty a měření podle polohy</li>
+      <li xml:lang="uk">Автовибір одиниць вимірювання за місцезнаходженням</li>
       <li>Configurable temperature units (Fahrenheit/Celsius)</li>
       <li xml:lang="cs">Nastavitelné jednotky teploty (Fahrenheit/Celsius)</li>
+      <li xml:lang="uk">Налаштування одиниць вимірювання (°C/°F)</li>
       <li>Custom location support (latitude/longitude)</li>
       <li xml:lang="cs">Podpora vlastní polohy (zeměpisná šířka/délka)</li>
+      <li xml:lang="uk">Введення координат вручну</li>
       <li>Adjustable refresh interval</li>
       <li xml:lang="cs">Nastavitelný interval aktualizace</li>
+      <li xml:lang="uk">Регульований інтервал оновлення</li>
       <li>Persistent configuration</li>
       <li xml:lang="cs">Trvalé uložení nastavení</li>
+      <li xml:lang="uk">Збереження конфігурації між сеансами</li>
     </ul>
   </description>
   <url type="homepage">https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest</url>
@@ -335,31 +361,37 @@
     <screenshot type="default">
       <caption>Current weather conditions</caption>
       <caption xml:lang="cs">Aktuální stav počasí</caption>
+      <caption xml:lang="uk">Поточні умови погоди</caption>
       <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-main.png</image>
     </screenshot>
     <screenshot>
       <caption>Hourly forecast</caption>
       <caption xml:lang="cs">Hodinová předpověď</caption>
+      <caption xml:lang="uk">Погодинний прогноз</caption>
       <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-hourly.png</image>
     </screenshot>
     <screenshot>
       <caption>7-day weather forecast</caption>
       <caption xml:lang="cs">Předpověď na 7 dní</caption>
+      <caption xml:lang="uk">Прогноз погоди на 7 днів</caption>
       <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-7day.png</image>
     </screenshot>
     <screenshot>
       <caption>Air quality pollutants</caption>
       <caption xml:lang="cs">Znečišťující látky v ovzduší</caption>
+      <caption xml:lang="uk">Забруднювачі повітря</caption>
       <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-aiq.png</image>
     </screenshot>
     <screenshot>
       <caption>Weather alerts</caption>
       <caption xml:lang="cs">Výstrahy počasí</caption>
+      <caption xml:lang="uk">Сповіщення про погоду</caption>
       <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-alerts.png</image>
     </screenshot>
     <screenshot>
       <caption>Settings</caption>
       <caption xml:lang="cs">Nastavení</caption>
+      <caption xml:lang="uk">Налаштування</caption>
       <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-settings.png</image>
     </screenshot>
   </screenshots>
