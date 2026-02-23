@@ -98,6 +98,18 @@
   </categories>
 
   <releases>
+    <release version="2.4.0" date="2026-02-23">
+      <description>
+        <p>Pressure unit selection and text overflow fix</p>
+        <ul>
+          <li>Added pressure unit selector (hPa, inHg, PSI) in settings</li>
+          <li>Auto-units now sets inHg for imperial countries</li>
+          <li>Fixed long condition text overflowing the 7-day forecast widget border</li>
+          <li>Routed remaining hardcoded strings through Fluent for localization</li>
+          <li>Added Ukrainian metainfo and desktop translations</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.3.3" date="2026-02-20">
       <description>
         <p>Translation updates and metainfo localization</p>

@@ -27,6 +27,7 @@ A weather applet for COSMIC Desktop with automatic location detection.
 - Manual location override with city search
 - Respects system 12/24 hour time format
 - Configurable temperature unit (Fahrenheit/Celsius)
+- Configurable pressure unit (hPa, inHg, PSI)
 - Configurable measurement system (Imperial/Metric) for wind and visibility
 - Configurable refresh interval
 - Desktop notifications for weather alerts
@@ -106,6 +107,10 @@ A [justfile](./justfile) is included with common recipes:
 - `just check-json` - LSP-compatible linter output
 
 ## Changelog
+
+### 2.4.0
+
+Added pressure unit selection with hPa, inHg, and PSI options in the settings panel. Auto-units now picks inHg for imperial countries. Fixed long condition text like "Thunderstorm with hail" overflowing the 7-day forecast widget border by using the new libcosmic ellipsis support. Routed the remaining hardcoded UI strings through Fluent so translators can pick them up. Added Ukrainian metainfo and desktop translations.
 
 ### 2.3.3
 
