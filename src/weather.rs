@@ -1356,23 +1356,23 @@ pub async fn fetch_alerts(latitude: f64, longitude: f64) -> Result<Vec<Alert>> {
     }
 }
 
-/// Converts WMO weather codes to human-readable descriptions
-pub fn weathercode_to_description(code: i32) -> &'static str {
+/// Converts WMO weather codes to localized descriptions.
+pub fn weathercode_to_description(code: i32) -> String {
     match code {
-        0 => "Clear sky",
-        1 => "Mainly clear",
-        2 => "Partly cloudy",
-        3 => "Overcast",
-        45 | 48 => "Foggy",
-        51 | 53 | 55 => "Drizzle",
-        61 | 63 | 65 => "Rain",
-        71 | 73 | 75 => "Snow",
-        77 => "Snow grains",
-        80..=82 => "Rain showers",
-        85 | 86 => "Snow showers",
-        95 => "Thunderstorm",
-        96 | 99 => "Thunderstorm with hail",
-        _ => "Unknown",
+        0 => crate::fl!("weather-clear-sky"),
+        1 => crate::fl!("weather-mainly-clear"),
+        2 => crate::fl!("weather-partly-cloudy"),
+        3 => crate::fl!("weather-overcast"),
+        45 | 48 => crate::fl!("weather-foggy"),
+        51 | 53 | 55 => crate::fl!("weather-drizzle"),
+        61 | 63 | 65 => crate::fl!("weather-rain"),
+        71 | 73 | 75 => crate::fl!("weather-snow"),
+        77 => crate::fl!("weather-snow-grains"),
+        80..=82 => crate::fl!("weather-rain-showers"),
+        85 | 86 => crate::fl!("weather-snow-showers"),
+        95 => crate::fl!("weather-thunderstorm"),
+        96 | 99 => crate::fl!("weather-thunderstorm-hail"),
+        _ => crate::fl!("weather-unknown"),
     }
 }
 
@@ -1475,10 +1475,36 @@ pub fn is_night_time(sunrise: &str, sunset: &str) -> bool {
     }
 }
 
-/// Formats date string to readable format (e.g., "2025-11-25" -> "Tue Nov 25")
+/// Formats date string to localized readable format (e.g., "2025-11-25" -> "Tue Nov 25").
 pub fn format_date(date_str: &str) -> String {
+    use chrono::Datelike;
+
     if let Ok(date) = chrono::NaiveDate::parse_from_str(date_str, "%Y-%m-%d") {
-        date.format("%a %b %d").to_string()
+        let day_name = match date.weekday() {
+            chrono::Weekday::Mon => crate::fl!("day-mon"),
+            chrono::Weekday::Tue => crate::fl!("day-tue"),
+            chrono::Weekday::Wed => crate::fl!("day-wed"),
+            chrono::Weekday::Thu => crate::fl!("day-thu"),
+            chrono::Weekday::Fri => crate::fl!("day-fri"),
+            chrono::Weekday::Sat => crate::fl!("day-sat"),
+            chrono::Weekday::Sun => crate::fl!("day-sun"),
+        };
+        let month_name = match date.month() {
+            1 => crate::fl!("month-jan"),
+            2 => crate::fl!("month-feb"),
+            3 => crate::fl!("month-mar"),
+            4 => crate::fl!("month-apr"),
+            5 => crate::fl!("month-may"),
+            6 => crate::fl!("month-jun"),
+            7 => crate::fl!("month-jul"),
+            8 => crate::fl!("month-aug"),
+            9 => crate::fl!("month-sep"),
+            10 => crate::fl!("month-oct"),
+            11 => crate::fl!("month-nov"),
+            12 => crate::fl!("month-dec"),
+            _ => unreachable!(),
+        };
+        format!("{day_name} {month_name} {:02}", date.day())
     } else {
         date_str.to_string()
     }
@@ -1552,32 +1578,32 @@ pub fn weathercode_to_icon_name(code: i32, is_night: bool) -> &'static str {
     }
 }
 
-/// Converts US AQI value to description
-pub fn us_aqi_to_description(aqi: i32) -> &'static str {
+/// Converts US AQI value to localized description.
+pub fn us_aqi_to_description(aqi: i32) -> String {
     match aqi {
-        0..=50 => "Good",
-        51..=100 => "Moderate",
-        101..=150 => "Unhealthy for Sensitive Groups",
-        151..=200 => "Unhealthy",
-        201..=300 => "Very Unhealthy",
-        _ => "Hazardous",
+        0..=50 => crate::fl!("aqi-us-good"),
+        51..=100 => crate::fl!("aqi-us-moderate"),
+        101..=150 => crate::fl!("aqi-us-unhealthy-sensitive"),
+        151..=200 => crate::fl!("aqi-us-unhealthy"),
+        201..=300 => crate::fl!("aqi-us-very-unhealthy"),
+        _ => crate::fl!("aqi-us-hazardous"),
     }
 }
 
-/// Converts European AQI value to description
-pub fn eu_aqi_to_description(aqi: i32) -> &'static str {
+/// Converts European AQI value to localized description.
+pub fn eu_aqi_to_description(aqi: i32) -> String {
     match aqi {
-        0..=20 => "Good",
-        21..=40 => "Fair",
-        41..=60 => "Moderate",
-        61..=80 => "Poor",
-        81..=100 => "Very Poor",
-        _ => "Extremely Poor",
+        0..=20 => crate::fl!("aqi-eu-good"),
+        21..=40 => crate::fl!("aqi-eu-fair"),
+        41..=60 => crate::fl!("aqi-eu-moderate"),
+        61..=80 => crate::fl!("aqi-eu-poor"),
+        81..=100 => crate::fl!("aqi-eu-very-poor"),
+        _ => crate::fl!("aqi-eu-extremely-poor"),
     }
 }
 
-/// Returns AQI description based on standard
-pub fn aqi_to_description(aqi: i32, standard: AqiStandard) -> &'static str {
+/// Returns localized AQI description based on standard.
+pub fn aqi_to_description(aqi: i32, standard: AqiStandard) -> String {
     match standard {
         AqiStandard::Us => us_aqi_to_description(aqi),
         AqiStandard::European => eu_aqi_to_description(aqi),
