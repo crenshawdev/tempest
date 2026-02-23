@@ -1372,7 +1372,12 @@ impl Tempest {
                     )
                     .push(
                         widget::container(
-                            text(weathercode_to_description(day.weathercode)).size(14),
+                            text(weathercode_to_description(day.weathercode))
+                                .size(14)
+                                .wrapping(cosmic::iced::widget::text::Wrapping::None)
+                                .ellipsize(cosmic::iced::widget::text::Ellipsize::End(
+                                    cosmic::iced_core::text::EllipsizeHeightLimit::Lines(1),
+                                )),
                         )
                         .width(cosmic::iced::Length::FillPortion(2)),
                     ),
