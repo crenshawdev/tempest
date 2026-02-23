@@ -8,7 +8,7 @@ failed-to-load = Échec du chargement des données météorologiques
 # Panel
 aqi-label = AQI { $value }
 panel-dew-point = Rosée { $value }
-panel-pressure = { $value } hPa
+panel-pressure = { $value }
 
 # Tabs
 tab-current = Actuel
@@ -36,7 +36,7 @@ gusts = Rafales: { $speed } { $unit }
 uv-index = Indice UV: { $value }
 cloud-cover = Couverture nuageuse: { $value }%
 visibility = Visibilité: { $value } { $unit }
-pressure = Pression: { $value } hPa
+pressure = Pression: { $value }
 sunrise = Lever du soleil: { $time }
 sunset = Coucher du soleil: { $time }
 

@@ -7,7 +7,7 @@ failed-to-load = Misslyckades att ladda väder
 # Panel
 aqi-label = Luftkvalitetsindex { $value }
 panel-dew-point = Dagg { $value }
-panel-pressure = { $value } hPa
+panel-pressure = { $value }
 # Flikar
 tab-current = Nuvarande
 tab-hourly = Varje timme
@@ -32,7 +32,7 @@ gusts = Vindbyar: { $speed } { $unit }
 uv-index = UV-index: { $value }
 cloud-cover = Molntäcke: { $value }%
 visibility = Synlighet: { $value } { $unit }
-pressure = Tryck: { $value } hPa
+pressure = Tryck: { $value }
 sunrise = Soluppgång: { $time }
 sunset = Solnedgång: { $time }
 # Luftkvalitet - etiketter

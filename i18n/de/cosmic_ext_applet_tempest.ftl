@@ -8,7 +8,7 @@ failed-to-load = Wetterdaten nicht verfügbar
 # Panel
 aqi-label = AQI { $value }
 panel-dew-point = Tau { $value }
-panel-pressure = { $value } hPa
+panel-pressure = { $value }
 
 # Tabs
 tab-current = Aktuell
@@ -36,7 +36,7 @@ gusts = Böen: { $speed } { $unit }
 uv-index = UV Index: { $value }
 cloud-cover = Wolkenbedeckung: { $value }%
 visibility = Sichtbarkeit: { $value } { $unit }
-pressure = Druck: { $value } hPa
+pressure = Druck: { $value }
 sunrise = Sonnenaufgang: { $time }
 sunset = Sonnenuntergang: { $time }
 
