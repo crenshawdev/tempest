@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::time::Duration;
 
-use crate::config::{Config, MeasurementSystem, PopupTab, TemperatureUnit};
+use crate::config::{Config, MeasurementSystem, PopupTab, PressureUnit, TemperatureUnit};
 use crate::weather::{
     aqi_to_description, detect_location, fetch_air_quality, fetch_alerts, fetch_weather,
     format_date, format_hour, format_time, is_night_time, search_city, uses_imperial_units,
@@ -72,6 +72,8 @@ pub struct Tempest {
     temperature_model: segmented_button::SingleSelectModel,
     /// Segmented control model for measurement system selection
     measurement_model: segmented_button::SingleSelectModel,
+    /// Segmented control model for pressure unit selection
+    pressure_model: segmented_button::SingleSelectModel,
     /// Cached formatted timestamp for display (avoids recomputing on every render)
     last_updated_display: Option<String>,
     /// 24-hour time format when true, 12-hour with AM/PM when false.
@@ -179,6 +181,26 @@ fn build_measurement_model(active: MeasurementSystem) -> segmented_button::Singl
     model
 }
 
+/// Builds the segmented control model for pressure unit selection.
+fn build_pressure_model(active: PressureUnit) -> segmented_button::SingleSelectModel {
+    let mut model = segmented_button::SingleSelectModel::default();
+
+    let units = [
+        (PressureUnit::Hpa, PressureUnit::Hpa.symbol()),
+        (PressureUnit::InHg, PressureUnit::InHg.symbol()),
+        (PressureUnit::Psi, PressureUnit::Psi.symbol()),
+    ];
+
+    for (unit, label) in units {
+        let id = model.insert().text(label).data(unit).id();
+        if unit == active {
+            model.activate(id);
+        }
+    }
+
+    model
+}
+
 impl Default for Tempest {
     fn default() -> Self {
         let config = Config::default();
@@ -202,6 +224,7 @@ impl Default for Tempest {
             tab_model: build_tab_model(tab_for_segmented_control(active_tab)),
             temperature_model: build_temperature_model(config.temperature_unit),
             measurement_model: build_measurement_model(config.measurement_system),
+            pressure_model: build_pressure_model(config.pressure_unit),
             last_updated_display: None,
             military_time: false,
             showing_pollutants: false,
@@ -241,6 +264,7 @@ pub enum Message {
     TabActivated(segmented_button::Entity),
     TemperatureUnitActivated(segmented_button::Entity),
     MeasurementActivated(segmented_button::Entity),
+    PressureUnitActivated(segmented_button::Entity),
     SystemTimeConfig(TimeAppletConfig),
     ShowPollutants,
     HidePollutants,
@@ -425,7 +449,7 @@ impl Application for Tempest {
                     )));
                 }
                 if self.config.show_pressure_in_panel {
-                    let pressure_str = format!("{:.0}", weather.current.pressure);
+                    let pressure_str = self.config.pressure_unit.format(weather.current.pressure);
                     row = row.push(text("|").size(12));
                     row = row.push(text(crate::fl!(
                         "panel-pressure",
@@ -471,7 +495,7 @@ impl Application for Tempest {
                     );
                 }
                 if self.config.show_pressure_in_panel {
-                    let pressure_str = format!("{:.0}", weather.current.pressure);
+                    let pressure_str = self.config.pressure_unit.format(weather.current.pressure);
                     col = col.push(
                         text(crate::fl!("panel-pressure", value = pressure_str.as_str())).size(12),
                     );
@@ -921,6 +945,13 @@ impl Application for Tempest {
                     return Task::perform(async { Message::RefreshWeather }, Action::App);
                 }
             }
+            Message::PressureUnitActivated(entity) => {
+                self.pressure_model.activate(entity);
+                if let Some(&unit) = self.pressure_model.data::<PressureUnit>(entity) {
+                    self.config.pressure_unit = unit;
+                    self.save_config();
+                }
+            }
             Message::SystemTimeConfig(config) => {
                 self.military_time = config.military_time;
                 // Refresh the cached timestamp display with new format
@@ -1087,7 +1118,7 @@ impl Tempest {
             crate::fl!("label-visibility"),
             format!("{:.1} {}", visibility, visibility_unit),
             crate::fl!("label-pressure"),
-            format!("{:.0} hPa", weather.current.pressure),
+            self.config.pressure_unit.format(weather.current.pressure),
         ));
 
         // Sunrise / Sunset
@@ -1495,6 +1526,16 @@ impl Tempest {
                 ),
         );
 
+        col = col.push(
+            widget::row()
+                .align_y(cosmic::iced::Alignment::Center)
+                .push(text(crate::fl!("settings-pressure")).width(cosmic::iced::Length::Fill))
+                .push(
+                    widget::segmented_control::horizontal(&self.pressure_model)
+                        .on_activate(Message::PressureUnitActivated),
+                ),
+        );
+
         col = col.push(settings::item(
             crate::fl!("settings-auto-units"),
             widget::row()
@@ -1599,13 +1640,16 @@ impl Tempest {
             if uses_imperial_units(country) {
                 self.config.temperature_unit = TemperatureUnit::Fahrenheit;
                 self.config.measurement_system = MeasurementSystem::Imperial;
+                self.config.pressure_unit = PressureUnit::InHg;
             } else {
                 self.config.temperature_unit = TemperatureUnit::Celsius;
                 self.config.measurement_system = MeasurementSystem::Metric;
+                self.config.pressure_unit = PressureUnit::Hpa;
             }
             // Sync the segmented control models with the new values
             self.temperature_model = build_temperature_model(self.config.temperature_unit);
             self.measurement_model = build_measurement_model(self.config.measurement_system);
+            self.pressure_model = build_pressure_model(self.config.pressure_unit);
         }
     }
 }

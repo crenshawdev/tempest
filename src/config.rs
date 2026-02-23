@@ -31,6 +31,45 @@ impl TemperatureUnit {
     }
 }
 
+/// Pressure display unit. The API always returns hPa, so we convert client-side.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub enum PressureUnit {
+    #[default]
+    Hpa,
+    InHg,
+    Psi,
+}
+
+impl PressureUnit {
+    /// Returns the unit label for display.
+    pub fn symbol(&self) -> &'static str {
+        match self {
+            Self::Hpa => "hPa",
+            Self::InHg => "inHg",
+            Self::Psi => "PSI",
+        }
+    }
+
+    /// Converts a pressure value from hPa to the target unit.
+    pub fn convert(&self, hpa: f32) -> f32 {
+        match self {
+            Self::Hpa => hpa,
+            Self::InHg => hpa / 33.8639,
+            Self::Psi => hpa / 68.9476,
+        }
+    }
+
+    /// Formats a pressure value (in hPa) with conversion and unit symbol.
+    pub fn format(&self, hpa: f32) -> String {
+        let value = self.convert(hpa);
+        match self {
+            Self::Hpa => format!("{:.0} {}", value, self.symbol()),
+            Self::InHg => format!("{:.2} {}", value, self.symbol()),
+            Self::Psi => format!("{:.1} {}", value, self.symbol()),
+        }
+    }
+}
+
 /// Tab options for the popup interface.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PopupTab {
@@ -92,6 +131,9 @@ pub struct Config {
     pub location_name: String,
     pub temperature_unit: TemperatureUnit,
     pub measurement_system: MeasurementSystem,
+    /// Pressure display unit (hPa, inHg, or PSI).
+    #[serde(default)]
+    pub pressure_unit: PressureUnit,
     pub refresh_interval_minutes: u64,
     pub use_auto_location: bool,
     /// Stores the manual location when auto-detect is enabled, so it can be restored.
@@ -149,6 +191,7 @@ impl Default for Config {
             location_name: "New York, NY, United States".to_string(),
             temperature_unit: TemperatureUnit::default(),
             measurement_system: MeasurementSystem::default(),
+            pressure_unit: PressureUnit::default(),
             refresh_interval_minutes: 15,
             use_auto_location: true,
             manual_latitude: None,

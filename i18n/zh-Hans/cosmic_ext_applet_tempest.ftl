@@ -7,7 +7,7 @@ failed-to-load = 天气信息加载失败
 # Panel
 aqi-label = AQI { $value }
 panel-dew-point = 露点 { $value }
-panel-pressure = { $value } hPa
+panel-pressure = { $value }
 # Tabs
 tab-current = 目前
 tab-hourly = 每小时
@@ -32,7 +32,7 @@ gusts = 阵风：{ $speed } { $unit }
 uv-index = 紫外线指数：{ $value }
 cloud-cover = 云层覆盖：{ $value }%
 visibility = 可见度：{ $value } { $unit }
-pressure = 气压：{ $value } hPa
+pressure = 气压：{ $value }
 sunrise = 日出：{ $time }
 sunset = 日落：{ $time }
 # Air quality - labels

@@ -8,7 +8,7 @@ failed-to-load = Failed to load weather
 # Panel
 aqi-label = AQI { $value }
 panel-dew-point = Dew { $value }
-panel-pressure = { $value } hPa
+panel-pressure = { $value }
 
 # Tabs
 tab-current = Current
@@ -36,7 +36,7 @@ gusts = Gusts: { $speed } { $unit }
 uv-index = UV Index: { $value }
 cloud-cover = Cloud Cover: { $value }%
 visibility = Visibility: { $value } { $unit }
-pressure = Pressure: { $value } hPa
+pressure = Pressure: { $value }
 sunrise = Sunrise: { $time }
 sunset = Sunset: { $time }
 
@@ -140,6 +140,7 @@ settings-search-placeholder = Search city...
 settings-search = Search
 settings-temperature = Temperature
 settings-measurement = Measurement
+settings-pressure = Pressure
 unit-metric = Metric
 unit-imperial = Imperial
 settings-refresh-interval = Refresh Interval

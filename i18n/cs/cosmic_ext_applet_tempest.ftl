@@ -7,7 +7,7 @@ failed-to-load = Nepodařilo se načíst počasí
 # Panel
 aqi-label = AQI { $value }
 panel-dew-point = Rosný bod { $value }
-panel-pressure = { $value } hPa
+panel-pressure = { $value }
 # Tabs
 tab-current = Aktuálně
 tab-hourly = Hodinově
@@ -32,7 +32,7 @@ gusts = Nárazy: { $speed } { $unit }
 uv-index = UV index: { $value }
 cloud-cover = Oblačnost: { $value }%
 visibility = Viditelnost: { $value } { $unit }
-pressure = Tlak: { $value } hPa
+pressure = Tlak: { $value }
 sunrise = Východ slunce: { $time }
 sunset = Západ slunce: { $time }
 # Air quality - labels
