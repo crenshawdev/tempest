@@ -57,39 +57,36 @@ no-active-alerts = 无活跃警报
 area-clear = 您的区域畅通
 expires = 有效至：{ $time }
 # Weather conditions
-weather-clear-sky = Clear sky
+weather-clear-sky = 晴天
 weather-mainly-clear = Mainly clear
-weather-partly-cloudy = Partly cloudy
-weather-overcast = Overcast
-weather-foggy = Foggy
-weather-drizzle = Drizzle
-weather-rain = Rain
-weather-snow = Snow
-weather-snow-grains = Snow grains
-weather-rain-showers = Rain showers
-weather-snow-showers = Snow showers
-weather-thunderstorm = Thunderstorm
+weather-partly-cloudy = 多云
+weather-overcast = 阴天
+weather-foggy = 雾蒙蒙
+weather-drizzle = 毛毛雨
+weather-rain = 雨
+weather-snow = 雪
+weather-snow-grains = 雪粒
+weather-rain-showers = 阵雨
+weather-snow-showers = 阵雪
+weather-thunderstorm = 雷暴
 weather-freezing-drizzle = Freezing drizzle
 weather-freezing-rain = Freezing rain
-weather-thunderstorm-hail = Thunderstorm with hail
-weather-unknown = Unknown
-
+weather-thunderstorm-hail = 雷暴冰雹
+weather-unknown = 未知
 # Air quality levels - US AQI
-aqi-us-good = Good
-aqi-us-moderate = Moderate
-aqi-us-unhealthy-sensitive = Unhealthy for Sensitive Groups
-aqi-us-unhealthy = Unhealthy
+aqi-us-good = 良好
+aqi-us-moderate = 中等
+aqi-us-unhealthy-sensitive = 对敏感人群不良
+aqi-us-unhealthy = 不良
 aqi-us-very-unhealthy = Very Unhealthy
-aqi-us-hazardous = Hazardous
-
+aqi-us-hazardous = 有害
 # Air quality levels - European AQI
-aqi-eu-good = Good
+aqi-eu-good = 良好
 aqi-eu-fair = Fair
 aqi-eu-moderate = Moderate
 aqi-eu-poor = Poor
 aqi-eu-very-poor = Very Poor
 aqi-eu-extremely-poor = Extremely Poor
-
 # Day abbreviations
 day-mon = Mon
 day-tue = Tue
@@ -98,7 +95,6 @@ day-thu = Thu
 day-fri = Fri
 day-sat = Sat
 day-sun = Sun
-
 # Month abbreviations
 month-jan = Jan
 month-feb = Feb
@@ -112,7 +108,6 @@ month-sep = Sep
 month-oct = Oct
 month-nov = Nov
 month-dec = Dec
-
 # Forecast table
 forecast-day = 日期
 forecast-high = 高
