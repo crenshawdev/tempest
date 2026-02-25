@@ -4,18 +4,15 @@ loading = Loading weather data...
 updated = Updated: { $time }
 retry = Retry
 failed-to-load = Failed to load weather
-
 # Panel
 aqi-label = AQI { $value }
 panel-dew-point = Dew { $value }
 panel-pressure = { $value }
-
 # Tabs
 tab-current = Current
 tab-hourly = Hourly
 tab-forecast = 7-Day
 tab-air-quality = Air
-
 # Current conditions - labels
 label-feels-like = Feels like
 label-humidity = Humidity
@@ -27,7 +24,6 @@ label-visibility = Visibility
 label-pressure = Pressure
 label-sunrise = Sunrise
 label-sunset = Sunset
-
 # Current conditions
 feels-like = Feels like: { $temp }
 humidity = Humidity: { $value }%
@@ -39,7 +35,6 @@ visibility = Visibility: { $value } { $unit }
 pressure = Pressure: { $value }
 sunrise = Sunrise: { $time }
 sunset = Sunset: { $time }
-
 # Air quality - labels
 label-pm25 = Particulates under 2.5 μm (PM2.5)
 label-pm10 = Particulates under 10 μm (PM10)
@@ -48,7 +43,6 @@ label-no2 = Nitrogen Dioxide (NO2)
 label-co = Carbon Monoxide (CO)
 air-quality-index = Air quality index
 air-quality-back = Back
-
 # Air quality
 air-quality-unavailable = Air quality data unavailable
 pm25 = PM2.5: { $value } ug/m3
@@ -56,14 +50,12 @@ pm10 = PM10: { $value } ug/m3
 ozone = Ozone: { $value } ug/m3
 no2 = NO2: { $value } ug/m3
 co = CO: { $value } ug/m3
-
 # Alerts
 alerts-disabled = Weather alerts are disabled
 alerts-enable-hint = Enable them in Settings
 no-active-alerts = No active alerts
 area-clear = Your area is clear
 expires = Expires: { $time }
-
 # Weather conditions
 weather-clear-sky = Clear sky
 weather-mainly-clear = Mainly clear
@@ -81,7 +73,6 @@ weather-freezing-drizzle = Freezing drizzle
 weather-freezing-rain = Freezing rain
 weather-thunderstorm-hail = Thunderstorm with hail
 weather-unknown = Unknown
-
 # Air quality levels - US AQI
 aqi-us-good = Good
 aqi-us-moderate = Moderate
@@ -89,7 +80,6 @@ aqi-us-unhealthy-sensitive = Unhealthy for Sensitive Groups
 aqi-us-unhealthy = Unhealthy
 aqi-us-very-unhealthy = Very Unhealthy
 aqi-us-hazardous = Hazardous
-
 # Air quality levels - European AQI
 aqi-eu-good = Good
 aqi-eu-fair = Fair
@@ -97,7 +87,6 @@ aqi-eu-moderate = Moderate
 aqi-eu-poor = Poor
 aqi-eu-very-poor = Very Poor
 aqi-eu-extremely-poor = Extremely Poor
-
 # Day abbreviations
 day-mon = Mon
 day-tue = Tue
@@ -106,7 +95,6 @@ day-thu = Thu
 day-fri = Fri
 day-sat = Sat
 day-sun = Sun
-
 # Month abbreviations
 month-jan = Jan
 month-feb = Feb
@@ -120,19 +108,16 @@ month-sep = Sep
 month-oct = Oct
 month-nov = Nov
 month-dec = Dec
-
 # Forecast table
 forecast-day = Day
 forecast-high = High
 forecast-low = Low
 forecast-conditions = Conditions
-
 # Settings sections
 section-location = LOCATION
 section-units = UNITS
 section-updates = UPDATES
 section-panel-display = PANEL DISPLAY
-
 # Settings
 settings-auto-detect = Auto-detect
 detected-via-ip = Detected via IP
@@ -156,7 +141,7 @@ show-sunrise-sunset = Sunrise/Sunset
 settings-version = Version
 settings-support = Support
 settings-tip-kofi = Tip me on Ko-fi
-
 settings-auto-units = Auto-select Units
 settings-auto-units-hint = Based on location
 panel-display = Panel Display
+weather-fetch-error = Failure to retrieve Weather Data, check your network connection and try again
