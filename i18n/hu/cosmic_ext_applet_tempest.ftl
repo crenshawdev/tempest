@@ -56,62 +56,57 @@ no-active-alerts = Nincs aktív riasztás
 area-clear = A környékeden nincs veszély
 expires = Lejár: { $time }
 # Weather conditions
-weather-clear-sky = Clear sky
-weather-mainly-clear = Mainly clear
-weather-partly-cloudy = Partly cloudy
-weather-overcast = Overcast
-weather-foggy = Foggy
+weather-clear-sky = Tiszta ég
+weather-mainly-clear = Többnyire tiszta
+weather-partly-cloudy = Részlegesen felhős
+weather-overcast = Borult
+weather-foggy = Ködös
 weather-drizzle = Drizzle
-weather-rain = Rain
-weather-snow = Snow
-weather-snow-grains = Snow grains
-weather-rain-showers = Rain showers
-weather-snow-showers = Snow showers
-weather-thunderstorm = Thunderstorm
+weather-rain = Eső
+weather-snow = Hó
+weather-snow-grains = Hószemcsék
+weather-rain-showers = Záporok
+weather-snow-showers = Hózáporok
+weather-thunderstorm = Zivatar
 weather-freezing-drizzle = Freezing drizzle
 weather-freezing-rain = Freezing rain
-weather-thunderstorm-hail = Thunderstorm with hail
-weather-unknown = Unknown
-
+weather-thunderstorm-hail = Zivatar jégesővel
+weather-unknown = Ismeretlen
 # Air quality levels - US AQI
-aqi-us-good = Good
-aqi-us-moderate = Moderate
-aqi-us-unhealthy-sensitive = Unhealthy for Sensitive Groups
-aqi-us-unhealthy = Unhealthy
-aqi-us-very-unhealthy = Very Unhealthy
-aqi-us-hazardous = Hazardous
-
+aqi-us-good = Jó
+aqi-us-moderate = Mérsékelt
+aqi-us-unhealthy-sensitive = Érzékeny csoportok számára egészségtelen
+aqi-us-unhealthy = Egészségtelen
+aqi-us-very-unhealthy = Nagyon egészségtelen
+aqi-us-hazardous = Veszélyes
 # Air quality levels - European AQI
-aqi-eu-good = Good
-aqi-eu-fair = Fair
-aqi-eu-moderate = Moderate
-aqi-eu-poor = Poor
-aqi-eu-very-poor = Very Poor
-aqi-eu-extremely-poor = Extremely Poor
-
+aqi-eu-good = Jó
+aqi-eu-fair = Elfogadható
+aqi-eu-moderate = Mérsékelt
+aqi-eu-poor = Rossz
+aqi-eu-very-poor = Nagyon rossz
+aqi-eu-extremely-poor = Kifejezetten rossz
 # Day abbreviations
-day-mon = Mon
-day-tue = Tue
-day-wed = Wed
-day-thu = Thu
-day-fri = Fri
-day-sat = Sat
-day-sun = Sun
-
+day-mon = H
+day-tue = K
+day-wed = Sze
+day-thu = Cs
+day-fri = P
+day-sat = Szo
+day-sun = V
 # Month abbreviations
 month-jan = Jan
-month-feb = Feb
-month-mar = Mar
-month-apr = Apr
-month-may = May
-month-jun = Jun
-month-jul = Jul
+month-feb = Febr
+month-mar = Márc
+month-apr = Ápr
+month-may = Máj
+month-jun = Jún
+month-jul = Júl
 month-aug = Aug
-month-sep = Sep
-month-oct = Oct
+month-sep = Szept
+month-oct = Okt
 month-nov = Nov
 month-dec = Dec
-
 forecast-day = Nappal
 forecast-high = Maximum
 forecast-low = Minimum
@@ -138,3 +133,4 @@ settings-auto-units = Mértékegységek automatikus kiválasztása
 settings-auto-units-hint = Hely alapján
 panel-display = Panel megjelenés
 weather-fetch-error = Nem sikerült letölteni az időjárási adatokat, ellenőrizd a hálózati kapcsolatot és próbáld újra
+settings-pressure = Légnyomás

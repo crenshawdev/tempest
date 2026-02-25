@@ -11,7 +11,7 @@ panel-pressure = { $value }
 # Tabs
 tab-current = 目前
 tab-hourly = 每小时
-tab-forecast = 7天
+tab-forecast = 七天
 tab-air-quality = 空气
 # Current conditions - labels
 label-feels-like = 体感
@@ -20,7 +20,7 @@ label-wind = 风速
 label-gusts = 阵风
 label-uv-index = 紫外线指数
 label-cloud-cover = 云量
-label-visibility = 能见度
+label-visibility = 可见度
 label-pressure = 气压
 label-sunrise = 日出
 label-sunset = 日落
@@ -57,62 +57,57 @@ no-active-alerts = 无活跃警报
 area-clear = 您的区域畅通
 expires = 有效至：{ $time }
 # Weather conditions
-weather-clear-sky = Clear sky
-weather-mainly-clear = Mainly clear
-weather-partly-cloudy = Partly cloudy
-weather-overcast = Overcast
-weather-foggy = Foggy
-weather-drizzle = Drizzle
-weather-rain = Rain
-weather-snow = Snow
-weather-snow-grains = Snow grains
-weather-rain-showers = Rain showers
-weather-snow-showers = Snow showers
-weather-thunderstorm = Thunderstorm
+weather-clear-sky = 晴天
+weather-mainly-clear = 比较晴
+weather-partly-cloudy = 多云
+weather-overcast = 阴天
+weather-foggy = 雾蒙蒙
+weather-drizzle = 毛毛雨
+weather-rain = 雨
+weather-snow = 雪
+weather-snow-grains = 雪粒
+weather-rain-showers = 阵雨
+weather-snow-showers = 阵雪
+weather-thunderstorm = 雷暴
 weather-freezing-drizzle = Freezing drizzle
 weather-freezing-rain = Freezing rain
-weather-thunderstorm-hail = Thunderstorm with hail
-weather-unknown = Unknown
-
+weather-thunderstorm-hail = 雷暴冰雹
+weather-unknown = 未知
 # Air quality levels - US AQI
-aqi-us-good = Good
-aqi-us-moderate = Moderate
-aqi-us-unhealthy-sensitive = Unhealthy for Sensitive Groups
-aqi-us-unhealthy = Unhealthy
-aqi-us-very-unhealthy = Very Unhealthy
-aqi-us-hazardous = Hazardous
-
+aqi-us-good = 良好
+aqi-us-moderate = 中等
+aqi-us-unhealthy-sensitive = 对敏感人群不良
+aqi-us-unhealthy = 不良
+aqi-us-very-unhealthy = 非常不良
+aqi-us-hazardous = 有害
 # Air quality levels - European AQI
-aqi-eu-good = Good
-aqi-eu-fair = Fair
-aqi-eu-moderate = Moderate
-aqi-eu-poor = Poor
-aqi-eu-very-poor = Very Poor
-aqi-eu-extremely-poor = Extremely Poor
-
+aqi-eu-good = 良好
+aqi-eu-fair = 普通
+aqi-eu-moderate = 中等
+aqi-eu-poor = 较差
+aqi-eu-very-poor = 非常差
+aqi-eu-extremely-poor = 极差
 # Day abbreviations
-day-mon = Mon
-day-tue = Tue
-day-wed = Wed
-day-thu = Thu
-day-fri = Fri
-day-sat = Sat
-day-sun = Sun
-
+day-mon = 周一
+day-tue = 周二
+day-wed = 周三
+day-thu = 周四
+day-fri = 周五
+day-sat = 周六
+day-sun = 周日
 # Month abbreviations
-month-jan = Jan
-month-feb = Feb
-month-mar = Mar
-month-apr = Apr
-month-may = May
-month-jun = Jun
-month-jul = Jul
-month-aug = Aug
-month-sep = Sep
-month-oct = Oct
-month-nov = Nov
-month-dec = Dec
-
+month-jan = 一月
+month-feb = 二月
+month-mar = 三月
+month-apr = 四月
+month-may = 五月
+month-jun = 六月
+month-jul = 七月
+month-aug = 八月
+month-sep = 九月
+month-oct = 十月
+month-nov = 十一月
+month-dec = 十二月
 # Forecast table
 forecast-day = 日期
 forecast-high = 高
@@ -149,3 +144,4 @@ settings-auto-units = 自动选择单位
 settings-auto-units-hint = 根据位置
 panel-display = 面板显示
 weather-fetch-error = 天气信息获取失败，请检查网络连接并重试
+settings-pressure = 气压
