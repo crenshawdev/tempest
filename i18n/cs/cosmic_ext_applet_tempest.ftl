@@ -51,68 +51,63 @@ ozone = Ozón: { $value } ug/m3
 no2 = NO2: { $value } ug/m3
 co = CO: { $value } ug/m3
 # Alerts
-alerts-disabled = Výstrahy na počasí jsou vypnuté
+alerts-disabled = Výstrahy počasí jsou vypnuty
 alerts-enable-hint = Zapněte je v Nastavení
 no-active-alerts = Žádné aktivní výstrahy
 area-clear = Vaše oblast je bez výstrah
 expires = Platí do: { $time }
 # Weather conditions
-weather-clear-sky = Clear sky
-weather-mainly-clear = Mainly clear
-weather-partly-cloudy = Partly cloudy
-weather-overcast = Overcast
-weather-foggy = Foggy
-weather-drizzle = Drizzle
-weather-rain = Rain
-weather-snow = Snow
-weather-snow-grains = Snow grains
-weather-rain-showers = Rain showers
-weather-snow-showers = Snow showers
-weather-thunderstorm = Thunderstorm
-weather-freezing-drizzle = Freezing drizzle
-weather-freezing-rain = Freezing rain
-weather-thunderstorm-hail = Thunderstorm with hail
-weather-unknown = Unknown
-
+weather-clear-sky = Jasno
+weather-mainly-clear = Převážně jasno
+weather-partly-cloudy = Polojasno
+weather-overcast = Zataženo
+weather-foggy = Mlhavo
+weather-drizzle = Mrholení
+weather-rain = Déšť
+weather-snow = Sníh
+weather-snow-grains = Sněhová zrna
+weather-rain-showers = Dešťové přeháňky
+weather-snow-showers = Sněhové přeháňky
+weather-thunderstorm = Bouřka
+weather-freezing-drizzle = Mrznoucí mrholení
+weather-freezing-rain = Mrznoucí déšť
+weather-thunderstorm-hail = Bouřka s krupobitím
+weather-unknown = Neznámé
 # Air quality levels - US AQI
-aqi-us-good = Good
-aqi-us-moderate = Moderate
-aqi-us-unhealthy-sensitive = Unhealthy for Sensitive Groups
-aqi-us-unhealthy = Unhealthy
-aqi-us-very-unhealthy = Very Unhealthy
-aqi-us-hazardous = Hazardous
-
+aqi-us-good = Dobrá
+aqi-us-moderate = Střední
+aqi-us-unhealthy-sensitive = Nezdravá pro citlivé skupiny
+aqi-us-unhealthy = Nezdravá
+aqi-us-very-unhealthy = Velmi nezdravá
+aqi-us-hazardous = Nebezpečná
 # Air quality levels - European AQI
-aqi-eu-good = Good
-aqi-eu-fair = Fair
-aqi-eu-moderate = Moderate
-aqi-eu-poor = Poor
-aqi-eu-very-poor = Very Poor
-aqi-eu-extremely-poor = Extremely Poor
-
+aqi-eu-good = Dobrá
+aqi-eu-fair = Uspokojivá
+aqi-eu-moderate = Střední
+aqi-eu-poor = Špatná
+aqi-eu-very-poor = Velmi špatná
+aqi-eu-extremely-poor = Extrémně špatná
 # Day abbreviations
-day-mon = Mon
-day-tue = Tue
-day-wed = Wed
-day-thu = Thu
-day-fri = Fri
-day-sat = Sat
-day-sun = Sun
-
+day-mon = Po
+day-tue = Út
+day-wed = St
+day-thu = Čt
+day-fri = Pá
+day-sat = So
+day-sun = Ne
 # Month abbreviations
-month-jan = Jan
-month-feb = Feb
-month-mar = Mar
-month-apr = Apr
-month-may = May
-month-jun = Jun
-month-jul = Jul
-month-aug = Aug
-month-sep = Sep
-month-oct = Oct
-month-nov = Nov
-month-dec = Dec
-
+month-jan = Led
+month-feb = Úno
+month-mar = Bře
+month-apr = Dub
+month-may = Kvě
+month-jun = Čvn
+month-jul = Čvc
+month-aug = Srp
+month-sep = Zář
+month-oct = Říj
+month-nov = Lis
+month-dec = Pro
 # Forecast table
 forecast-day = Den
 forecast-high = Max
@@ -149,3 +144,4 @@ settings-auto-units = Automatický výběr jednotek
 settings-auto-units-hint = Podle polohy
 panel-display = Zobrazení panelu
 weather-fetch-error = Nepodařilo se získat data o počasí, zkontrolujte své síťové připojení a zkuste to znovu
+settings-pressure = Tlak
