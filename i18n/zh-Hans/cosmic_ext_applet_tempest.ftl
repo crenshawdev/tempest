@@ -69,8 +69,8 @@ weather-snow-grains = 雪粒
 weather-rain-showers = 阵雨
 weather-snow-showers = 阵雪
 weather-thunderstorm = 雷暴
-weather-freezing-drizzle = Freezing drizzle
-weather-freezing-rain = Freezing rain
+weather-freezing-drizzle = 冰阵雨
+weather-freezing-rain = 冰雨
 weather-thunderstorm-hail = 雷暴冰雹
 weather-unknown = 未知
 # Air quality levels - US AQI

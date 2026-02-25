@@ -1,4 +1,4 @@
-app-name = Burzowa Pogoda
+app-name = Nawałnica
 loading = Ładowanie danych pogodowych…
 updated = Zaktualizowano: { $time }
 retry = Ponów
@@ -61,8 +61,8 @@ weather-snow-grains = Śnieży ziarniście
 weather-rain-showers = Przelotny deszcz
 weather-snow-showers = Przelotnie śnieży
 weather-thunderstorm = Burza z piorunami
-weather-freezing-drizzle = Freezing drizzle
-weather-freezing-rain = Freezing rain
+weather-freezing-drizzle = Marznąca mżawka
+weather-freezing-rain = Marznący deszcz
 weather-thunderstorm-hail = Burza z gradem
 weather-unknown = Nieznana
 # Air quality levels - US AQI
