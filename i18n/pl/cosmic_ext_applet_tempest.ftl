@@ -61,6 +61,8 @@ weather-snow-grains = Snow grains
 weather-rain-showers = Rain showers
 weather-snow-showers = Snow showers
 weather-thunderstorm = Thunderstorm
+weather-freezing-drizzle = Freezing drizzle
+weather-freezing-rain = Freezing rain
 weather-thunderstorm-hail = Thunderstorm with hail
 weather-unknown = Unknown
 
