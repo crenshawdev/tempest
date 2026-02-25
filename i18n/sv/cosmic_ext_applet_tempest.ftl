@@ -73,7 +73,6 @@ weather-freezing-drizzle = Freezing drizzle
 weather-freezing-rain = Freezing rain
 weather-thunderstorm-hail = Thunderstorm with hail
 weather-unknown = Unknown
-
 # Air quality levels - US AQI
 aqi-us-good = Good
 aqi-us-moderate = Moderate
@@ -81,7 +80,6 @@ aqi-us-unhealthy-sensitive = Unhealthy for Sensitive Groups
 aqi-us-unhealthy = Unhealthy
 aqi-us-very-unhealthy = Very Unhealthy
 aqi-us-hazardous = Hazardous
-
 # Air quality levels - European AQI
 aqi-eu-good = Good
 aqi-eu-fair = Fair
@@ -89,7 +87,6 @@ aqi-eu-moderate = Moderate
 aqi-eu-poor = Poor
 aqi-eu-very-poor = Very Poor
 aqi-eu-extremely-poor = Extremely Poor
-
 # Day abbreviations
 day-mon = Mon
 day-tue = Tue
@@ -98,7 +95,6 @@ day-thu = Thu
 day-fri = Fri
 day-sat = Sat
 day-sun = Sun
-
 # Month abbreviations
 month-jan = Jan
 month-feb = Feb
@@ -112,7 +108,6 @@ month-sep = Sep
 month-oct = Oct
 month-nov = Nov
 month-dec = Dec
-
 # Prognostabell
 forecast-day = Dag
 forecast-high = Hög
@@ -149,3 +144,4 @@ settings-auto-units = Välj enheter automatiskt
 settings-auto-units-hint = Baserat på plats
 panel-display = Panelvisning
 weather-fetch-error = Misslyckades att hämta väderdata, kontrollera din nätverksanslutning och försök igen
+settings-pressure = Tryck
