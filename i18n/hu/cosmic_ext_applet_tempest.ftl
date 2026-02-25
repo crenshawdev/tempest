@@ -68,8 +68,8 @@ weather-snow-grains = Hószemcsék
 weather-rain-showers = Záporok
 weather-snow-showers = Hózáporok
 weather-thunderstorm = Zivatar
-weather-freezing-drizzle = Freezing drizzle
-weather-freezing-rain = Freezing rain
+weather-freezing-drizzle = Ónos szitálás
+weather-freezing-rain = Ónos eső
 weather-thunderstorm-hail = Zivatar jégesővel
 weather-unknown = Ismeretlen
 # Air quality levels - US AQI
