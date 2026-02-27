@@ -5,6 +5,14 @@ All notable changes to Tempest will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.1] - 2026-02-27
+
+### Added
+- Weather codes for freezing drizzle and freezing rain conditions
+
+### Changed
+- Updated translations for Czech, Chinese (Simplified), German, Hungarian, Polish, Portuguese (Brazil), Swedish, Ukrainian, and English (US)
+
 ## [2.4.0] - 2026-02-23
 
 ### Added
@@ -194,6 +202,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Persistent configuration storage
 - Global weather coverage
 
+[2.4.1]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v2.4.1
 [2.4.0]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v2.4.0
 [2.3.3]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v2.3.3
 [2.3.2]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v2.3.2

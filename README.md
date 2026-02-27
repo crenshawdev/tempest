@@ -97,6 +97,7 @@ Thanks to everyone who helped translate Tempest:
 | Russian | FaNToMaSikkk |
 | Simplified Chinese | Geeson Wan |
 | Swedish | bittin |
+| Ukrainian | Димко |
 
 ## Development
 
@@ -107,6 +108,10 @@ A [justfile](./justfile) is included with common recipes:
 - `just check-json` - LSP-compatible linter output
 
 ## Changelog
+
+### 2.4.1
+
+Added missing weather codes for freezing drizzle and freezing rain conditions. Picked up a batch of translation updates from Weblate covering Czech, Chinese (Simplified), German, Hungarian, Polish, Portuguese (Brazil), Swedish, Ukrainian, and English (US).
 
 ### 2.4.0
 
