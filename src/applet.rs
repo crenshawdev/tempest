@@ -359,13 +359,15 @@ impl Application for Tempest {
         let interval_minutes = self.config.refresh_interval_minutes;
 
         // Periodic weather refresh
-        let tick = IcedSubscription::run_with_id(
+        let tick = IcedSubscription::run_with(
             (std::any::TypeId::of::<Self>(), interval_minutes),
-            async_stream::stream! {
-                let interval = Duration::from_secs(interval_minutes * 60);
-                loop {
-                    tokio::time::sleep(interval).await;
-                    yield Message::Tick;
+            |&(_, mins)| {
+                async_stream::stream! {
+                    let interval = Duration::from_secs(mins * 60);
+                    loop {
+                        tokio::time::sleep(interval).await;
+                        yield Message::Tick;
+                    }
                 }
             },
         );
@@ -553,7 +555,7 @@ impl Application for Tempest {
         };
 
         header = header
-            .push(widget::horizontal_space())
+            .push(widget::space::horizontal())
             .push(
                 widget::button::icon(widget::icon::from_name("view-refresh-symbolic"))
                     .on_press(Message::RefreshWeather)
@@ -987,7 +989,7 @@ impl Application for Tempest {
         Task::none()
     }
 
-    fn style(&self) -> Option<cosmic::iced_runtime::Appearance> {
+    fn style(&self) -> Option<cosmic::iced::theme::Style> {
         Some(cosmic::applet::style())
     }
 }
@@ -1144,7 +1146,7 @@ impl Tempest {
                             .push(text(format!("{} {}", aq.aqi, aqi_description)).size(20))
                             .push(text(crate::fl!("air-quality-index")).size(12)),
                     )
-                    .push(widget::horizontal_space())
+                    .push(widget::space::horizontal())
                     .push(widget::icon::from_name("go-next-symbolic").size(16)),
             )
             .class(cosmic::theme::Button::Text)
@@ -1208,7 +1210,7 @@ impl Tempest {
     fn pollutant_row(label: String, value: String) -> Element<'static, Message> {
         widget::row()
             .push(text(label).size(14))
-            .push(widget::horizontal_space())
+            .push(widget::space::horizontal())
             .push(text(value).size(14))
             .into()
     }
@@ -1332,7 +1334,7 @@ impl Tempest {
             // Pad incomplete rows
             for _ in chunk.len()..hours_per_row {
                 row = row.push(
-                    widget::container(widget::Space::new(0, 0))
+                    widget::container(widget::Space::new())
                         .width(cosmic::iced::Length::FillPortion(1)),
                 );
             }
@@ -1358,7 +1360,7 @@ impl Tempest {
                     widget::container(text(crate::fl!("forecast-day")).size(12))
                         .width(cosmic::iced::Length::FillPortion(3)),
                 )
-                .push(widget::Space::new(20, 0))
+                .push(widget::Space::new().width(20))
                 .push(
                     widget::container(text(crate::fl!("forecast-high")).size(12))
                         .width(cosmic::iced::Length::FillPortion(1)),
@@ -1615,7 +1617,7 @@ impl Tempest {
                         .size(13)
                         .class(cosmic::theme::Text::Accent),
                 )
-                .push(widget::horizontal_space())
+                .push(widget::space::horizontal())
                 .push(
                     widget::button::standard(crate::fl!("settings-tip-kofi"))
                         .on_press(Message::OpenKofi),
