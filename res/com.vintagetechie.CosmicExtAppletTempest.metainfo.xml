@@ -98,6 +98,11 @@
   </categories>
 
   <releases>
+    <release version="2.4.2" date="2026-03-05">
+      <description>
+        <p>Migrated project to GitLab and added CI/CD pipeline for automated .deb builds on release tags</p>
+      </description>
+    </release>
     <release version="2.4.1" date="2026-02-27">
       <description>
         <p>Freezing precipitation support and translation updates</p>

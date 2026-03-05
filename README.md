@@ -109,6 +109,10 @@ A [justfile](./justfile) is included with common recipes:
 
 ## Changelog
 
+### 2.4.2
+
+Migrated the project from Codeberg to GitLab. Set up a CI/CD pipeline that builds .deb packages automatically on release tags, and a lightweight merge request pipeline for merge gating.
+
 ### 2.4.1
 
 Added missing weather codes for freezing drizzle and freezing rain conditions. Picked up a batch of translation updates from Weblate covering Czech, Chinese (Simplified), German, Hungarian, Polish, Portuguese (Brazil), Swedish, Ukrainian, and English (US).
