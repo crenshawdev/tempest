@@ -202,23 +202,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Persistent configuration storage
 - Global weather coverage
 
-[2.4.1]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v2.4.1
-[2.4.0]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v2.4.0
-[2.3.3]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v2.3.3
-[2.3.2]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v2.3.2
-[2.3.1]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v2.3.1
-[2.3.0]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v2.3.0
-[2.2.1]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v2.2.1
-[2.2.0]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v2.2.0
-[2.1.0]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v2.1.0
-[2.0.0]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v2.0.0
-[1.7.3]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v1.7.3
-[1.7.0]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v1.7.0
-[1.6.1]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v1.6.1
-[1.4.0]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v1.4.0
-[1.3.0]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v1.3.0
-[1.2.0]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v1.2.0
-[1.1.0]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v1.1.0
-[1.0.2]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v1.0.2
-[1.0.1]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v1.0.1
-[1.0.0]: https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/releases/tag/v1.0.0
+[2.4.1]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.4.1
+[2.4.0]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.4.0
+[2.3.3]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.3.3
+[2.3.2]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.3.2
+[2.3.1]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.3.1
+[2.3.0]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.3.0
+[2.2.1]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.2.1
+[2.2.0]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.2.0
+[2.1.0]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.1.0
+[2.0.0]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.0.0
+[1.7.3]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v1.7.3
+[1.7.0]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v1.7.0
+[1.6.1]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v1.6.1
+[1.4.0]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v1.4.0
+[1.3.0]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v1.3.0
+[1.2.0]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v1.2.0
+[1.1.0]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v1.1.0
+[1.0.2]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v1.0.2
+[1.0.1]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v1.0.1
+[1.0.0]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v1.0.0

@@ -39,7 +39,7 @@ A weather applet for COSMIC Desktop with automatic location detection.
 Clone the repository:
 
 ```bash
-git clone https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest
+git clone https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest
 cd cosmic-ext-applet-tempest
 ```
 

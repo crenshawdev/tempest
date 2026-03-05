@@ -85,8 +85,8 @@
       <li xml:lang="uk">Збереження конфігурації між сеансами</li>
     </ul>
   </description>
-  <url type="homepage">https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest</url>
-  <url type="bugtracker">https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/issues</url>
+  <url type="homepage">https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest</url>
+  <url type="bugtracker">https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/issues</url>
   <url type="donation">https://ko-fi.com/vintagetechie</url>
   <developer_name>VintageTechie</developer_name>
   <update_contact>john@vintagetechie.com</update_contact>
@@ -148,37 +148,37 @@
       <caption>Current weather conditions</caption>
       <caption xml:lang="cs">Aktuální stav počasí</caption>
       <caption xml:lang="uk">Поточні умови погоди</caption>
-      <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-main.png</image>
+      <image>https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/raw/main/screenshots/tempest-main.png</image>
     </screenshot>
     <screenshot>
       <caption>Hourly forecast</caption>
       <caption xml:lang="cs">Hodinová předpověď</caption>
       <caption xml:lang="uk">Погодинний прогноз</caption>
-      <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-hourly.png</image>
+      <image>https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/raw/main/screenshots/tempest-hourly.png</image>
     </screenshot>
     <screenshot>
       <caption>7-day weather forecast</caption>
       <caption xml:lang="cs">Předpověď na 7 dní</caption>
       <caption xml:lang="uk">Прогноз погоди на 7 днів</caption>
-      <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-7day.png</image>
+      <image>https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/raw/main/screenshots/tempest-7day.png</image>
     </screenshot>
     <screenshot>
       <caption>Air quality pollutants</caption>
       <caption xml:lang="cs">Znečišťující látky v ovzduší</caption>
       <caption xml:lang="uk">Забруднювачі повітря</caption>
-      <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-aiq.png</image>
+      <image>https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/raw/main/screenshots/tempest-aiq.png</image>
     </screenshot>
     <screenshot>
       <caption>Weather alerts</caption>
       <caption xml:lang="cs">Výstrahy počasí</caption>
       <caption xml:lang="uk">Сповіщення про погоду</caption>
-      <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-alerts.png</image>
+      <image>https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/raw/main/screenshots/tempest-alerts.png</image>
     </screenshot>
     <screenshot>
       <caption>Settings</caption>
       <caption xml:lang="cs">Nastavení</caption>
       <caption xml:lang="uk">Налаштування</caption>
-      <image>https://codeberg.org/VintageTechie/cosmic-ext-applet-tempest/raw/branch/main/screenshots/tempest-settings.png</image>
+      <image>https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/raw/main/screenshots/tempest-settings.png</image>
     </screenshot>
   </screenshots>
 

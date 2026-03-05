@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::OnceLock;
 
 const USER_AGENT: &str =
-    "(cosmic-ext-applet-tempest, https://github.com/VintageTechie/cosmic-ext-applet-tempest)";
+    "(cosmic-ext-applet-tempest, https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest)";
 
 /// Shared HTTP client for connection pooling and consistent headers.
 fn http_client() -> Result<&'static reqwest::Client> {
