@@ -5,6 +5,13 @@ All notable changes to Tempest will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.2] - 2026-03-05
+
+### Changed
+- Migrated project hosting from Codeberg to GitLab
+- Added GitLab CI/CD pipeline for automated .deb builds on release tags
+- Added lightweight merge request pipeline for merge gating
+
 ## [2.4.1] - 2026-02-27
 
 ### Added
@@ -202,6 +209,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Persistent configuration storage
 - Global weather coverage
 
+[2.4.2]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.4.2
 [2.4.1]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.4.1
 [2.4.0]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.4.0
 [2.3.3]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.3.3
