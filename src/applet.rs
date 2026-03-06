@@ -82,6 +82,8 @@ pub struct Tempest {
     showing_pollutants: bool,
     /// Cached max popup height based on screen resolution.
     popup_max_height: f32,
+    /// Consecutive fetch failures driving the backoff retry schedule.
+    retry_count: u8,
 }
 
 /// Queries cosmic-randr for the primary display resolution.
@@ -229,6 +231,7 @@ impl Default for Tempest {
             military_time: false,
             showing_pollutants: false,
             popup_max_height: calculate_popup_max_height(),
+            retry_count: 0,
             config,
             config_handler: None,
         }
@@ -269,6 +272,8 @@ pub enum Message {
     ShowPollutants,
     HidePollutants,
     OpenKofi,
+    RetryFetch,
+    NetworkChanged(crate::network::NetworkEvent),
 }
 
 /// Implement the `Application` trait for your application.
@@ -378,7 +383,10 @@ impl Application for Tempest {
             .watch_config::<TimeAppletConfig>("com.system76.CosmicAppletTime")
             .map(|update| Message::SystemTimeConfig(update.config));
 
-        Subscription::batch([tick, time_config])
+        // Monitor NetworkManager for connectivity changes
+        let network = crate::network::network_subscription().map(Message::NetworkChanged);
+
+        Subscription::batch([tick, time_config, network])
     }
 
     fn on_close_requested(&self, id: Id) -> Option<Message> {
@@ -711,6 +719,7 @@ impl Application for Tempest {
 
                 match result {
                     Ok(data) => {
+                        self.retry_count = 0;
                         self.current_weathercode = data.current.weathercode;
                         self.display_label = self
                             .config
@@ -740,6 +749,29 @@ impl Application for Tempest {
                         self.display_label = "ERR".to_string();
                         self.current_weathercode = 0;
                         self.error_message = Some(crate::fl!("weather-fetch-error"));
+
+                        // Schedule a retry with exponential backoff
+                        const BACKOFF_SECS: [u64; 4] = [5, 15, 30, 60];
+                        if (self.retry_count as usize) < BACKOFF_SECS.len() {
+                            let delay = BACKOFF_SECS[self.retry_count as usize];
+                            self.retry_count += 1;
+                            tracing::info!(
+                                "Scheduling retry {} in {}s",
+                                self.retry_count,
+                                delay
+                            );
+                            return Task::perform(
+                                async move {
+                                    tokio::time::sleep(Duration::from_secs(delay)).await;
+                                    Message::RetryFetch
+                                },
+                                Action::App,
+                            );
+                        }
+                        tracing::warn!(
+                            "Giving up after {} retries, waiting for next refresh",
+                            self.retry_count
+                        );
                     }
                 }
             }
@@ -770,6 +802,7 @@ impl Application for Tempest {
                 }
             },
             Message::Tick => {
+                self.retry_count = 0;
                 return Task::perform(async { Message::RefreshWeather }, Action::App);
             }
             Message::ToggleAlertsEnabled => {
@@ -984,6 +1017,13 @@ impl Application for Tempest {
                 if let Err(e) = open::that("https://ko-fi.com/vintagetechie") {
                     tracing::error!("Failed to open Ko-fi URL: {}", e);
                 }
+            }
+            Message::RetryFetch => {
+                return Task::perform(async { Message::RefreshWeather }, Action::App);
+            }
+            Message::NetworkChanged(crate::network::NetworkEvent::Connected) => {
+                self.retry_count = 0;
+                return Task::perform(async { Message::RefreshWeather }, Action::App);
             }
         }
         Task::none()

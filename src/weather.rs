@@ -4,9 +4,13 @@ use anyhow::{anyhow, Result};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::sync::OnceLock;
+use std::time::Duration;
 
 const USER_AGENT: &str =
     "(cosmic-ext-applet-tempest, https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest)";
+
+/// Per-request timeout applied to all outgoing HTTP calls.
+const REQUEST_TIMEOUT: Duration = Duration::from_secs(15);
 
 /// Shared HTTP client for connection pooling and consistent headers.
 fn http_client() -> Result<&'static reqwest::Client> {
@@ -15,6 +19,7 @@ fn http_client() -> Result<&'static reqwest::Client> {
         .get_or_init(|| {
             reqwest::Client::builder()
                 .user_agent(USER_AGENT)
+                .timeout(REQUEST_TIMEOUT)
                 .build()
                 .map_err(|e| e.to_string())
         })
