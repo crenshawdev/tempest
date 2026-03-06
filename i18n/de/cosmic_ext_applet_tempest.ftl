@@ -143,4 +143,4 @@ settings-tip-kofi = Gib mir ein Trinkgeld auf Ko-fi
 settings-auto-units = Einheiten automatisch auswählen
 settings-auto-units-hint = Basierend auf dem Standort
 panel-display = Panel-Anzeige
-weather-fetch-error = Failure to retrieve Weather Data, check your network connection and try again
+weather-fetch-error = Wenn Wetterdaten nicht abgerufen werden können, überprüfen Sie Ihre Netzwerkverbindung und versuchen Sie es erneut.
