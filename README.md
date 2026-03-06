@@ -1,113 +1,101 @@
+<div align="center">
+
 # Tempest
 
-A weather applet for COSMIC Desktop with automatic location detection.
+**A weather applet for [COSMIC Desktop](https://system76.com/cosmic) that just works.**
 
-## Screenshots
+Real-time weather, air quality, alerts, and forecasts right in your panel.
+No API keys. No accounts. Just weather.
 
-| Main | Hourly | 7-Day |
-|------|--------|-------|
-| ![Main](screenshots/tempest-main.png) | ![Hourly](screenshots/tempest-hourly.png) | ![7-Day](screenshots/tempest-7day.png) |
+[![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](./LICENSE)
+[![Translation status](https://hosted.weblate.org/widget/tempest/tempest/svg-badge.svg)](https://hosted.weblate.org/engage/tempest/)
+
+<br>
+
+![Current conditions](screenshots/tempest-main.png)
+
+</div>
+
+---
+
+<details>
+<summary><strong>More screenshots</strong></summary>
+<br>
+
+| Hourly | 7-Day |
+|--------|-------|
+| ![Hourly](screenshots/tempest-hourly.png) | ![7-Day](screenshots/tempest-7day.png) |
 
 | Air Quality | Alerts | Settings |
 |-------------|--------|----------|
 | ![Air Quality](screenshots/tempest-aiq.png) | ![Alerts](screenshots/tempest-alerts.png) | ![Settings](screenshots/tempest-settings.png) |
 
-## Features
+</details>
 
-- Real-time weather data from Open-Meteo API (no API key required)
-- Customizable panel display (temperature, weather icon, AQI, pressure, dew point, sunrise/sunset)
-- Detailed popup with tabbed interface:
-  - **Current**: Temperature, feels-like, humidity, wind, UV index, cloud cover, visibility, pressure, sunrise/sunset, and air quality (AQI with pollutants subview)
-  - **Hourly**: Next 12 hours forecast with precipitation probability
-  - **7-Day**: Weekly forecast with high/low temperatures and conditions
-  - **Alerts**: Weather alerts from NWS (US), ECCC (Canada), MeteoAlarm (EU), BOM (Australia)
-  - **Settings**: All configuration options
-- Air quality data with US/EU AQI standards, PM2.5, PM10, Ozone, NO2, CO levels
-- Automatic location detection via IP geolocation
-- Manual location override with city search
-- Respects system 12/24 hour time format
-- Configurable temperature unit (Fahrenheit/Celsius)
-- Configurable pressure unit (hPa, inHg, PSI)
-- Configurable measurement system (Imperial/Metric) for wind and visibility
-- Configurable refresh interval
-- Desktop notifications for weather alerts
-- Persistent configuration
-- Global weather coverage
+## What you get
 
-## Installation
+- **Panel display** with temperature, weather icon, AQI, pressure, dew point, and sunrise/sunset (all toggleable)
+- **Tabbed popup** with current conditions, hourly forecast, 7-day outlook, weather alerts, and settings
+- **Air quality monitoring** with PM2.5, PM10, Ozone, NO2, CO, and automatic US/EU AQI standard detection
+- **Weather alerts** from NWS (US), ECCC (Canada), MeteoAlarm (EU), and BOM (Australia) with desktop notifications
+- **Automatic location** via IP geolocation, or search by city name, or enter coordinates manually
+- **Smart connectivity** that retries on failure and refreshes instantly when your network comes back
+- **10 languages** and counting, powered by community translators on Weblate
+- **Zero configuration required** out of the box, fully customizable if you want it
 
-Clone the repository:
+All weather data comes from [Open-Meteo](https://open-meteo.com/). No API key needed, no rate limits to worry about.
+
+## Install
+
+**COSMIC Store** - Search for "Tempest" under Applets. One click, done.
+
+**From source:**
 
 ```bash
 git clone https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest
 cd cosmic-ext-applet-tempest
-```
-
-Build and install the project:
-
-```bash
 just build-release
 sudo just install
 ```
 
-For alternative packaging methods:
+Also available as `.deb` and `.rpm`:
 
-- `deb`: run `just build-deb` and `sudo just install-deb`
-- `rpm`: run `just build-rpm` and `sudo just install-rpm`
+```bash
+just build-deb && sudo just install-deb    # Debian/Ubuntu
+just build-rpm && sudo just install-rpm    # Fedora/openSUSE
+```
 
-For vendoring, use `just vendor` and `just vendor-build`
+For vendored builds: `just vendor && just vendor-build`
 
 ## Configuration
 
-Click the applet to open the popup and navigate to the Settings tab where you can:
+Click the applet, hit the Settings tab. Everything's there: location mode, units (temperature, pressure, measurement system), refresh interval, alert toggles, panel display options. Settings persist automatically.
 
-- Toggle between automatic and manual location detection
-- Search for a city by name or enter coordinates manually
-- Toggle temperature unit (Fahrenheit/Celsius)
-- Toggle measurement system (Imperial/Metric)
-- Set refresh interval (1-1440 minutes)
-- Enable or disable weather alerts
-- Customize panel display (icon, AQI, pressure, dew point, sunrise/sunset)
-
-Settings are automatically saved and persist across sessions. The applet defaults to automatic location detection; New York City is used as a fallback if detection fails.
+Defaults to auto-detecting your location. Falls back to New York if detection fails. Respects your system's 12/24 hour time preference.
 
 ## Translations
 
-Tempest uses [Weblate](https://hosted.weblate.org/projects/tempest/) for translations. Contributions are welcome!
-
 [![Translation status](https://hosted.weblate.org/widget/tempest/tempest/multi-auto.svg)](https://hosted.weblate.org/engage/tempest/)
 
-To contribute translations:
-1. Visit [Tempest on Weblate](https://hosted.weblate.org/engage/tempest/)
-2. Select your language or start a new one
-3. Translate strings through the web interface
+Tempest is translated into Czech, German, Hungarian, Polish, Portuguese (Brazil), Russian, Simplified Chinese, Swedish, and Ukrainian, with more on the way.
 
-No coding experience required - just knowledge of your language!
+Want to help? Head to [Tempest on Weblate](https://hosted.weblate.org/engage/tempest/) and start translating. No coding required.
 
-### Translation Contributors
-
-Thanks to everyone who helped translate Tempest:
-
-| Language | Contributor |
-|----------|-------------|
-| Czech | lorduskordus |
-| Hungarian | therealmate |
-| Polish | VandaL |
-| Portuguese (Brazil) | Marco Agostini |
-| Russian | FaNToMaSikkk |
-| Simplified Chinese | Geeson Wan |
-| Swedish | bittin |
-| Ukrainian | Димко |
+**Translation contributors:** lorduskordus (Czech), therealmate (Hungarian), VandaL (Polish), Marco Agostini (Portuguese/Brazil), FaNToMaSikkk (Russian), Geeson Wan (Simplified Chinese), bittin (Swedish), Димко (Ukrainian)
 
 ## Development
 
-A [justfile](./justfile) is included with common recipes:
-
-- `just build-debug` - Compile with debug profile
-- `just check` - Run clippy linter
-- `just check-json` - LSP-compatible linter output
+```bash
+just build-debug    # debug build
+just check          # clippy
+just check-json     # LSP-compatible output
+```
 
 ## Changelog
+
+### 2.4.3
+
+The applet would just give up if the network wasn't ready at boot. VPN still connecting? Enjoy staring at "ERR" for 15 minutes. Now it retries failed fetches with exponential backoff (5s, 15s, 30s, 60s) and listens to NetworkManager over D-Bus for instant refresh when connectivity comes back. HTTP requests also have a 15-second timeout so dead connections don't hang forever. Falls back gracefully if NM isn't available.
 
 ### 2.4.2
 
@@ -125,37 +113,7 @@ Added pressure unit selection with hPa, inHg, and PSI options in the settings pa
 
 Added Portuguese (Brazil) translation and Czech appstream metainfo localization. Picked up the latest Weblate batch which added the weather-fetch-error string across Czech, Hungarian, Polish, Swedish, and Chinese, and refined some existing Czech and Hungarian wording.
 
-### 2.3.2
-
-Sanitized error messages shown in the popup to hide raw API URLs that could leak coordinates in screenshots. Alert notifications from external APIs now get HTML tags stripped and length capped before hitting the notification daemon. Widened the popup to 520px and rebalanced the forecast table columns so dates don't wrap.
-
-### 2.3.1
-
-Added Polish translation. Improved max popup height calculation. Updated dependencies.
-
-### 2.3.0
-
-Added Hungarian and Russian translations. Improved popup max height calculation for better fit on various screen sizes. Minor spacing improvements in panel display. Cleaned up deprecated translation keys.
-
-### 2.2.1
-
-Restored version display and Ko-fi tip button to the settings tab. These got lost during the 2.0.0 settings redesign.
-
-### 2.2.0
-
-Popup height now adapts to screen resolution. Uses cosmic-randr to query display size at startup and sets max popup height accordingly. Popup shrinks to fit content instead of always filling to max, so smaller tabs no longer have unnecessary empty space.
-
-### 2.1.0
-
-Switched to tab bar navigation for a cleaner look. Air quality info now lives in the Current tab with a dedicated pollutants subview. Times throughout the app now respect the system 12/24 hour preference. Polished spacing and alignment across all tabs. Added Czech translation.
-
-### 2.0.0
-
-Redesigned settings interface with improved COSMIC integration. The tab bar now uses the standard segmented control with recessed styling to match other COSMIC applets. Settings got a complete overhaul with section headers, segmented controls for temperature and measurement units, and a cleaner layout that adapts based on whether auto-detect is enabled. Auto-select units now applies immediately when toggled. Pinned libcosmic to a stable commit after an upstream regression broke builds.
-
-### 1.8.1
-
-Internal code quality improvements and translation updates. Added Simplified Chinese translation, updated German and French via Weblate. Migrated error handling to anyhow for better error context. Removed dead code and unused struct fields across weather and config modules. Fixed a potential panic in HTTP client initialization.
+For older releases, see [CHANGELOG.md](./CHANGELOG.md).
 
 ## License
 
@@ -163,4 +121,4 @@ GPL-3.0-only - See [LICENSE](./LICENSE)
 
 ## Author
 
-John Crenshaw — [blog.vintagetechie.com](https://blog.vintagetechie.com)
+John Crenshaw - [blog.vintagetechie.com](https://blog.vintagetechie.com)
