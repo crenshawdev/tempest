@@ -7,3 +7,4 @@ target/
 vendor/
 vendor.tar
 .idea/
+.claude/
