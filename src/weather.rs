@@ -303,29 +303,25 @@ pub async fn fetch_weather(
     let response = http_client()?.get(&url).send().await?;
     let data: OpenMeteoResponse = response.json().await?;
 
-    // Process hourly forecast (limit to 12 hours)
-    let mut hourly = Vec::new();
-    for i in 0..data.hourly.time.len().min(12) {
-        hourly.push(HourlyForecast {
+    let hourly: Vec<_> = (0..data.hourly.time.len().min(12))
+        .map(|i| HourlyForecast {
             time: data.hourly.time[i].clone(),
             temperature: data.hourly.temperature_2m[i],
             weathercode: data.hourly.weathercode[i],
             precipitation_probability: data.hourly.precipitation_probability[i],
-        });
-    }
+        })
+        .collect();
 
-    // Process daily forecast
-    let mut forecast = Vec::new();
-    for i in 0..data.daily.time.len() {
-        forecast.push(DailyForecast {
+    let forecast: Vec<_> = (0..data.daily.time.len())
+        .map(|i| DailyForecast {
             date: data.daily.time[i].clone(),
             temp_max: data.daily.temperature_2m_max[i],
             temp_min: data.daily.temperature_2m_min[i],
             weathercode: data.daily.weathercode[i],
             sunrise: data.daily.sunrise[i].clone(),
             sunset: data.daily.sunset[i].clone(),
-        });
-    }
+        })
+        .collect();
 
     Ok(WeatherData {
         current: CurrentWeather {
