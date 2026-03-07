@@ -93,6 +93,10 @@ just check-json     # LSP-compatible output
 
 ## Changelog
 
+### 2.5.0
+
+You can now bookmark locations and switch between them without re-searching every time. Tap the location name in the popup header to see your saved spots and switch with one click. The settings tab has a bookmark button on search results and a section for managing saved locations. Capped at 8 because nobody needs more than that. Also did a cleanup pass: streamlined the panel rendering, swapped manual loops for iterators in the weather parser, and pruned 17 dead i18n strings.
+
 ### 2.4.3
 
 The applet would just give up if the network wasn't ready at boot. VPN still connecting? Enjoy staring at "ERR" for 15 minutes. Now it retries failed fetches with exponential backoff (5s, 15s, 30s, 60s) and listens to NetworkManager over D-Bus for instant refresh when connectivity comes back. HTTP requests also have a 15-second timeout so dead connections don't hang forever. Falls back gracefully if NM isn't available.

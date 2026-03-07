@@ -5,6 +5,20 @@ All notable changes to Tempest will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0] - 2026-03-07
+
+### Added
+- Saved locations: bookmark up to 8 locations and switch between them from the popup header
+- Location switcher drill-down view accessible by tapping the location name
+- Bookmark button on search results in settings
+- Current location auto-seeded into saved locations on first run
+
+### Changed
+- Streamlined panel rendering by precomputing optional display strings
+- Converted manual indexing loops in weather parsing to iterator chains
+- Removed 17 dead i18n strings
+- Cleaned up redundant comments and simplified D-Bus signal filtering
+
 ## [2.4.3] - 2026-03-05
 
 ### Fixed
@@ -216,6 +230,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Persistent configuration storage
 - Global weather coverage
 
+[2.5.0]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.5.0
 [2.4.3]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.4.3
 [2.4.2]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.4.2
 [2.4.1]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.4.1
