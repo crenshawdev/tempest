@@ -30,10 +30,7 @@ pub struct TimeAppletConfig {
     pub military_time: bool,
 }
 
-/// This is the struct that represents your application.
-/// It is used to define the data that will be used by your application.
 pub struct Tempest {
-    /// Application state which is managed by the COSMIC runtime.
     core: Core,
     /// The popup id.
     popup: Option<Id>,
@@ -284,14 +281,6 @@ pub enum Message {
     NetworkChanged(crate::network::NetworkEvent),
 }
 
-/// Implement the `Application` trait for your application.
-/// This is where you define the behavior of your application.
-///
-/// The `Application` trait requires you to define the following types and constants:
-/// - `Executor` is the async executor that will be used to run your application's commands.
-/// - `Flags` is the data that your application needs to use before it starts.
-/// - `Message` is the enum that contains all the possible variants that your application will need to transmit messages.
-/// - `APP_ID` is the unique identifier of your application.
 impl Application for Tempest {
     type Executor = cosmic::executor::Default;
 
@@ -309,13 +298,6 @@ impl Application for Tempest {
         &mut self.core
     }
 
-    /// This is the entry point of your application, it is where you initialize your application.
-    ///
-    /// Any work that needs to be done before the application starts should be done here.
-    ///
-    /// - `core` is used to passed on for you by libcosmic to use in the core of your own application.
-    /// - `flags` is used to pass in any data that your application needs to use before it starts.
-    /// - `Task` type is used to send messages to your application. `Task::none()` can be used to send no messages to your application.
     fn init(core: Core, _flags: Self::Flags) -> (Self, Task<Self::Message>) {
         let config_handler = cosmic::cosmic_config::Config::new(Self::APP_ID, Config::VERSION).ok();
         let mut config = config_handler
@@ -415,12 +397,6 @@ impl Application for Tempest {
         Some(Message::PopupClosed(id))
     }
 
-    /// This is the main view of your application, it is the root of your widget tree.
-    ///
-    /// The `Element` type is used to represent the visual elements of your application,
-    /// it has a `Message` associated with it, which dictates what type of message it can send.
-    ///
-    /// To get a better sense of which widgets are available, check out the `widget` module.
     fn view(&self) -> Element<'_, Self::Message> {
         use chrono::{Local, Timelike};
         use cosmic::iced::Alignment;
@@ -453,6 +429,42 @@ impl Application for Tempest {
             .size(18)
             .symbolic(true);
 
+        // Precompute optional panel strings once for both orientations
+        let aqi_label = if self.config.show_aqi_in_panel {
+            self.current_aqi
+                .map(|(aqi, _)| crate::fl!("aqi-label", value = aqi))
+        } else {
+            None
+        };
+
+        let (dew_point_label, pressure_label, sun_label) =
+            if let Some(weather) = &self.weather_data {
+                let dew = if self.config.show_dew_point_in_panel {
+                    let s = self.config.temperature_unit.format(weather.current.dew_point);
+                    Some(crate::fl!("panel-dew-point", value = s.as_str()))
+                } else {
+                    None
+                };
+                let pres = if self.config.show_pressure_in_panel {
+                    let s = self.config.pressure_unit.format(weather.current.pressure);
+                    Some(crate::fl!("panel-pressure", value = s.as_str()))
+                } else {
+                    None
+                };
+                let sun = if self.config.show_sunrise_sunset_in_panel {
+                    weather.forecast.first().map(|day| {
+                        let rise = format_time(&day.sunrise, self.military_time);
+                        let set = format_time(&day.sunset, self.military_time);
+                        format!("{}/{}", rise, set)
+                    })
+                } else {
+                    None
+                };
+                (dew, pres, sun)
+            } else {
+                (None, None, None)
+            };
+
         let data = if self.core.applet.is_horizontal() {
             let mut row = widget::row().align_y(Alignment::Center).spacing(6);
             if has_alerts {
@@ -462,40 +474,12 @@ impl Application for Tempest {
                 row = row.push(icon);
             }
             row = row.push(temperature_text);
-            if self.config.show_aqi_in_panel {
-                if let Some((aqi, _)) = self.current_aqi {
-                    row = row.push(text("|").size(12));
-                    row = row.push(text(crate::fl!("aqi-label", value = aqi)));
-                }
-            }
-            if let Some(weather) = &self.weather_data {
-                if self.config.show_dew_point_in_panel {
-                    let dew_point_str = self
-                        .config
-                        .temperature_unit
-                        .format(weather.current.dew_point);
-                    row = row.push(text("|").size(12));
-                    row = row.push(text(crate::fl!(
-                        "panel-dew-point",
-                        value = dew_point_str.as_str()
-                    )));
-                }
-                if self.config.show_pressure_in_panel {
-                    let pressure_str = self.config.pressure_unit.format(weather.current.pressure);
-                    row = row.push(text("|").size(12));
-                    row = row.push(text(crate::fl!(
-                        "panel-pressure",
-                        value = pressure_str.as_str()
-                    )));
-                }
-                if self.config.show_sunrise_sunset_in_panel {
-                    if let Some(first_day) = weather.forecast.first() {
-                        let sunrise = format_time(&first_day.sunrise, self.military_time);
-                        let sunset = format_time(&first_day.sunset, self.military_time);
-                        row = row.push(text("|").size(12));
-                        row = row.push(text(format!("{}/{}", sunrise, sunset)));
-                    }
-                }
+            for label in [&aqi_label, &dew_point_label, &pressure_label, &sun_label]
+                .into_iter()
+                .flatten()
+            {
+                row = row.push(text("|").size(12));
+                row = row.push(text(label.clone()));
             }
             Element::from(row)
         } else {
@@ -507,38 +491,11 @@ impl Application for Tempest {
                 col = col.push(icon);
             }
             col = col.push(temperature_text);
-            if self.config.show_aqi_in_panel {
-                if let Some((aqi, _)) = self.current_aqi {
-                    col = col.push(text(crate::fl!("aqi-label", value = aqi)).size(12));
-                }
-            }
-            if let Some(weather) = &self.weather_data {
-                if self.config.show_dew_point_in_panel {
-                    let dew_point_str = self
-                        .config
-                        .temperature_unit
-                        .format(weather.current.dew_point);
-                    col = col.push(
-                        text(crate::fl!(
-                            "panel-dew-point",
-                            value = dew_point_str.as_str()
-                        ))
-                        .size(12),
-                    );
-                }
-                if self.config.show_pressure_in_panel {
-                    let pressure_str = self.config.pressure_unit.format(weather.current.pressure);
-                    col = col.push(
-                        text(crate::fl!("panel-pressure", value = pressure_str.as_str())).size(12),
-                    );
-                }
-                if self.config.show_sunrise_sunset_in_panel {
-                    if let Some(first_day) = weather.forecast.first() {
-                        let sunrise = format_time(&first_day.sunrise, self.military_time);
-                        let sunset = format_time(&first_day.sunset, self.military_time);
-                        col = col.push(text(format!("{}/{}", sunrise, sunset)).size(12));
-                    }
-                }
+            for label in [&aqi_label, &dew_point_label, &pressure_label, &sun_label]
+                .into_iter()
+                .flatten()
+            {
+                col = col.push(text(label.clone()).size(12));
             }
             Element::from(col)
         };
@@ -688,9 +645,6 @@ impl Application for Tempest {
             .into()
     }
 
-    /// Application messages are handled here. The application state can be modified based on
-    /// what message was received. Tasks may be returned for asynchronous execution on a
-    /// background thread managed by the application's executor.
     fn update(&mut self, message: Self::Message) -> Task<Self::Message> {
         match message {
             Message::TogglePopup => {
@@ -1084,10 +1038,12 @@ impl Application for Tempest {
                             latitude: location.latitude,
                             longitude: location.longitude,
                         };
-                        if !self.config.saved_locations.iter().any(|l| {
-                            (l.latitude - saved.latitude).abs() < 0.01
-                                && (l.longitude - saved.longitude).abs() < 0.01
-                        }) {
+                        if !self
+                            .config
+                            .saved_locations
+                            .iter()
+                            .any(|l| l.matches_coords(saved.latitude, saved.longitude))
+                        {
                             self.config.saved_locations.push(saved);
                             self.save_config();
                         }
@@ -1363,8 +1319,8 @@ impl Tempest {
         col = col.push(widget::divider::horizontal::default());
 
         for (idx, location) in self.config.saved_locations.iter().enumerate() {
-            let is_active = (location.latitude - self.config.latitude).abs() < 0.01
-                && (location.longitude - self.config.longitude).abs() < 0.01;
+            let is_active =
+                location.matches_coords(self.config.latitude, self.config.longitude);
 
             let mut row = widget::row()
                 .spacing(8)

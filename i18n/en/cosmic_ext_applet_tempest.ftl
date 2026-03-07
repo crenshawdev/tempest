@@ -1,5 +1,4 @@
 # General
-app-name = Tempest Weather
 loading = Loading weather data...
 updated = Updated: { $time }
 retry = Retry
@@ -29,18 +28,6 @@ label-pressure = Pressure
 label-sunrise = Sunrise
 label-sunset = Sunset
 
-# Current conditions
-feels-like = Feels like: { $temp }
-humidity = Humidity: { $value }%
-wind = Wind: { $speed } { $unit } { $direction }
-gusts = Gusts: { $speed } { $unit }
-uv-index = UV Index: { $value }
-cloud-cover = Cloud Cover: { $value }%
-visibility = Visibility: { $value } { $unit }
-pressure = Pressure: { $value }
-sunrise = Sunrise: { $time }
-sunset = Sunset: { $time }
-
 # Air quality - labels
 label-pm25 = Particulates under 2.5 μm (PM2.5)
 label-pm10 = Particulates under 10 μm (PM10)
@@ -53,11 +40,6 @@ locations-back = Back
 
 # Air quality
 air-quality-unavailable = Air quality data unavailable
-pm25 = PM2.5: { $value } ug/m3
-pm10 = PM10: { $value } ug/m3
-ozone = Ozone: { $value } ug/m3
-no2 = NO2: { $value } ug/m3
-co = CO: { $value } ug/m3
 
 # Alerts
 alerts-disabled = Weather alerts are disabled
@@ -162,4 +144,3 @@ settings-tip-kofi = Tip me on Ko-fi
 
 settings-auto-units = Auto-select Units
 settings-auto-units-hint = Based on location
-panel-display = Panel Display

@@ -56,14 +56,12 @@ pub fn network_subscription() -> Subscription<NetworkEvent> {
 
             use futures::StreamExt;
             while let Some(Ok(msg)) = stream.next().await {
-                // Only process signals matching our StateChanged subscription
                 let header = msg.header();
-                let matches_member = header.member().is_some_and(|m| m == "StateChanged");
-                let matches_interface = header
-                    .interface()
-                    .is_some_and(|i| i == "org.freedesktop.NetworkManager");
-
-                if !matches_member || !matches_interface {
+                if header.member().is_none_or(|m| m != "StateChanged")
+                    || header
+                        .interface()
+                        .is_none_or(|i| i != "org.freedesktop.NetworkManager")
+                {
                     continue;
                 }
 

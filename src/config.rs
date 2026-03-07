@@ -89,6 +89,13 @@ pub struct SavedLocation {
     pub longitude: f64,
 }
 
+impl SavedLocation {
+    /// Checks if this saved location matches the given coordinates.
+    pub fn matches_coords(&self, lat: f64, lon: f64) -> bool {
+        (self.latitude - lat).abs() < 0.01 && (self.longitude - lon).abs() < 0.01
+    }
+}
+
 /// Measurement system for non-temperature units (wind speed, visibility, etc.)
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub enum MeasurementSystem {
