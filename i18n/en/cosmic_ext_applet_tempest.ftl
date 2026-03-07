@@ -49,6 +49,7 @@ label-no2 = Nitrogen Dioxide (NO2)
 label-co = Carbon Monoxide (CO)
 air-quality-index = Air quality index
 air-quality-back = Back
+locations-back = Back
 
 # Air quality
 air-quality-unavailable = Air quality data unavailable
@@ -132,6 +133,7 @@ forecast-conditions = Conditions
 section-location = LOCATION
 section-units = UNITS
 section-updates = UPDATES
+section-saved-locations = SAVED LOCATIONS
 section-panel-display = PANEL DISPLAY
 
 # Settings
