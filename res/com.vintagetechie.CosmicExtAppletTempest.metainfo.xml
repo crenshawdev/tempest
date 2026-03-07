@@ -166,22 +166,10 @@
       <image>https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/raw/main/screenshots/tempest-main.png</image>
     </screenshot>
     <screenshot>
-      <caption>Hourly forecast</caption>
-      <caption xml:lang="cs">Hodinová předpověď</caption>
-      <caption xml:lang="uk">Погодинний прогноз</caption>
-      <image>https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/raw/main/screenshots/tempest-hourly.png</image>
-    </screenshot>
-    <screenshot>
       <caption>7-day weather forecast</caption>
       <caption xml:lang="cs">Předpověď na 7 dní</caption>
       <caption xml:lang="uk">Прогноз погоди на 7 днів</caption>
       <image>https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/raw/main/screenshots/tempest-7day.png</image>
-    </screenshot>
-    <screenshot>
-      <caption>Air quality pollutants</caption>
-      <caption xml:lang="cs">Znečišťující látky v ovzduší</caption>
-      <caption xml:lang="uk">Забруднювачі повітря</caption>
-      <image>https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/raw/main/screenshots/tempest-aiq.png</image>
     </screenshot>
     <screenshot>
       <caption>Weather alerts</caption>
@@ -190,10 +178,8 @@
       <image>https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/raw/main/screenshots/tempest-alerts.png</image>
     </screenshot>
     <screenshot>
-      <caption>Settings</caption>
-      <caption xml:lang="cs">Nastavení</caption>
-      <caption xml:lang="uk">Налаштування</caption>
-      <image>https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/raw/main/screenshots/tempest-settings.png</image>
+      <caption>Saved locations</caption>
+      <image>https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/raw/main/screenshots/tempest-locations.png</image>
     </screenshot>
   </screenshots>
 
