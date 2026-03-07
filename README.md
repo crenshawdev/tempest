@@ -78,7 +78,7 @@ Defaults to auto-detecting your location. Falls back to New York if detection fa
 
 [![Translation status](https://hosted.weblate.org/widget/tempest/tempest/multi-auto.svg)](https://hosted.weblate.org/engage/tempest/)
 
-Tempest is translated into Czech, German, Hungarian, Polish, Portuguese (Brazil), Russian, Simplified Chinese, Swedish, and Ukrainian, with more on the way.
+Tempest is translated into Czech, French, German, Hungarian, Polish, Portuguese (Brazil), Russian, Simplified Chinese, Swedish, and Ukrainian, with more on the way.
 
 Want to help? Head to [Tempest on Weblate](https://hosted.weblate.org/engage/tempest/) and start translating. No coding required.
 
