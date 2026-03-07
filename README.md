@@ -22,13 +22,13 @@ No API keys. No accounts. Just weather.
 <summary><strong>More screenshots</strong></summary>
 <br>
 
-| Hourly | 7-Day |
-|--------|-------|
-| ![Hourly](screenshots/tempest-hourly.png) | ![7-Day](screenshots/tempest-7day.png) |
+| 7-Day Forecast | Weather Alerts |
+|----------------|----------------|
+| ![7-Day](screenshots/tempest-7day.png) | ![Alerts](screenshots/tempest-alerts.png) |
 
-| Air Quality | Alerts | Settings |
-|-------------|--------|----------|
-| ![Air Quality](screenshots/tempest-aiq.png) | ![Alerts](screenshots/tempest-alerts.png) | ![Settings](screenshots/tempest-settings.png) |
+| Saved Locations |
+|-----------------|
+| ![Locations](screenshots/tempest-locations.png) |
 
 </details>
 
@@ -38,6 +38,7 @@ No API keys. No accounts. Just weather.
 - **Tabbed popup** with current conditions, hourly forecast, 7-day outlook, weather alerts, and settings
 - **Air quality monitoring** with PM2.5, PM10, Ozone, NO2, CO, and automatic US/EU AQI standard detection
 - **Weather alerts** from NWS (US), ECCC (Canada), MeteoAlarm (EU), and BOM (Australia) with desktop notifications
+- **Saved locations** so you can bookmark cities and switch between them with one tap
 - **Automatic location** via IP geolocation, or search by city name, or enter coordinates manually
 - **Smart connectivity** that retries on failure and refreshes instantly when your network comes back
 - **10 languages** and counting, powered by community translators on Weblate
