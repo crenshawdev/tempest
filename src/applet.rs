@@ -80,6 +80,8 @@ pub struct Tempest {
     military_time: bool,
     /// Whether the pollutants sub-view is currently displayed.
     showing_pollutants: bool,
+    /// Whether the saved locations sub-view is currently displayed.
+    showing_locations: bool,
     /// Cached max popup height based on screen resolution.
     popup_max_height: f32,
     /// Consecutive fetch failures driving the backoff retry schedule.
@@ -230,6 +232,7 @@ impl Default for Tempest {
             last_updated_display: None,
             military_time: false,
             showing_pollutants: false,
+            showing_locations: false,
             popup_max_height: calculate_popup_max_height(),
             retry_count: 0,
             config,
@@ -271,6 +274,11 @@ pub enum Message {
     SystemTimeConfig(TimeAppletConfig),
     ShowPollutants,
     HidePollutants,
+    SaveLocation(usize),
+    RemoveSavedLocation(usize),
+    ShowLocations,
+    HideLocations,
+    SwitchLocation(usize),
     OpenKofi,
     RetryFetch,
     NetworkChanged(crate::network::NetworkEvent),
@@ -310,10 +318,24 @@ impl Application for Tempest {
     /// - `Task` type is used to send messages to your application. `Task::none()` can be used to send no messages to your application.
     fn init(core: Core, _flags: Self::Flags) -> (Self, Task<Self::Message>) {
         let config_handler = cosmic::cosmic_config::Config::new(Self::APP_ID, Config::VERSION).ok();
-        let config = config_handler
+        let mut config = config_handler
             .as_ref()
             .and_then(|h| Config::get_entry(h).ok())
             .unwrap_or_default();
+
+        // Seed saved locations from the active location on first run
+        if config.saved_locations.is_empty() && !config.location_name.is_empty() {
+            config.saved_locations.push(crate::config::SavedLocation {
+                name: config.location_name.clone(),
+                latitude: config.latitude,
+                longitude: config.longitude,
+            });
+            if let Some(ref handler) = config_handler {
+                if let Err(e) = config.write_entry(handler) {
+                    tracing::error!("Failed to save migrated config: {}", e);
+                }
+            }
+        }
 
         let refresh_input = config.refresh_interval_minutes.to_string();
         let active_tab = config.default_tab;
@@ -578,12 +600,30 @@ impl Application for Tempest {
 
         column = column.push(header);
 
-        // Prominent location display
-        column = column.push(
-            widget::container(text(&self.config.location_name).size(18))
+        // Prominent location display (tappable when saved locations exist)
+        if self.config.saved_locations.len() > 1 {
+            column = column.push(
+                widget::container(
+                    widget::button::custom(
+                        widget::row()
+                            .spacing(6)
+                            .align_y(cosmic::iced::Alignment::Center)
+                            .push(text(&self.config.location_name).size(18))
+                            .push(widget::icon::from_name("go-next-symbolic").size(14)),
+                    )
+                    .class(cosmic::theme::Button::Text)
+                    .on_press(Message::ShowLocations),
+                )
                 .align_x(cosmic::iced::alignment::Horizontal::Center)
                 .width(cosmic::iced::Length::Fill),
-        );
+            );
+        } else {
+            column = column.push(
+                widget::container(text(&self.config.location_name).size(18))
+                    .align_x(cosmic::iced::alignment::Horizontal::Center)
+                    .width(cosmic::iced::Length::Fill),
+            );
+        }
 
         column = column.push(widget::divider::horizontal::default());
 
@@ -616,6 +656,9 @@ impl Application for Tempest {
                 .align_x(cosmic::iced::alignment::Horizontal::Center)
                 .width(cosmic::iced::Length::Fill),
             );
+        } else if self.showing_locations {
+            // Saved locations sub-view replaces normal popup content
+            column = column.push(self.render_locations_view());
         } else if self.showing_pollutants {
             // Pollutants sub-view replaces normal popup content
             column = column.push(self.render_pollutants_view());
@@ -1013,6 +1056,52 @@ impl Application for Tempest {
             Message::HidePollutants => {
                 self.showing_pollutants = false;
             }
+            Message::ShowLocations => {
+                self.showing_locations = true;
+            }
+            Message::HideLocations => {
+                self.showing_locations = false;
+            }
+            Message::SwitchLocation(idx) => {
+                if let Some(location) = self.config.saved_locations.get(idx) {
+                    self.config.latitude = location.latitude;
+                    self.config.longitude = location.longitude;
+                    self.config.location_name = location.name.clone();
+                    self.config.manual_latitude = Some(location.latitude);
+                    self.config.manual_longitude = Some(location.longitude);
+                    self.config.manual_location_name = Some(location.name.clone());
+                    self.config.use_auto_location = false;
+                    self.showing_locations = false;
+                    self.save_config();
+                    return Task::perform(async { Message::RefreshWeather }, Action::App);
+                }
+            }
+            Message::SaveLocation(idx) => {
+                if let Some(location) = self.search_results.get(idx) {
+                    if self.config.saved_locations.len() < 8 {
+                        let saved = crate::config::SavedLocation {
+                            name: location.display_name.clone(),
+                            latitude: location.latitude,
+                            longitude: location.longitude,
+                        };
+                        if !self.config.saved_locations.iter().any(|l| {
+                            (l.latitude - saved.latitude).abs() < 0.01
+                                && (l.longitude - saved.longitude).abs() < 0.01
+                        }) {
+                            self.config.saved_locations.push(saved);
+                            self.save_config();
+                        }
+                    }
+                }
+                self.search_results.clear();
+                self.city_input.clear();
+            }
+            Message::RemoveSavedLocation(idx) => {
+                if idx < self.config.saved_locations.len() {
+                    self.config.saved_locations.remove(idx);
+                    self.save_config();
+                }
+            }
             Message::OpenKofi => {
                 if let Err(e) = open::that("https://ko-fi.com/vintagetechie") {
                     tracing::error!("Failed to open Ko-fi URL: {}", e);
@@ -1253,6 +1342,48 @@ impl Tempest {
             .push(widget::space::horizontal())
             .push(text(value).size(14))
             .into()
+    }
+
+    /// Renders the saved locations sub-view with back button and location list.
+    fn render_locations_view(&self) -> Element<'_, Message> {
+        let mut col = widget::column().spacing(8).padding([0, 8, 0, 20]);
+
+        // Back button
+        let back_btn = widget::button::custom(
+            widget::row()
+                .spacing(4)
+                .align_y(cosmic::iced::Alignment::Center)
+                .push(widget::icon::from_name("go-previous-symbolic").size(16))
+                .push(text(crate::fl!("locations-back")).size(14)),
+        )
+        .class(cosmic::theme::Button::Link)
+        .on_press(Message::HideLocations);
+
+        col = col.push(back_btn);
+        col = col.push(widget::divider::horizontal::default());
+
+        for (idx, location) in self.config.saved_locations.iter().enumerate() {
+            let is_active = (location.latitude - self.config.latitude).abs() < 0.01
+                && (location.longitude - self.config.longitude).abs() < 0.01;
+
+            let mut row = widget::row()
+                .spacing(8)
+                .align_y(cosmic::iced::Alignment::Center)
+                .push(text(&location.name).size(14).width(cosmic::iced::Length::Fill));
+
+            if is_active {
+                row = row.push(widget::icon::from_name("emblem-ok-symbolic").size(16));
+            }
+
+            let btn = widget::button::custom(row)
+                .class(cosmic::theme::Button::Text)
+                .on_press(Message::SwitchLocation(idx))
+                .width(cosmic::iced::Length::Fill);
+
+            col = col.push(btn);
+        }
+
+        col.into()
     }
 
     /// Renders the Alerts tab content.
@@ -1522,13 +1653,25 @@ impl Tempest {
                     ),
             );
 
-            // Search results
+            // Search results with select and save buttons
             for (idx, result) in self.search_results.iter().enumerate() {
                 col = col.push(
-                    widget::button::text(&result.display_name)
-                        .on_press(Message::SelectLocation(idx))
-                        .padding(8)
-                        .width(cosmic::iced::Length::Fill),
+                    widget::row()
+                        .spacing(4)
+                        .align_y(cosmic::iced::Alignment::Center)
+                        .push(
+                            widget::button::text(&result.display_name)
+                                .on_press(Message::SelectLocation(idx))
+                                .padding(8)
+                                .width(cosmic::iced::Length::Fill),
+                        )
+                        .push(
+                            widget::button::icon(
+                                widget::icon::from_name("bookmark-new-symbolic").size(16),
+                            )
+                            .on_press(Message::SaveLocation(idx))
+                            .padding(6),
+                        ),
                 );
             }
 
@@ -1542,6 +1685,36 @@ impl Tempest {
                             .class(cosmic::theme::Text::Accent),
                     ),
             );
+        }
+
+        // SAVED LOCATIONS section
+        if !self.config.saved_locations.is_empty() {
+            col = col.push(widget::divider::horizontal::default());
+            col = col.push(Self::section_header(crate::fl!("section-saved-locations")));
+
+            for (idx, location) in self.config.saved_locations.iter().enumerate() {
+                let is_active = (location.latitude - self.config.latitude).abs() < 0.01
+                    && (location.longitude - self.config.longitude).abs() < 0.01;
+
+                let mut row = widget::row()
+                    .spacing(8)
+                    .align_y(cosmic::iced::Alignment::Center)
+                    .push(text(&location.name).size(14).width(cosmic::iced::Length::Fill));
+
+                if is_active {
+                    row = row.push(widget::icon::from_name("emblem-ok-symbolic").size(16));
+                }
+
+                row = row.push(
+                    widget::button::icon(
+                        widget::icon::from_name("edit-delete-symbolic").size(16),
+                    )
+                    .on_press(Message::RemoveSavedLocation(idx))
+                    .padding(4),
+                );
+
+                col = col.push(row);
+            }
         }
 
         // UNITS section

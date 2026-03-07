@@ -81,6 +81,14 @@ pub enum PopupTab {
     Settings,
 }
 
+/// A bookmarked location for quick switching.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct SavedLocation {
+    pub name: String,
+    pub latitude: f64,
+    pub longitude: f64,
+}
+
 /// Measurement system for non-temperature units (wind speed, visibility, etc.)
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub enum MeasurementSystem {
@@ -165,6 +173,9 @@ pub struct Config {
     /// Show sunrise/sunset times in the panel display.
     #[serde(default)]
     pub show_sunrise_sunset_in_panel: bool,
+    /// Bookmarked locations for quick switching.
+    #[serde(default)]
+    pub saved_locations: Vec<SavedLocation>,
 }
 
 fn default_alerts_enabled() -> bool {
@@ -206,6 +217,7 @@ impl Default for Config {
             show_pressure_in_panel: false,
             show_dew_point_in_panel: false,
             show_sunrise_sunset_in_panel: false,
+            saved_locations: Vec::new(),
         }
     }
 }
