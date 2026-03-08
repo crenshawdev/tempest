@@ -145,3 +145,5 @@ settings-auto-units-hint = 根据位置
 panel-display = 面板显示
 weather-fetch-error = 天气信息获取失败，请检查网络连接并重试
 settings-pressure = 气压
+locations-back = 返回
+section-saved-locations = 已保存的位置
