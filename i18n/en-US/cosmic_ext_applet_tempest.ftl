@@ -145,3 +145,5 @@ settings-auto-units = Auto-select Units
 settings-auto-units-hint = Based on location
 panel-display = Panel Display
 weather-fetch-error = Failure to retrieve Weather Data, check your network connection and try again
+locations-back = Back
+section-saved-locations = SAVED LOCATIONS
