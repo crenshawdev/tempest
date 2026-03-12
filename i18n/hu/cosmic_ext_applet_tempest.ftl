@@ -134,3 +134,5 @@ settings-auto-units-hint = Hely alapján
 panel-display = Panel megjelenés
 weather-fetch-error = Nem sikerült letölteni az időjárási adatokat, ellenőrizd a hálózati kapcsolatot és próbáld újra
 settings-pressure = Légnyomás
+locations-back = Vissza
+section-saved-locations = MENTETT HELYEK

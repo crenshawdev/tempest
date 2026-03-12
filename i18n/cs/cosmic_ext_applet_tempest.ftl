@@ -145,3 +145,5 @@ settings-auto-units-hint = Podle polohy
 panel-display = Zobrazení panelu
 weather-fetch-error = Nepodařilo se získat data o počasí, zkontrolujte své síťové připojení a zkuste to znovu
 settings-pressure = Tlak
+locations-back = Zpět
+section-saved-locations = ULOŽENÁ MÍSTA

@@ -134,3 +134,5 @@ settings-auto-units-hint = Na podstawie położenia
 panel-display = Wyświetlanie na Panelu
 weather-fetch-error = Nieudane odzyskanie danych pogodowych, sprawdź połączenie i spróbuj ponownie
 settings-pressure = Ciśnienie
+locations-back = Powróć
+section-saved-locations = ZAPISANE POŁOŻENIA
