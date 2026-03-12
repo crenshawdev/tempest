@@ -129,3 +129,5 @@ aqi-eu-very-poor = Дуже погана
 aqi-eu-extremely-poor = Вкрай погана
 weather-mainly-clear = Переважно чисте
 weather-snow-grains = Снігові зерна
+locations-back = Назад
+section-saved-locations = ЗАКРІПЛЕНІ МІСЦЯ
