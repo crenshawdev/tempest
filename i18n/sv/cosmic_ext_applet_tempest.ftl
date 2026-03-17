@@ -145,3 +145,5 @@ settings-auto-units-hint = Baserat på plats
 panel-display = Panelvisning
 weather-fetch-error = Misslyckades att hämta väderdata, kontrollera din nätverksanslutning och försök igen
 settings-pressure = Tryck
+locations-back = Tillbaka
+section-saved-locations = SPARADE PLATSER
