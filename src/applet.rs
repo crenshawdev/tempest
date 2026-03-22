@@ -14,10 +14,10 @@ use std::time::Duration;
 
 use crate::config::{Config, MeasurementSystem, PopupTab, PressureUnit, TemperatureUnit};
 use crate::weather::{
-    aqi_to_description, detect_location, fetch_air_quality, fetch_alerts, fetch_weather,
-    format_date, format_hour, format_time, is_night_time, search_city, uses_imperial_units,
-    weathercode_to_description, weathercode_to_icon_name, wind_direction_to_compass,
-    AirQualityData, Alert, AlertSeverity, AqiStandard, LocationResult, WeatherData,
+    aqi_to_description, condition_to_description, detect_location, fetch_air_quality, fetch_alerts,
+    fetch_weather, format_date, format_hour, format_time, is_night_time, search_city,
+    uses_imperial_units, AirQualityData, Alert, AlertSeverity, AqiStandard, DetectedLocation,
+    LocationResult, WeatherData,
 };
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -53,8 +53,8 @@ pub struct Tempest {
     search_results: Vec<LocationResult>,
     /// Display label for panel button
     display_label: String,
-    /// Current weather code for icon display
-    current_weathercode: i32,
+    /// Current weather condition for icon display
+    current_condition: tempest_core::WeatherCondition,
     /// Current AQI for panel display
     current_aqi: Option<(i32, AqiStandard)>,
     /// Loading state
@@ -217,7 +217,7 @@ impl Default for Tempest {
             refresh_input: config.refresh_interval_minutes.to_string(),
             search_results: Vec::new(),
             display_label: "...".to_string(),
-            current_weathercode: 0,
+            current_condition: tempest_core::WeatherCondition::Unknown,
             current_aqi: None,
             is_loading: true,
             error_message: None,
@@ -261,7 +261,7 @@ pub enum Message {
     SelectLocation(usize),
     UpdateRefreshInterval(String),
     DetectLocation,
-    LocationDetected(Result<(f64, f64, String, String), String>),
+    LocationDetected(Result<DetectedLocation, String>),
     ToggleAutoLocation,
     SelectTab(PopupTab),
     TabActivated(segmented_button::Entity),
@@ -417,7 +417,7 @@ impl Application for Tempest {
         let icon_name = if self.error_message.is_some() {
             "dialog-error-symbolic"
         } else {
-            weathercode_to_icon_name(self.current_weathercode, is_night)
+            self.current_condition.icon_name(is_night)
         };
 
         let icon = widget::icon::from_name(icon_name).size(16).symbolic(true);
@@ -676,18 +676,14 @@ impl Application for Tempest {
 
                 let lat = self.config.latitude;
                 let lon = self.config.longitude;
-                let temp_unit = self.config.temperature_unit.api_param().to_string();
-                let wind_unit = self
-                    .config
-                    .measurement_system
-                    .wind_speed_api_param()
-                    .to_string();
+                let temp_unit = self.config.temperature_unit;
+                let measurement = self.config.measurement_system;
                 let alerts_enabled = self.config.alerts_enabled;
 
                 // Fetch weather and air quality in parallel
                 let weather_task = Task::perform(
                     async move {
-                        fetch_weather(lat, lon, &temp_unit, &wind_unit)
+                        fetch_weather(lat, lon, temp_unit, measurement)
                             .await
                             .map_err(|e| e.to_string())
                     },
@@ -717,7 +713,7 @@ impl Application for Tempest {
                 match result {
                     Ok(data) => {
                         self.retry_count = 0;
-                        self.current_weathercode = data.current.weathercode;
+                        self.current_condition = data.current.condition;
                         self.display_label = self
                             .config
                             .temperature_unit
@@ -744,7 +740,7 @@ impl Application for Tempest {
                     Err(e) => {
                         tracing::error!("Failed to fetch weather: {}", e);
                         self.display_label = "ERR".to_string();
-                        self.current_weathercode = 0;
+                        self.current_condition = tempest_core::WeatherCondition::Unknown;
                         self.error_message = Some(crate::fl!("weather-fetch-error"));
 
                         // Schedule a retry with exponential backoff
@@ -930,10 +926,11 @@ impl Application for Tempest {
                 );
             }
             Message::LocationDetected(result) => match result {
-                Ok((lat, lon, location_name, country)) => {
-                    self.config.latitude = lat;
-                    self.config.longitude = lon;
-                    self.config.location_name = location_name;
+                Ok(loc) => {
+                    self.config.latitude = loc.latitude;
+                    self.config.longitude = loc.longitude;
+                    self.config.location_name = loc.display_name;
+                    let country = loc.country;
 
                     self.apply_units_for_country(&country);
 
@@ -1155,14 +1152,14 @@ impl Tempest {
                     )
                     .size(36),
                 )
-                .push(text(weathercode_to_description(weather.current.weathercode)).size(14)),
+                .push(text(condition_to_description(weather.current.condition)).size(14)),
         );
 
         col = col.push(widget::divider::horizontal::default());
 
         // Stats table
         let wind_unit = self.config.measurement_system.wind_speed_unit();
-        let wind_dir = wind_direction_to_compass(weather.current.wind_direction);
+        let wind_dir = weather.current.compass_direction.as_str();
         let visibility = self
             .config
             .measurement_system
@@ -1222,7 +1219,7 @@ impl Tempest {
         if let Some(ref aq) = self.air_quality {
             col = col.push(widget::divider::horizontal::default());
 
-            let aqi_description = aqi_to_description(aq.aqi, aq.standard);
+            let aqi_description = aqi_to_description(&aq.category);
             let aqi_row = widget::button::custom(
                 widget::row()
                     .align_y(cosmic::iced::Alignment::Center)
@@ -1444,7 +1441,7 @@ impl Tempest {
                     .align_x(cosmic::iced::alignment::Horizontal::Center)
                     .push(text(format_hour(&hour.time, self.military_time)).size(12))
                     .push(
-                        widget::icon::from_name(weathercode_to_icon_name(hour.weathercode, false))
+                        widget::icon::from_name(hour.condition.icon_name(false))
                             .size(20)
                             .symbolic(true),
                     )
@@ -1514,7 +1511,7 @@ impl Tempest {
                             .width(cosmic::iced::Length::FillPortion(3)),
                     )
                     .push(
-                        widget::icon::from_name(weathercode_to_icon_name(day.weathercode, false))
+                        widget::icon::from_name(day.condition.icon_name(false))
                             .size(20)
                             .symbolic(true),
                     )
@@ -1532,7 +1529,7 @@ impl Tempest {
                     )
                     .push(
                         widget::container(
-                            text(weathercode_to_description(day.weathercode))
+                            text(condition_to_description(day.condition))
                                 .size(14)
                                 .wrapping(cosmic::iced::widget::text::Wrapping::None)
                                 .ellipsize(cosmic::iced::widget::text::Ellipsize::End(
