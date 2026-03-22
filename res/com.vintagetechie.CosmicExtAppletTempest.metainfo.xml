@@ -88,6 +88,11 @@
   </categories>
 
   <releases>
+    <release version="2.6.0" date="2026-03-22">
+      <description>
+        <p>Extracted all weather logic, API calls, and network monitoring into the tempest-core library crate. The applet is now a thin frontend over the shared library. No user-facing changes, but roughly 1,700 lines of duplicated code are gone. Translation updates from Weblate for Czech, Hungarian, Polish, Swedish, Ukrainian, and Simplified Chinese.</p>
+      </description>
+    </release>
     <release version="2.5.0" date="2026-03-07">
       <description>
         <p>Saved locations and code cleanup. Bookmark up to 8 locations and switch between them from the popup header. Includes a code audit pass that streamlined panel rendering, converted manual loops to iterators, and removed dead i18n strings.</p>
