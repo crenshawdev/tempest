@@ -5,10 +5,10 @@
 //! The core library returns typed enums. This module matches on them
 //! to produce localized strings via the applet's Fluent translations.
 
-use tempest_core::{AqiCategory, EuAqiCategory, UsAqiCategory, WeatherCondition};
+use weathervane::{AqiCategory, EuAqiCategory, UsAqiCategory, WeatherCondition};
 
 // Re-export everything the rest of the applet needs from tempest-core.
-pub use tempest_core::{
+pub use weathervane::{
     detect_location, fetch_air_quality, fetch_alerts, fetch_weather, format_hour, format_time,
     is_night_time, search_city, uses_imperial_units, AirQualityData, Alert, AlertSeverity,
     AqiStandard, DetectedLocation, LocationResult, WeatherData,
@@ -60,7 +60,7 @@ pub fn aqi_to_description(category: &AqiCategory) -> String {
 
 /// Formats an ISO date to a localized readable string (e.g. "Tue Nov 25").
 pub fn format_date(date_str: &str) -> String {
-    if let Some(parsed) = tempest_core::ParsedDate::from_iso(date_str) {
+    if let Some(parsed) = weathervane::ParsedDate::from_iso(date_str) {
         let day_name = match parsed.weekday {
             chrono::Weekday::Mon => crate::fl!("day-mon"),
             chrono::Weekday::Tue => crate::fl!("day-tue"),
