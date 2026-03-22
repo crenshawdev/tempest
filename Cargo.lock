@@ -934,7 +934,6 @@ dependencies = [
 name = "cosmic-ext-applet-tempest"
 version = "2.5.0"
 dependencies = [
- "anyhow",
  "async-stream",
  "chrono",
  "cosmic-randr-shell",
@@ -944,17 +943,13 @@ dependencies = [
  "libcosmic",
  "notify-rust",
  "open",
- "quick-xml 0.37.5",
- "reqwest",
  "rust-embed",
  "serde",
- "serde_json",
+ "tempest-core",
  "tokio",
  "tracing",
  "tracing-log",
  "tracing-subscriber",
- "urlencoding",
- "zbus",
 ]
 
 [[package]]
@@ -5092,6 +5087,23 @@ dependencies = [
  "thiserror 2.0.18",
  "windows",
  "windows-version",
+]
+
+[[package]]
+name = "tempest-core"
+version = "0.1.0"
+dependencies = [
+ "async-stream",
+ "chrono",
+ "futures",
+ "quick-xml 0.37.5",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tracing",
+ "urlencoding",
+ "zbus",
 ]
 
 [[package]]
