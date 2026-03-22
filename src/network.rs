@@ -3,7 +3,7 @@
 use cosmic::iced::Subscription;
 use cosmic::iced_futures::Subscription as IcedSubscription;
 
-pub use tempest_core::NetworkEvent;
+pub use weathervane::NetworkEvent;
 
 /// Subscribes to network connectivity changes via tempest-core.
 ///
@@ -11,5 +11,5 @@ pub use tempest_core::NetworkEvent;
 /// full connectivity. Wraps the library's raw stream into an iced
 /// subscription so the applet runtime can drive it.
 pub fn network_subscription() -> Subscription<NetworkEvent> {
-    IcedSubscription::run(tempest_core::network_stream)
+    IcedSubscription::run(weathervane::network_stream)
 }
