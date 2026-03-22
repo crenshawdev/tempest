@@ -5,6 +5,18 @@ All notable changes to Tempest will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.0] - 2026-03-22
+
+### Changed
+- Extracted all weather logic, API calls, region detection, and network monitoring into the tempest-core library crate
+- The applet is now a thin frontend over the shared library (~1,700 lines removed)
+- Unit types, weather data models, and location types are now imported from tempest-core
+- Weather condition descriptions and AQI categories now match on typed enums instead of raw integers
+- Dropped direct dependencies on reqwest, quick-xml, zbus, urlencoding, serde_json, and anyhow
+
+### Added
+- Translation updates from Weblate for Czech, Hungarian, Polish, Swedish, Ukrainian, and Simplified Chinese
+
 ## [2.5.0] - 2026-03-07
 
 ### Added
@@ -230,6 +242,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Persistent configuration storage
 - Global weather coverage
 
+[2.6.0]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.6.0
 [2.5.0]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.5.0
 [2.4.3]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.4.3
 [2.4.2]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.4.2

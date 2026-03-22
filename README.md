@@ -94,6 +94,10 @@ just check-json     # LSP-compatible output
 
 ## Changelog
 
+### 2.6.0
+
+Moved all the weather logic, API calls, region detection, and network monitoring into a standalone library crate called tempest-core. The applet is just a frontend now, roughly 1,700 lines lighter. Nothing changes for users, but the codebase is a lot easier to work with and the core logic is reusable. Also picked up a batch of translation updates from Weblate.
+
 ### 2.5.0
 
 You can now bookmark locations and switch between them without re-searching every time. Tap the location name in the popup header to see your saved spots and switch with one click. The settings tab has a bookmark button on search results and a section for managing saved locations. Capped at 8 because nobody needs more than that. Also did a cleanup pass: streamlined the panel rendering, swapped manual loops for iterators in the weather parser, and pruned 17 dead i18n strings.
