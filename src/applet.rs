@@ -54,7 +54,7 @@ pub struct Tempest {
     /// Display label for panel button
     display_label: String,
     /// Current weather condition for icon display
-    current_condition: tempest_core::WeatherCondition,
+    current_condition: weathervane::WeatherCondition,
     /// Current AQI for panel display
     current_aqi: Option<(i32, AqiStandard)>,
     /// Loading state
@@ -217,7 +217,7 @@ impl Default for Tempest {
             refresh_input: config.refresh_interval_minutes.to_string(),
             search_results: Vec::new(),
             display_label: "...".to_string(),
-            current_condition: tempest_core::WeatherCondition::Unknown,
+            current_condition: weathervane::WeatherCondition::Unknown,
             current_aqi: None,
             is_loading: true,
             error_message: None,
@@ -740,7 +740,7 @@ impl Application for Tempest {
                     Err(e) => {
                         tracing::error!("Failed to fetch weather: {}", e);
                         self.display_label = "ERR".to_string();
-                        self.current_condition = tempest_core::WeatherCondition::Unknown;
+                        self.current_condition = weathervane::WeatherCondition::Unknown;
                         self.error_message = Some(crate::fl!("weather-fetch-error"));
 
                         // Schedule a retry with exponential backoff

@@ -2,7 +2,7 @@
 
 use cosmic::cosmic_config::{self, cosmic_config_derive::CosmicConfigEntry, CosmicConfigEntry};
 use serde::{Deserialize, Serialize};
-pub use tempest_core::{MeasurementSystem, PressureUnit, SavedLocation, TemperatureUnit};
+pub use weathervane::{MeasurementSystem, PressureUnit, SavedLocation, TemperatureUnit};
 
 /// Tab options for the popup interface.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
