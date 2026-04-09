@@ -278,6 +278,7 @@ pub enum Message {
     OpenKofi,
     RetryFetch,
     NetworkChanged(crate::network::NetworkEvent),
+    SystemResumed,
 }
 
 impl Application for Tempest {
@@ -389,7 +390,10 @@ impl Application for Tempest {
         // Monitor NetworkManager for connectivity changes
         let network = crate::network::network_subscription().map(Message::NetworkChanged);
 
-        Subscription::batch([tick, time_config, network])
+        // Monitor systemd-logind for resume from suspend
+        let sleep = crate::sleep::sleep_subscription().map(|_| Message::SystemResumed);
+
+        Subscription::batch([tick, time_config, network, sleep])
     }
 
     fn on_close_requested(&self, id: Id) -> Option<Message> {
@@ -1063,6 +1067,11 @@ impl Application for Tempest {
                 return Task::perform(async { Message::RefreshWeather }, Action::App);
             }
             Message::NetworkChanged(crate::network::NetworkEvent::Connected) => {
+                self.retry_count = 0;
+                return Task::perform(async { Message::RefreshWeather }, Action::App);
+            }
+            Message::SystemResumed => {
+                weathervane::reset_http_client();
                 self.retry_count = 0;
                 return Task::perform(async { Message::RefreshWeather }, Action::App);
             }
