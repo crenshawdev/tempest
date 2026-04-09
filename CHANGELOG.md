@@ -5,6 +5,30 @@ All notable changes to Tempest will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.0] - 2026-04-09
+
+### Note
+
+Tempest is moving into maintenance mode after this release. I'll keep
+up with bug fixes and library API churn but I'm not planning new
+features. The applet does what I built it to do.
+
+### Added
+
+- Recovery from suspend on systems where NetworkManager doesn't fire
+  reliably on resume. The applet now subscribes to systemd-logind's
+  PrepareForSleep signal, resets the HTTP client connection pool on
+  the resume edge, and refreshes weather without requiring a manual
+  Retry. Closes #124.
+
+### Changed
+
+- Caught up to libcosmic API changes (Subscription import path moved
+  off cosmic::iced_futures, iced_core moved under cosmic::iced::core,
+  widget::row and widget::column now require children up front).
+- Bumped to weathervane 0.2.0 which carries the underlying error
+  variant breakout and HTTP client hardening this release relies on.
+
 ## [2.6.0] - 2026-03-22
 
 ### Changed

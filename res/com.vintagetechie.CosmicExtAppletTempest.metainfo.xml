@@ -88,6 +88,12 @@
   </categories>
 
   <releases>
+    <release version="2.7.0" date="2026-04-09">
+      <description>
+        <p>Tempest is moving into maintenance mode after this release. Bug fixes and dependency catchup only, no new features planned.</p>
+        <p>This release fixes an issue where the applet could get stuck after waking from suspend if NetworkManager didn't report the network change reliably. Tempest now listens for resume events directly and refreshes automatically without needing a manual retry.</p>
+      </description>
+    </release>
     <release version="2.6.0" date="2026-03-22">
       <description>
         <p>Extracted all weather logic, API calls, and network monitoring into the tempest-core library crate. The applet is now a thin frontend over the shared library. No user-facing changes, but roughly 1,700 lines of duplicated code are gone. Translation updates from Weblate for Czech, Hungarian, Polish, Swedish, Ukrainian, and Simplified Chinese.</p>
