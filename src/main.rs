@@ -4,6 +4,7 @@ mod applet;
 mod config;
 mod i18n;
 mod network;
+mod sleep;
 mod weather;
 
 fn main() -> cosmic::iced::Result {

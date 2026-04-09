@@ -10,6 +10,8 @@ No API keys. No accounts. Just weather.
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](./LICENSE)
 [![Translation status](https://hosted.weblate.org/widget/tempest/tempest/svg-badge.svg)](https://hosted.weblate.org/engage/tempest/)
 
+**Status: Maintenance.** Bug fixes and dependency catchup only. No new features planned.
+
 <br>
 
 ![Current conditions](screenshots/tempest-main.png)
