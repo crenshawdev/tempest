@@ -36,11 +36,11 @@ pressure = 气压：{ $value }
 sunrise = 日出：{ $time }
 sunset = 日落：{ $time }
 # Air quality - labels
-label-pm25 = 2.5微米以下颗粒物 (PM2.5)
-label-pm10 = 10微米以下颗粒物 (PM10)
-label-ozone = 臭氧 (O3)
-label-no2 = 二氧化氮 (NO2)
-label-co = 一氧化碳 (CO)
+label-pm25 = 2.5微米以下颗粒物（PM2.5）
+label-pm10 = 10微米以下颗粒物（PM10）
+label-ozone = 臭氧（O3）
+label-no2 = 二氧化氮（NO2）
+label-co = 一氧化碳（CO）
 air-quality-index = 空气质量指数
 air-quality-back = 返回
 # Air quality
