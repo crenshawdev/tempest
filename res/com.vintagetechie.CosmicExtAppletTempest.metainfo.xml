@@ -88,6 +88,11 @@
   </categories>
 
   <releases>
+    <release version="2.8.0" date="2026-04-22">
+      <description>
+        <p>Japan's current temperature now comes from JMA's AMeDAS ground station network for coordinates inside Japan, fixing the several-degree-cold readings Open-Meteo's blended model was giving. Air quality gets an optional aqicn.org token that sources from ground monitoring stations globally outside Europe. Europe stays on Open-Meteo to preserve the European AQI scale. No setup required for the Japan fix. The token is user-supplied and free.</p>
+      </description>
+    </release>
     <release version="2.7.0" date="2026-04-09">
       <description>
         <p>Tempest is moving into maintenance mode after this release. Bug fixes and dependency catchup only, no new features planned.</p>

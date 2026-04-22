@@ -5,12 +5,10 @@
 **A weather applet for [COSMIC Desktop](https://system76.com/cosmic) that just works.**
 
 Real-time weather, air quality, alerts, and forecasts right in your panel.
-No API keys. No accounts. Just weather.
+No accounts required.
 
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](./LICENSE)
 [![Translation status](https://hosted.weblate.org/widget/tempest/tempest/svg-badge.svg)](https://hosted.weblate.org/engage/tempest/)
-
-**Status: Maintenance.** Bug fixes and dependency catchup only. No new features planned.
 
 <br>
 
@@ -46,7 +44,7 @@ No API keys. No accounts. Just weather.
 - **10 languages** and counting, powered by community translators on Weblate
 - **Zero configuration required** out of the box, fully customizable if you want it
 
-All weather data comes from [Open-Meteo](https://open-meteo.com/). No API key needed, no rate limits to worry about.
+Weather data comes from [Open-Meteo](https://open-meteo.com/) with no API key required. Japan gets an automatic upgrade: current temperature is pulled from JMA's AMeDAS ground station network when your coordinates land in Japan. For better air quality readings outside Europe, you can optionally paste a free [aqicn.org](https://aqicn.org/data-platform/token/) token into Settings to source AQI from ground monitoring stations instead of Open-Meteo's satellite pipeline.
 
 ## Install
 
@@ -95,6 +93,10 @@ just check-json     # LSP-compatible output
 ```
 
 ## Changelog
+
+### 2.8.0
+
+Turns out Open-Meteo's blended model runs several degrees cold in East Asia, and its satellite-derived AQI reads nowhere near what ground stations report. Reporters in Tokyo and Seoul caught the temperature off by 3-5°C and Seoul's AQI roughly double what aqicn.org was showing. This release fixes both. For coordinates inside Japan, current temperature is now pulled from JMA's AMeDAS network. Air quality gets an optional aqicn.org token that sources from ground monitoring stations globally outside Europe. Europe stays on Open-Meteo so the EU scale is preserved. Maintenance mode framing from 2.7.0 is lifted, turns out there was still a real problem worth fixing.
 
 ### 2.6.0
 
