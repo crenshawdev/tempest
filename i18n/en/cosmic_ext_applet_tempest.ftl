@@ -117,6 +117,7 @@ section-units = UNITS
 section-updates = UPDATES
 section-saved-locations = SAVED LOCATIONS
 section-panel-display = PANEL DISPLAY
+section-air-quality = AIR QUALITY
 
 # Settings
 settings-auto-detect = Auto-detect
@@ -144,3 +145,8 @@ settings-tip-kofi = Tip me on Ko-fi
 
 settings-auto-units = Auto-select Units
 settings-auto-units-hint = Based on location
+
+# Air quality token (aqicn.org)
+settings-aqicn-token = aqicn.org token (optional)
+settings-aqicn-token-hint = Free tokens at aqicn.org/data-platform/token/
+aqicn-attribution = Air quality data by World Air Quality Index Project

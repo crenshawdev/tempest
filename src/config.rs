@@ -60,6 +60,10 @@ pub struct Config {
     /// Bookmarked locations for quick switching.
     #[serde(default)]
     pub saved_locations: Vec<SavedLocation>,
+    /// User-supplied aqicn.org token. When set, non-European locations
+    /// use aqicn for the headline AQI instead of Open-Meteo.
+    #[serde(default)]
+    pub aqicn_token: Option<String>,
 }
 
 fn default_alerts_enabled() -> bool {
@@ -102,6 +106,7 @@ impl Default for Config {
             show_dew_point_in_panel: false,
             show_sunrise_sunset_in_panel: false,
             saved_locations: Vec::new(),
+            aqicn_token: None,
         }
     }
 }

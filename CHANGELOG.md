@@ -5,6 +5,35 @@ All notable changes to Tempest will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.0] - 2026-04-21
+
+### Note
+
+Maintenance mode framing from 2.7.0 is lifted. Two reporters on issue
+#125 showed Open-Meteo running several degrees cold in Tokyo and Seoul
+and its satellite-derived AQI running 50-80 points high against ground
+stations. Worth a release, so this isn't maintenance-only anymore.
+
+### Added
+
+- JMA AMeDAS temperature override for Japan. When coordinates fall
+  inside Japan the current temperature is pulled from the nearest
+  AMeDAS station instead of Open-Meteo's blended model. Forecast and
+  hourly stay on Open-Meteo. No setting required, transparent to the
+  user beyond the improved accuracy.
+- Optional aqicn.org token for ground-station air quality worldwide
+  outside Europe. A free token from aqicn.org/data-platform/token/
+  goes in Settings, under the new Air Quality section. Europe stays
+  on Open-Meteo so the European AQI scale is preserved. Attribution
+  line appears under the AQI when aqicn is the source.
+
+### Changed
+
+- Bumped to weathervane 0.3.0 which carries the JMA override and the
+  aqicn hybrid plumbing this release depends on. `fetch_air_quality`
+  gained an optional token parameter, which is why the library is a
+  major-minor bump rather than a patch.
+
 ## [2.7.0] - 2026-04-09
 
 ### Note

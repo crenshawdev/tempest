@@ -13,10 +13,10 @@ use std::time::Duration;
 
 use crate::config::{Config, MeasurementSystem, PopupTab, PressureUnit, TemperatureUnit};
 use crate::weather::{
-    aqi_to_description, condition_to_description, detect_location, fetch_air_quality, fetch_alerts,
-    fetch_weather, format_date, format_hour, format_time, is_night_time, search_city,
-    uses_imperial_units, AirQualityData, Alert, AlertSeverity, AqiStandard, DetectedLocation,
-    LocationResult, WeatherData,
+    aqi_to_description, condition_to_description, detect_location, detect_region,
+    fetch_air_quality, fetch_alerts, fetch_weather, format_date, format_hour, format_time,
+    is_night_time, search_city, uses_imperial_units, AirQualityData, Alert, AlertSeverity,
+    AqiStandard, DetectedLocation, LocationResult, Region, WeatherData,
 };
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -48,6 +48,7 @@ pub struct Tempest {
     /// Input field states
     city_input: String,
     refresh_input: String,
+    aqicn_token_input: String,
     /// Search results
     search_results: Vec<LocationResult>,
     /// Display label for panel button
@@ -214,6 +215,7 @@ impl Default for Tempest {
             seen_alert_ids: HashSet::new(),
             city_input: String::new(),
             refresh_input: config.refresh_interval_minutes.to_string(),
+            aqicn_token_input: String::new(),
             search_results: Vec::new(),
             display_label: "...".to_string(),
             current_condition: weathervane::WeatherCondition::Unknown,
@@ -259,6 +261,7 @@ pub enum Message {
     CitySearchResult(Result<Vec<LocationResult>, String>),
     SelectLocation(usize),
     UpdateRefreshInterval(String),
+    UpdateAqicnToken(String),
     DetectLocation,
     LocationDetected(Result<DetectedLocation, String>),
     ToggleAutoLocation,
@@ -341,6 +344,7 @@ impl Application for Tempest {
             config_handler,
             city_input: String::new(),
             refresh_input,
+            aqicn_token_input: config.aqicn_token.clone().unwrap_or_default(),
             search_results: Vec::new(),
             display_label: "...".to_string(),
             active_tab,
@@ -693,8 +697,13 @@ impl Application for Tempest {
                     |result| Action::App(Message::WeatherUpdated(result)),
                 );
 
+                let aqicn_token = self.config.aqicn_token.clone();
                 let air_quality_task = Task::perform(
-                    async move { fetch_air_quality(lat, lon).await.map_err(|e| e.to_string()) },
+                    async move {
+                        fetch_air_quality(lat, lon, aqicn_token.as_deref())
+                            .await
+                            .map_err(|e| e.to_string())
+                    },
                     |result| Action::App(Message::AirQualityUpdated(result)),
                 );
 
@@ -891,6 +900,16 @@ impl Application for Tempest {
                         self.save_config();
                     }
                 }
+            }
+            Message::UpdateAqicnToken(value) => {
+                self.aqicn_token_input = value.clone();
+                let trimmed = value.trim();
+                self.config.aqicn_token = if trimmed.is_empty() {
+                    None
+                } else {
+                    Some(trimmed.to_string())
+                };
+                self.save_config();
             }
             Message::ToggleAutoLocation => {
                 self.config.use_auto_location = !self.config.use_auto_location;
@@ -1243,6 +1262,25 @@ impl Tempest {
             .on_press(Message::ShowPollutants);
 
             col = col.push(aqi_row);
+
+            // aqicn attribution. Required by their terms when their data is
+            // what we're showing. Mirrors the library's selection logic:
+            // non-empty token and not in Europe.
+            let token_set = self
+                .config
+                .aqicn_token
+                .as_deref()
+                .map(|t| !t.trim().is_empty())
+                .unwrap_or(false);
+            let region =
+                detect_region(self.config.latitude, self.config.longitude);
+            if token_set && region != Region::Europe {
+                col = col.push(
+                    text(crate::fl!("aqicn-attribution"))
+                        .size(10)
+                        .class(cosmic::theme::Text::Accent),
+                );
+            }
         } else {
             col = col.push(widget::divider::horizontal::default());
             col = col.push(text(crate::fl!("air-quality-unavailable")).size(14));
@@ -1744,6 +1782,26 @@ impl Tempest {
             crate::fl!("settings-weather-alerts"),
             widget::toggler(self.config.alerts_enabled).on_toggle(|_| Message::ToggleAlertsEnabled),
         ));
+
+        // AIR QUALITY section
+        col = col.push(widget::divider::horizontal::default());
+        col = col.push(Self::section_header(crate::fl!("section-air-quality")));
+
+        col = col.push(
+            widget::Column::new()
+                .spacing(4)
+                .push(text(crate::fl!("settings-aqicn-token")).size(14))
+                .push(
+                    widget::text_input("", &self.aqicn_token_input)
+                        .on_input(Message::UpdateAqicnToken)
+                        .width(cosmic::iced::Length::Fill),
+                )
+                .push(
+                    text(crate::fl!("settings-aqicn-token-hint"))
+                        .size(11)
+                        .class(cosmic::theme::Text::Accent),
+                ),
+        );
 
         // PANEL DISPLAY section
         col = col.push(widget::divider::horizontal::default());

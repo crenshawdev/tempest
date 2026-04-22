@@ -9,9 +9,9 @@ use weathervane::{AqiCategory, EuAqiCategory, UsAqiCategory, WeatherCondition};
 
 // Re-export everything the rest of the applet needs from tempest-core.
 pub use weathervane::{
-    detect_location, fetch_air_quality, fetch_alerts, fetch_weather, format_hour, format_time,
-    is_night_time, search_city, uses_imperial_units, AirQualityData, Alert, AlertSeverity,
-    AqiStandard, DetectedLocation, LocationResult, WeatherData,
+    detect_location, detect_region, fetch_air_quality, fetch_alerts, fetch_weather, format_hour,
+    format_time, is_night_time, search_city, uses_imperial_units, AirQualityData, Alert,
+    AlertSeverity, AqiStandard, DetectedLocation, LocationResult, Region, WeatherData,
 };
 
 /// Localized description for a weather condition.
