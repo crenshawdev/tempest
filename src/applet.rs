@@ -515,6 +515,7 @@ impl Application for Tempest {
     }
 
     fn view_window(&self, _id: Id) -> Element<'_, Self::Message> {
+        let spacing = cosmic::theme::spacing();
         let mut column = widget::Column::new()
             .spacing(10)
             .padding([10, 10, 20, 10])
@@ -529,7 +530,7 @@ impl Application for Tempest {
         };
 
         let mut header = widget::Row::new()
-            .spacing(8)
+            .spacing(spacing.space_xxs)
             .align_y(cosmic::iced::Alignment::Center);
 
         // Add timestamp if available
@@ -1165,12 +1166,15 @@ impl Tempest {
 
     /// Renders the Current weather tab content.
     fn render_current_tab(&self, weather: &WeatherData) -> Element<'_, Message> {
-        let mut col = widget::Column::new().spacing(16).padding([0, 8, 0, 20]);
+        let spacing = cosmic::theme::spacing();
+        let mut col = widget::Column::new()
+            .spacing(spacing.space_s)
+            .padding([0, spacing.space_xxs, 0, 20]);
 
         // Temperature and condition grouped together
         col = col.push(
             widget::Column::new()
-                .spacing(4)
+                .spacing(spacing.space_xxxs)
                 .push(
                     text(
                         self.config
@@ -1291,12 +1295,15 @@ impl Tempest {
 
     /// Renders the pollutants sub-view with Back button and pollutant list.
     fn render_pollutants_view(&self) -> Element<'_, Message> {
-        let mut col = widget::Column::new().spacing(8).padding([0, 8, 0, 20]);
+        let spacing = cosmic::theme::spacing();
+        let mut col = widget::Column::new()
+            .spacing(spacing.space_xxs)
+            .padding([0, spacing.space_xxs, 0, 20]);
 
         // Back button
         let back_btn = widget::button::custom(
             widget::Row::new()
-                .spacing(4)
+                .spacing(spacing.space_xxxs)
                 .align_y(cosmic::iced::Alignment::Center)
                 .push(widget::icon::from_name("go-previous-symbolic").size(16))
                 .push(text(crate::fl!("air-quality-back")).size(14)),
@@ -1345,12 +1352,15 @@ impl Tempest {
 
     /// Renders the saved locations sub-view with back button and location list.
     fn render_locations_view(&self) -> Element<'_, Message> {
-        let mut col = widget::Column::new().spacing(8).padding([0, 8, 0, 20]);
+        let spacing = cosmic::theme::spacing();
+        let mut col = widget::Column::new()
+            .spacing(spacing.space_xxs)
+            .padding([0, spacing.space_xxs, 0, 20]);
 
         // Back button
         let back_btn = widget::button::custom(
             widget::Row::new()
-                .spacing(4)
+                .spacing(spacing.space_xxxs)
                 .align_y(cosmic::iced::Alignment::Center)
                 .push(widget::icon::from_name("go-previous-symbolic").size(16))
                 .push(text(crate::fl!("locations-back")).size(14)),
@@ -1366,7 +1376,7 @@ impl Tempest {
                 location.matches_coords(self.config.latitude, self.config.longitude);
 
             let mut row = widget::Row::new()
-                .spacing(8)
+                .spacing(spacing.space_xxs)
                 .align_y(cosmic::iced::Alignment::Center)
                 .push(text(&location.name).size(14).width(cosmic::iced::Length::Fill));
 
@@ -1387,7 +1397,10 @@ impl Tempest {
 
     /// Renders the Alerts tab content.
     fn render_alerts_tab(&self) -> Element<'_, Message> {
-        let mut col = widget::Column::new().spacing(8).padding([0, 8, 0, 20]);
+        let spacing = cosmic::theme::spacing();
+        let mut col = widget::Column::new()
+            .spacing(spacing.space_xxs)
+            .padding([0, spacing.space_xxs, 0, 20]);
 
         if !self.config.alerts_enabled {
             col = col.push(
@@ -1430,10 +1443,10 @@ impl Tempest {
                 col = col.push(
                     widget::container(
                         widget::Column::new()
-                            .spacing(4)
+                            .spacing(spacing.space_xxxs)
                             .push(
                                 widget::Row::new()
-                                    .spacing(8)
+                                    .spacing(spacing.space_xxs)
                                     .push(
                                         widget::icon::from_name(severity_icon)
                                             .size(20)
@@ -1450,7 +1463,7 @@ impl Tempest {
                                         widget::scrollable(text(&alert.description).size(11))
                                             .height(cosmic::iced::Length::Fixed(100.0)),
                                     )
-                                    .padding([4, 0, 4, 0]),
+                                    .padding([spacing.space_xxxs, 0, spacing.space_xxxs, 0]),
                                 )
                             })
                             .push({
@@ -1463,7 +1476,7 @@ impl Tempest {
                                 text(crate::fl!("expires", time = expires_time.as_str())).size(10)
                             }),
                     )
-                    .padding(8)
+                    .padding(spacing.space_xxs)
                     .width(cosmic::iced::Length::Fill),
                 );
                 col = col.push(widget::divider::horizontal::default());
@@ -1475,15 +1488,16 @@ impl Tempest {
 
     /// Renders the Hourly forecast tab content.
     fn render_hourly_tab(&self, weather: &WeatherData) -> Element<'_, Message> {
-        let mut col = widget::Column::new().spacing(8);
+        let spacing = cosmic::theme::spacing();
+        let mut col = widget::Column::new().spacing(spacing.space_xxs);
         let hours_per_row = 4;
 
         for chunk in weather.hourly.chunks(hours_per_row) {
-            let mut row = widget::Row::new().spacing(8);
+            let mut row = widget::Row::new().spacing(spacing.space_xxs);
 
             for hour in chunk {
                 let cell = widget::Column::new()
-                    .spacing(4)
+                    .spacing(spacing.space_xxxs)
                     .align_x(cosmic::iced::alignment::Horizontal::Center)
                     .push(text(format_hour(&hour.time, self.military_time)).size(12))
                     .push(
@@ -1517,15 +1531,16 @@ impl Tempest {
 
     /// Renders the 7-day Forecast tab content.
     fn render_forecast_tab(&self, weather: &WeatherData) -> Element<'_, Message> {
+        let spacing = cosmic::theme::spacing();
         let mut col = widget::Column::new()
-            .spacing(8)
-            .padding([0, 8, 0, 20])
+            .spacing(spacing.space_xxs)
+            .padding([0, spacing.space_xxs, 0, 20])
             .width(cosmic::iced::Length::Fill);
 
         // Table header
         col = col.push(
             widget::Row::new()
-                .spacing(24)
+                .spacing(spacing.space_m)
                 .push(
                     widget::container(text(crate::fl!("forecast-day")).size(12))
                         .width(cosmic::iced::Length::FillPortion(3)),
@@ -1550,7 +1565,7 @@ impl Tempest {
         for day in &weather.forecast {
             col = col.push(
                 widget::Row::new()
-                    .spacing(24)
+                    .spacing(spacing.space_m)
                     .align_y(cosmic::iced::Alignment::Center)
                     .push(
                         widget::container(text(format_date(&day.date)).size(14))
@@ -1600,7 +1615,10 @@ impl Tempest {
 
     /// Renders the Settings tab content.
     fn render_settings_tab(&self) -> Element<'_, Message> {
-        let mut col = widget::Column::new().spacing(12).padding([0, 8, 0, 20]);
+        let spacing = cosmic::theme::spacing();
+        let mut col = widget::Column::new()
+            .spacing(spacing.space_xs)
+            .padding([0, spacing.space_xxs, 0, 20]);
 
         // LOCATION section
         col = col.push(Self::section_header(crate::fl!("section-location")));
@@ -1615,7 +1633,7 @@ impl Tempest {
             // Auto-detect enabled: show location with subtitle and refresh button
             col = col.push(
                 widget::Row::new()
-                    .spacing(8)
+                    .spacing(spacing.space_xxs)
                     .align_y(cosmic::iced::Alignment::Center)
                     .push(
                         widget::Column::new()
@@ -1636,7 +1654,7 @@ impl Tempest {
             // Manual mode: show search input
             col = col.push(
                 widget::Row::new()
-                    .spacing(8)
+                    .spacing(spacing.space_xxs)
                     .push(
                         widget::text_input(
                             crate::fl!("settings-search-placeholder"),
@@ -1656,12 +1674,12 @@ impl Tempest {
             for (idx, result) in self.search_results.iter().enumerate() {
                 col = col.push(
                     widget::Row::new()
-                        .spacing(4)
+                        .spacing(spacing.space_xxxs)
                         .align_y(cosmic::iced::Alignment::Center)
                         .push(
                             widget::button::text(&result.display_name)
                                 .on_press(Message::SelectLocation(idx))
-                                .padding(8)
+                                .padding(spacing.space_xxs)
                                 .width(cosmic::iced::Length::Fill),
                         )
                         .push(
@@ -1696,7 +1714,7 @@ impl Tempest {
                     && (location.longitude - self.config.longitude).abs() < 0.01;
 
                 let mut row = widget::Row::new()
-                    .spacing(8)
+                    .spacing(spacing.space_xxs)
                     .align_y(cosmic::iced::Alignment::Center)
                     .push(text(&location.name).size(14).width(cosmic::iced::Length::Fill));
 
@@ -1709,7 +1727,7 @@ impl Tempest {
                         widget::icon::from_name("edit-delete-symbolic").size(16),
                     )
                     .on_press(Message::RemoveSavedLocation(idx))
-                    .padding(4),
+                    .padding(spacing.space_xxxs),
                 );
 
                 col = col.push(row);
@@ -1753,7 +1771,7 @@ impl Tempest {
         col = col.push(settings::item(
             crate::fl!("settings-auto-units"),
             widget::Row::new()
-                .spacing(8)
+                .spacing(spacing.space_xxs)
                 .align_y(cosmic::iced::Alignment::Center)
                 .push(text(crate::fl!("settings-auto-units-hint")).size(11))
                 .push(
@@ -1768,7 +1786,7 @@ impl Tempest {
         col = col.push(settings::item(
             crate::fl!("settings-refresh-interval"),
             widget::Row::new()
-                .spacing(8)
+                .spacing(spacing.space_xxs)
                 .align_y(cosmic::iced::Alignment::Center)
                 .push(text(crate::fl!("settings-min")).size(13))
                 .push(
@@ -1789,7 +1807,7 @@ impl Tempest {
 
         col = col.push(
             widget::Column::new()
-                .spacing(4)
+                .spacing(spacing.space_xxxs)
                 .push(text(crate::fl!("settings-aqicn-token")).size(14))
                 .push(
                     widget::text_input("", &self.aqicn_token_input)
