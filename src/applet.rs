@@ -489,7 +489,7 @@ impl Application for Tempest {
                 .flatten()
             {
                 row = row.push(widget::text::caption("|"));
-                row = row.push(text(label.clone()));
+                row = row.push(widget::text::caption(label.clone()));
             }
             Element::from(row)
         } else {
@@ -1314,26 +1314,28 @@ impl Tempest {
 
         // Pollutant list
         if let Some(ref aq) = self.air_quality {
-            col = col.push(Self::pollutant_row(
-                crate::fl!("label-co"),
-                format!("{:.1} ug/m3", aq.carbon_monoxide),
-            ));
-            col = col.push(Self::pollutant_row(
-                crate::fl!("label-no2"),
-                format!("{:.1} ug/m3", aq.nitrogen_dioxide),
-            ));
-            col = col.push(Self::pollutant_row(
-                crate::fl!("label-ozone"),
-                format!("{:.1} ug/m3", aq.ozone),
-            ));
-            col = col.push(Self::pollutant_row(
-                crate::fl!("label-pm10"),
-                format!("{:.1} ug/m3", aq.pm10),
-            ));
-            col = col.push(Self::pollutant_row(
-                crate::fl!("label-pm25"),
-                format!("{:.1} ug/m3", aq.pm2_5),
-            ));
+            let list = widget::list_column()
+                .add(Self::pollutant_row(
+                    crate::fl!("label-co"),
+                    format!("{:.1} ug/m3", aq.carbon_monoxide),
+                ))
+                .add(Self::pollutant_row(
+                    crate::fl!("label-no2"),
+                    format!("{:.1} ug/m3", aq.nitrogen_dioxide),
+                ))
+                .add(Self::pollutant_row(
+                    crate::fl!("label-ozone"),
+                    format!("{:.1} ug/m3", aq.ozone),
+                ))
+                .add(Self::pollutant_row(
+                    crate::fl!("label-pm10"),
+                    format!("{:.1} ug/m3", aq.pm10),
+                ))
+                .add(Self::pollutant_row(
+                    crate::fl!("label-pm25"),
+                    format!("{:.1} ug/m3", aq.pm2_5),
+                ));
+            col = col.push(list);
         }
 
         col.into()
@@ -1342,6 +1344,7 @@ impl Tempest {
     /// Creates a row for a pollutant with label on left and value on right.
     fn pollutant_row(label: String, value: String) -> Element<'static, Message> {
         widget::Row::new()
+            .width(cosmic::iced::Length::Fill)
             .push(widget::text::body(label))
             .push(widget::space::horizontal())
             .push(widget::text::body(value))
@@ -1706,6 +1709,7 @@ impl Tempest {
             col = col.push(widget::divider::horizontal::default());
             col = col.push(Self::section_header(crate::fl!("section-saved-locations")));
 
+            let mut list = widget::list_column();
             for (idx, location) in self.config.saved_locations.iter().enumerate() {
                 let is_active = (location.latitude - self.config.latitude).abs() < 0.01
                     && (location.longitude - self.config.longitude).abs() < 0.01;
@@ -1725,43 +1729,32 @@ impl Tempest {
                         .padding(spacing.space_xxxs),
                 );
 
-                col = col.push(row);
+                list = list.add(row);
             }
+            col = col.push(list);
         }
 
         // UNITS section
         col = col.push(widget::divider::horizontal::default());
         col = col.push(Self::section_header(crate::fl!("section-units")));
 
-        col = col.push(
-            widget::Row::new()
-                .align_y(cosmic::iced::Alignment::Center)
-                .push(text(crate::fl!("settings-temperature")).width(cosmic::iced::Length::Fill))
-                .push(
-                    widget::segmented_control::horizontal(&self.temperature_model)
-                        .on_activate(Message::TemperatureUnitActivated),
-                ),
-        );
+        col = col.push(settings::item(
+            crate::fl!("settings-temperature"),
+            widget::segmented_control::horizontal(&self.temperature_model)
+                .on_activate(Message::TemperatureUnitActivated),
+        ));
 
-        col = col.push(
-            widget::Row::new()
-                .align_y(cosmic::iced::Alignment::Center)
-                .push(text(crate::fl!("settings-measurement")).width(cosmic::iced::Length::Fill))
-                .push(
-                    widget::segmented_control::horizontal(&self.measurement_model)
-                        .on_activate(Message::MeasurementActivated),
-                ),
-        );
+        col = col.push(settings::item(
+            crate::fl!("settings-measurement"),
+            widget::segmented_control::horizontal(&self.measurement_model)
+                .on_activate(Message::MeasurementActivated),
+        ));
 
-        col = col.push(
-            widget::Row::new()
-                .align_y(cosmic::iced::Alignment::Center)
-                .push(text(crate::fl!("settings-pressure")).width(cosmic::iced::Length::Fill))
-                .push(
-                    widget::segmented_control::horizontal(&self.pressure_model)
-                        .on_activate(Message::PressureUnitActivated),
-                ),
-        );
+        col = col.push(settings::item(
+            crate::fl!("settings-pressure"),
+            widget::segmented_control::horizontal(&self.pressure_model)
+                .on_activate(Message::PressureUnitActivated),
+        ));
 
         col = col.push(settings::item(
             crate::fl!("settings-auto-units"),
