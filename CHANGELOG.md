@@ -5,6 +5,23 @@ All notable changes to Tempest will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.1] - 2026-04-27
+
+### Changed
+
+- Popup adopts libcosmic's typography presets and widget::list_column
+  primitives. Text picks up theme-driven font weight, line-height,
+  and accessibility scaling instead of being frozen at literal pixel
+  sizes. Saved locations, active alerts, and the Air Quality
+  pollutant list all render through the standard list primitive
+  instead of hand-rolled rows-plus-divider loops.
+- Settings unit selectors collapse to settings::item, matching the
+  rest of the settings layout.
+- Every remaining literal spacing and padding in the popup moves to
+  the matching cosmic-theme spacing token. The fixed 420 popup width
+  and 60 refresh-input width come out so layout handles sizing.
+- README rewritten for a technical audience.
+
 ## [2.8.0] - 2026-04-21
 
 ### Note
@@ -295,6 +312,7 @@ features. The applet does what I built it to do.
 - Persistent configuration storage
 - Global weather coverage
 
+[2.8.1]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.8.1
 [2.6.0]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.6.0
 [2.5.0]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.5.0
 [2.4.3]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.4.3
