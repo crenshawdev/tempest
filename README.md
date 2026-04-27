@@ -82,6 +82,10 @@ Translators: lorduskordus (Czech), therealmate (Hungarian), VandaL (Polish), Mar
 
 ## Changelog
 
+### 2.8.1
+
+Popup adopts libcosmic's typography presets, list primitives, and spacing tokens. Text picks up theme-driven font weight and line-height instead of literal pixel sizes. Saved locations, active alerts, and pollutants now render through the standard list widget. Settings unit selectors use the standard settings row layout. README rewritten for a technical audience.
+
 ### 2.8.0
 
 Open-Meteo's blended model runs several degrees cold in East Asia and its satellite-derived AQI reads nowhere near what ground stations report. Reporters in Tokyo and Seoul caught the temperature off by 3-5°C and Seoul's AQI roughly double what aqicn.org was showing. Current temperature in Japan now comes from JMA's AMeDAS network. Air quality picks up an optional aqicn.org token that sources from ground monitoring stations globally outside Europe. Europe stays on Open-Meteo so the EU scale is preserved.
