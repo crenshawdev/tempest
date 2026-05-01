@@ -65,11 +65,11 @@ area-clear = No hay incidencias en tu zona
 expires = Expira: { $time }
 
 # Weather conditions
-weather-clear-sky = Cielo despejado
+weather-clear-sky = Despejado
 weather-mainly-clear = Mayormente despejado
-weather-partly-cloudy = Parcialmente nuboso
-weather-overcast = Cubierto
-weather-foggy = Nieblina
+weather-partly-cloudy = Intervalos nubosos
+weather-overcast = Nuboso
+weather-foggy = Neblina
 weather-drizzle = Llovizna
 weather-rain = Lluvia
 weather-snow = Nieve
@@ -77,8 +77,8 @@ weather-snow-grains = Granos de nieve
 weather-rain-showers = Chubascos
 weather-snow-showers = Chubascos de nieve
 weather-thunderstorm = Tormenta
-weather-freezing-drizzle = Llovizna helada
-weather-freezing-rain = Lluvia helada
+weather-freezing-drizzle = Llovizna engelante
+weather-freezing-rain = Lluvia engelante
 weather-thunderstorm-hail = Tormenta con granizo
 weather-unknown = Desconocido
 
