@@ -162,3 +162,8 @@ panel-display = Visualización del panel
 weather-fetch-error = Error al obtener los datos del tiempo; comprueba tu conexión e inténtalo de nuevo
 locations-back = Volver
 section-saved-locations = UBICACIONES GUARDADAS
+
+# Air quality token (aqicn.org)
+settings-aqicn-token = aqicn.org token (opcional)
+settings-aqicn-token-hint = Tokens gratuitos en aqicn.org/data-platform/token/
+aqicn-attribution = Datos de calidad del aire proporcionados por el World Air Quality Index Project
