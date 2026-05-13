@@ -5,6 +5,26 @@ All notable changes to Tempest will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.2] - 2026-05-13
+
+### Changed
+
+- Air Quality view header redesigned. The top-left "Back" button is
+  replaced with a centered "Air Quality Index" heading and a "Close"
+  affordance on the right, matching the read-then-dismiss direction the
+  rest of the panel uses.
+- Popup density tightened. Header and section padding moves from
+  space_xxs to space_xs/space_m where it read cramped. Loading and
+  error illustration icons drop from 48 to 40. Alert event icons drop
+  from 20 to 16. The header trend icon drops from 18 to 16. Popup
+  width drops from 520 to 480.
+- Alert description body, aqicn attribution, and expiry timestamps
+  adopt the cosmic-theme caption typography preset instead of literal
+  size values.
+- Alert descriptions wrap to a flexible scroll region capped at 160
+  max-height instead of a fixed 100. Short alerts no longer leave
+  dead space and long alerts get more room before scrolling kicks in.
+
 ## [2.8.1] - 2026-04-27
 
 ### Changed
