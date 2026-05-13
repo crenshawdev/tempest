@@ -35,7 +35,7 @@ label-ozone = Ozone (O3)
 label-no2 = Nitrogen Dioxide (NO2)
 label-co = Carbon Monoxide (CO)
 air-quality-index = Air quality index
-air-quality-back = Back
+air-quality-close = Close
 locations-back = Back
 
 # Air quality
