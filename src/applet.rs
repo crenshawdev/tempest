@@ -1471,14 +1471,10 @@ impl Tempest {
                             Some(
                                 widget::container(
                                     widget::scrollable(widget::text::caption(&alert.description))
-                                        .height(cosmic::iced::Length::Fixed(100.0)),
+                                        .height(cosmic::iced::Length::Shrink),
                                 )
-                                .padding([
-                                    spacing.space_xxxs,
-                                    0,
-                                    spacing.space_xxxs,
-                                    0,
-                                ]),
+                                .padding([spacing.space_xxxs, 0, spacing.space_xxxs, 0])
+                                .max_height(160.0),
                             )
                         })
                         .push({
