@@ -87,6 +87,21 @@ aqi-eu-moderate = Moderate
 aqi-eu-poor = Poor
 aqi-eu-very-poor = Very Poor
 aqi-eu-extremely-poor = Extremely Poor
+# Pollen
+label-pollen = Pollen
+pollen-caption-others = Pollen · { $n } other active
+pollen-attribution = Data: CAMS / Copernicus
+pollen-level-off-season = Off season
+pollen-level-low = Low
+pollen-level-moderate = Moderate
+pollen-level-high = High
+pollen-level-very-high = Very high
+pollen-species-alder = Alder
+pollen-species-birch = Birch
+pollen-species-grass = Grass
+pollen-species-mugwort = Mugwort
+pollen-species-olive = Olive
+pollen-species-ragweed = Ragweed
 # Day abbreviations
 day-mon = Mon
 day-tue = Tue
