@@ -435,7 +435,7 @@ impl Application for Tempest {
 
         let has_alerts = !self.alerts.is_empty();
         let alert_icon = widget::icon::from_name("dialog-warning-symbolic")
-            .size(18)
+            .size(16)
             .symbolic(true);
 
         // Precompute optional panel strings once for both orientations
@@ -553,7 +553,7 @@ impl Application for Tempest {
         // Alert button - styled to stand out when alerts are active
         let alerts_btn = widget::button::icon(widget::icon::from_name(alerts_icon))
             .on_press(Message::SelectTab(PopupTab::Alerts))
-            .padding(spacing.space_xxs);
+            .padding(spacing.space_xs);
         let alerts_btn = if has_alerts {
             alerts_btn.class(cosmic::theme::Button::Destructive)
         } else {
@@ -565,13 +565,13 @@ impl Application for Tempest {
             .push(
                 widget::button::icon(widget::icon::from_name("view-refresh-symbolic"))
                     .on_press(Message::RefreshWeather)
-                    .padding(spacing.space_xxs),
+                    .padding(spacing.space_xs),
             )
             .push(alerts_btn)
             .push(
                 widget::button::icon(widget::icon::from_name("emblem-system-symbolic"))
                     .on_press(Message::SelectTab(PopupTab::Settings))
-                    .padding(spacing.space_xxs),
+                    .padding(spacing.space_xs),
             );
 
         column = column.push(header);
@@ -609,7 +609,7 @@ impl Application for Tempest {
                 widget::container(
                     widget::Column::new()
                         .spacing(spacing.space_xs)
-                        .push(widget::icon::from_name("dialog-error-symbolic").size(48))
+                        .push(widget::icon::from_name("dialog-error-symbolic").size(40))
                         .push(text(crate::fl!("failed-to-load")).size(18))
                         .push(widget::text::body(error).width(cosmic::iced::Length::Fill))
                         .push(
@@ -626,7 +626,7 @@ impl Application for Tempest {
                     widget::Column::new()
                         .spacing(spacing.space_xs)
                         .align_x(cosmic::iced::alignment::Horizontal::Center)
-                        .push(widget::icon::from_name("content-loading-symbolic").size(48))
+                        .push(widget::icon::from_name("content-loading-symbolic").size(40))
                         .push(text(crate::fl!("loading")).size(18)),
                 )
                 .align_x(cosmic::iced::alignment::Horizontal::Center)
@@ -1173,7 +1173,7 @@ impl Tempest {
         let spacing = cosmic::theme::spacing();
         let mut col = widget::Column::new().spacing(spacing.space_s).padding([
             0,
-            spacing.space_xxs,
+            spacing.space_m,
             0,
             spacing.space_m,
         ]);
@@ -1288,8 +1288,7 @@ impl Tempest {
             let region = detect_region(self.config.latitude, self.config.longitude);
             if token_set && region != Region::Europe {
                 col = col.push(
-                    text(crate::fl!("aqicn-attribution"))
-                        .size(10)
+                    widget::text::caption(crate::fl!("aqicn-attribution"))
                         .class(cosmic::theme::Text::Accent),
                 );
             }
@@ -1306,7 +1305,7 @@ impl Tempest {
         let spacing = cosmic::theme::spacing();
         let mut col = widget::Column::new().spacing(spacing.space_xxs).padding([
             0,
-            spacing.space_xxs,
+            spacing.space_m,
             0,
             spacing.space_m,
         ]);
@@ -1408,7 +1407,7 @@ impl Tempest {
         let spacing = cosmic::theme::spacing();
         let mut col = widget::Column::new().spacing(spacing.space_xxs).padding([
             0,
-            spacing.space_xxs,
+            spacing.space_m,
             0,
             spacing.space_m,
         ]);
@@ -1433,7 +1432,7 @@ impl Tempest {
                         .align_x(cosmic::iced::alignment::Horizontal::Center)
                         .push(
                             widget::icon::from_name("weather-clear-symbolic")
-                                .size(48)
+                                .size(40)
                                 .symbolic(true),
                         )
                         .push(text(crate::fl!("no-active-alerts")).size(16))
@@ -1460,7 +1459,7 @@ impl Tempest {
                                 .spacing(spacing.space_xxs)
                                 .push(
                                     widget::icon::from_name(severity_icon)
-                                        .size(20)
+                                        .size(16)
                                         .symbolic(true),
                                 )
                                 .push(widget::text::body(&alert.event)),
@@ -1471,7 +1470,7 @@ impl Tempest {
                         } else {
                             Some(
                                 widget::container(
-                                    widget::scrollable(text(&alert.description).size(11))
+                                    widget::scrollable(widget::text::caption(&alert.description))
                                         .height(cosmic::iced::Length::Fixed(100.0)),
                                 )
                                 .padding([
@@ -1489,7 +1488,10 @@ impl Tempest {
                                 "%b %d %I:%M %p"
                             };
                             let expires_time = alert.expires.format(time_fmt).to_string();
-                            text(crate::fl!("expires", time = expires_time.as_str())).size(10)
+                            widget::text::caption(crate::fl!(
+                                "expires",
+                                time = expires_time.as_str()
+                            ))
                         }),
                 );
             }
