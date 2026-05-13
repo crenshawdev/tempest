@@ -1303,26 +1303,33 @@ impl Tempest {
     /// Renders the pollutants sub-view with Back button and pollutant list.
     fn render_pollutants_view(&self) -> Element<'_, Message> {
         let spacing = cosmic::theme::spacing();
-        let mut col = widget::Column::new().spacing(spacing.space_xxs).padding([
+        let mut col = widget::Column::new().spacing(spacing.space_m).padding([
             0,
             spacing.space_m,
             0,
             spacing.space_m,
         ]);
 
-        // Back button
-        let back_btn = widget::button::custom(
+        let close_btn = widget::button::custom(
             widget::Row::new()
                 .spacing(spacing.space_xxxs)
                 .align_y(cosmic::iced::Alignment::Center)
-                .push(widget::icon::from_name("go-previous-symbolic").size(16))
-                .push(widget::text::body(crate::fl!("air-quality-back"))),
+                .push(widget::text::body(crate::fl!("air-quality-close")))
+                .push(widget::icon::from_name("go-next-symbolic").size(16)),
         )
         .class(cosmic::theme::Button::Link)
         .on_press(Message::HidePollutants);
 
-        col = col.push(back_btn);
-        col = col.push(widget::divider::horizontal::default());
+        let header = widget::Row::new()
+            .align_y(cosmic::iced::Alignment::Center)
+            .push(
+                widget::container(widget::text::heading(crate::fl!("air-quality-index")))
+                    .width(cosmic::iced::Length::Fill)
+                    .align_x(cosmic::iced::alignment::Horizontal::Center),
+            )
+            .push(close_btn);
+
+        col = col.push(header);
 
         // Pollutant list
         if let Some(ref aq) = self.air_quality {
