@@ -1884,8 +1884,8 @@ impl Tempest {
     /// Returns the size limits for the popup window.
     fn popup_limits(&self) -> Limits {
         Limits::NONE
-            .min_width(520.0)
-            .max_width(520.0)
+            .min_width(480.0)
+            .max_width(480.0)
             .min_height(180.0)
             .max_height(self.popup_max_height)
     }
