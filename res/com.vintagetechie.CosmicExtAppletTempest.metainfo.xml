@@ -78,7 +78,7 @@
   <url type="translate">https://hosted.weblate.org/engage/tempest/</url>
   <url type="vcs-browser">https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest</url>
   <url type="changelog">https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/blob/main/CHANGELOG.md</url>
-  <developer_name>VintageTechie</developer_name>
+  <developer_name>John Crenshaw</developer_name>
   <update_contact>john@vintagetechie.com</update_contact>
   <launchable type="desktop-id">com.vintagetechie.CosmicExtAppletTempest.desktop</launchable>
 
@@ -88,6 +88,11 @@
   </categories>
 
   <releases>
+    <release version="2.8.2" date="2026-05-13">
+      <description>
+        <p>Polish pass to bring the popup in line with the COSMIC design spec in Figma. The Air Quality view now leads with a centered title and a Close button on the right, replacing the old Back button on the left. Spacing and icon sizes across the popup, the alerts panel, and the loading and error states are tuned to match the reference. The popup is a touch narrower, and alert descriptions resize to fit instead of always reserving a fixed block of space. No new features and no changes to the data Tempest pulls or how it pulls it.</p>
+      </description>
+    </release>
     <release version="2.8.1" date="2026-04-27">
       <description>
         <p>Popup adopts libcosmic's typography presets and list primitives. Text picks up theme-driven font weight and line-height, and lists render with the standard divider treatment instead of hand-rolled rows. Settings unit selectors collapse to the standard settings row. All remaining literal spacing values switch to cosmic-theme tokens. README rewritten for a technical audience.</p>

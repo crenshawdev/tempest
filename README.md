@@ -82,6 +82,10 @@ Translators: lorduskordus (Czech), therealmate (Hungarian), VandaL (Polish), Mar
 
 ## Changelog
 
+### 2.8.2
+
+Polish pass to bring the popup in line with the COSMIC design spec in Figma. The Air Quality view now leads with a centered title and a Close button on the right, replacing the old Back button on the left. Spacing and icon sizes across the popup, the alerts panel, and the loading and error states are tuned to match the reference. The popup is a touch narrower, and alert descriptions resize to fit instead of always reserving a fixed block of space. No new features and no changes to the data Tempest pulls or how it pulls it.
+
 ### 2.8.1
 
 Popup adopts libcosmic's typography presets, list primitives, and spacing tokens. Text picks up theme-driven font weight and line-height instead of literal pixel sizes. Saved locations, active alerts, and pollutants now render through the standard list widget. Settings unit selectors use the standard settings row layout. README rewritten for a technical audience.
