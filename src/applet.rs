@@ -13,10 +13,12 @@ use std::time::Duration;
 
 use crate::config::{Config, MeasurementSystem, PopupTab, PressureUnit, TemperatureUnit};
 use crate::weather::{
-    aqi_to_description, condition_to_description, detect_location, detect_region,
-    fetch_air_quality, fetch_alerts, fetch_weather, format_date, format_hour, format_time,
-    is_night_time, search_city, uses_imperial_units, AirQualityData, Alert, AlertSeverity,
-    AqiStandard, DetectedLocation, LocationResult, Region, WeatherData,
+    aqi_to_description, categorize_pollen, condition_to_description, detect_location,
+    detect_region, fetch_air_quality, fetch_alerts, fetch_pollen, fetch_weather, format_date,
+    format_hour, format_time, is_night_time, pollen_level_to_description,
+    pollen_species_to_description, search_city, uses_imperial_units, AirQualityData, Alert,
+    AlertSeverity, AqiStandard, DetectedLocation, LocationResult, PollenData, PollenLevel,
+    PollenSpecies, Region, WeatherData,
 };
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -79,6 +81,12 @@ pub struct Tempest {
     showing_pollutants: bool,
     /// Whether the saved locations sub-view is currently displayed.
     showing_locations: bool,
+    /// Pollen readings, when covered. Outer Option distinguishes
+    /// "not yet fetched" from inner Option's "fetched but uncovered"
+    /// (Ok(None) from the API for non-CAMS coordinates).
+    pollen: Option<Option<PollenData>>,
+    /// Whether the pollen drill-down sub-view is currently displayed.
+    showing_pollen: bool,
     /// Cached max popup height based on screen resolution.
     popup_max_height: f32,
     /// Consecutive fetch failures driving the backoff retry schedule.
@@ -202,6 +210,25 @@ fn build_pressure_model(active: PressureUnit) -> segmented_button::SingleSelectM
     model
 }
 
+/// Returns the species in `data` with a non-zero, non-`OffSeason` reading,
+/// paired with the raw grains/m³ value and the EAN severity bucket. Sorted
+/// in the natural species order; callers pick the leader with
+/// `iter().max_by_key(|(_, _, level)| *level)`.
+fn active_pollen_species(data: &PollenData) -> Vec<(PollenSpecies, f32, PollenLevel)> {
+    [
+        (PollenSpecies::Alder, data.alder),
+        (PollenSpecies::Birch, data.birch),
+        (PollenSpecies::Grass, data.grass),
+        (PollenSpecies::Mugwort, data.mugwort),
+        (PollenSpecies::Olive, data.olive),
+        (PollenSpecies::Ragweed, data.ragweed),
+    ]
+    .into_iter()
+    .map(|(s, g)| (s, g, categorize_pollen(s, g)))
+    .filter(|(_, _, level)| *level != PollenLevel::OffSeason)
+    .collect()
+}
+
 impl Default for Tempest {
     fn default() -> Self {
         let config = Config::default();
@@ -231,6 +258,8 @@ impl Default for Tempest {
             military_time: false,
             showing_pollutants: false,
             showing_locations: false,
+            pollen: None,
+            showing_pollen: false,
             popup_max_height: calculate_popup_max_height(),
             retry_count: 0,
             config,
@@ -273,6 +302,9 @@ pub enum Message {
     SystemTimeConfig(TimeAppletConfig),
     ShowPollutants,
     HidePollutants,
+    PollenUpdated(Result<Option<PollenData>, String>),
+    ShowPollen,
+    HidePollen,
     SaveLocation(usize),
     RemoveSavedLocation(usize),
     ShowLocations,
@@ -638,6 +670,9 @@ impl Application for Tempest {
         } else if self.showing_pollutants {
             // Pollutants sub-view replaces normal popup content
             column = column.push(self.render_pollutants_view());
+        } else if self.showing_pollen {
+            // Pollen sub-view replaces normal popup content
+            column = column.push(self.render_pollen_view());
         } else if let Some(ref weather) = self.weather_data {
             let tab_control = widget::tab_bar::horizontal(&self.tab_model)
                 .button_alignment(cosmic::iced::Alignment::Center)
@@ -729,7 +764,15 @@ impl Application for Tempest {
                     Task::none()
                 };
 
-                return Task::batch([weather_task, air_quality_task, alerts_task]);
+                // Pollen is region-optional. fetch_pollen returns Ok(None) for
+                // coordinates outside CAMS coverage, so call unconditionally
+                // and let the render layer decide whether to surface the row.
+                let pollen_task = Task::perform(
+                    async move { fetch_pollen(lat, lon).await.map_err(|e| e.to_string()) },
+                    |result| Action::App(Message::PollenUpdated(result)),
+                );
+
+                return Task::batch([weather_task, air_quality_task, alerts_task, pollen_task]);
             }
             Message::WeatherUpdated(result) => {
                 self.is_loading = false;
@@ -1037,6 +1080,23 @@ impl Application for Tempest {
             Message::HidePollutants => {
                 self.showing_pollutants = false;
             }
+            Message::PollenUpdated(result) => match result {
+                Ok(data) => self.pollen = Some(data),
+                Err(e) => {
+                    // Pollen is region-optional. Treat network failures as
+                    // "no data" rather than surfacing them — the alternative
+                    // is a blip of "Pollen unavailable" UI whenever the
+                    // network hiccups, which is worse than no UI at all.
+                    self.pollen = Some(None);
+                    tracing::warn!("pollen fetch failed: {e}");
+                }
+            },
+            Message::ShowPollen => {
+                self.showing_pollen = true;
+            }
+            Message::HidePollen => {
+                self.showing_pollen = false;
+            }
             Message::ShowLocations => {
                 self.showing_locations = true;
             }
@@ -1297,6 +1357,44 @@ impl Tempest {
             col = col.push(widget::text::body(crate::fl!("air-quality-unavailable")));
         }
 
+        // Pollen row. Suppressed entirely when there's no CAMS coverage
+        // (Some(None)), no data yet (None), or every species is OffSeason.
+        // Otherwise: lead with the highest-severity active species, caption
+        // counts the rest.
+        if let Some(Some(ref p)) = self.pollen {
+            let active = active_pollen_species(p);
+            if let Some((lead_species, _, lead_level)) = active.iter().max_by_key(|(_, _, l)| *l) {
+                col = col.push(widget::divider::horizontal::default());
+
+                let headline = format!(
+                    "{} {}",
+                    pollen_species_to_description(*lead_species),
+                    pollen_level_to_description(*lead_level),
+                );
+                let caption = if active.len() > 1 {
+                    crate::fl!("pollen-caption-others", n = (active.len() - 1).to_string())
+                } else {
+                    crate::fl!("label-pollen")
+                };
+
+                let pollen_row = widget::button::custom(
+                    widget::Row::new()
+                        .align_y(cosmic::iced::Alignment::Center)
+                        .push(
+                            widget::Column::new()
+                                .push(text(headline).size(20))
+                                .push(widget::text::caption(caption)),
+                        )
+                        .push(widget::space::horizontal())
+                        .push(widget::icon::from_name("go-next-symbolic").size(16)),
+                )
+                .class(cosmic::theme::Button::Text)
+                .on_press(Message::ShowPollen);
+
+                col = col.push(pollen_row);
+            }
+        }
+
         col.into()
     }
 
@@ -1368,6 +1466,74 @@ impl Tempest {
             .push(widget::space::horizontal())
             .push(widget::text::body(value))
             .into()
+    }
+
+    /// Renders the pollen sub-view: one row per species with the EAN level on
+    /// the right, plus a CAMS attribution footer. OffSeason species stay in
+    /// the list so users see the full landscape — they are dimmed and show
+    /// "Off season" instead of a numeric reading.
+    fn render_pollen_view(&self) -> Element<'_, Message> {
+        let spacing = cosmic::theme::spacing();
+        let mut col = widget::Column::new().spacing(spacing.space_m).padding([
+            0,
+            spacing.space_m,
+            0,
+            spacing.space_m,
+        ]);
+
+        let close_btn = widget::button::custom(
+            widget::Row::new()
+                .spacing(spacing.space_xxxs)
+                .align_y(cosmic::iced::Alignment::Center)
+                .push(widget::text::body(crate::fl!("air-quality-close")))
+                .push(widget::icon::from_name("go-next-symbolic").size(16)),
+        )
+        .class(cosmic::theme::Button::Link)
+        .on_press(Message::HidePollen);
+
+        let header = widget::Row::new()
+            .align_y(cosmic::iced::Alignment::Center)
+            .push(
+                widget::container(widget::text::heading(crate::fl!("label-pollen")))
+                    .width(cosmic::iced::Length::Fill)
+                    .align_x(cosmic::iced::alignment::Horizontal::Center),
+            )
+            .push(close_btn);
+
+        col = col.push(header);
+
+        if let Some(Some(ref p)) = self.pollen {
+            let rows = [
+                (PollenSpecies::Alder, p.alder),
+                (PollenSpecies::Birch, p.birch),
+                (PollenSpecies::Grass, p.grass),
+                (PollenSpecies::Mugwort, p.mugwort),
+                (PollenSpecies::Olive, p.olive),
+                (PollenSpecies::Ragweed, p.ragweed),
+            ];
+
+            let mut list = widget::list_column();
+            for (species, grains) in rows {
+                let level = categorize_pollen(species, grains);
+                let value = if level == PollenLevel::OffSeason {
+                    pollen_level_to_description(level)
+                } else {
+                    format!("{} ({:.1})", pollen_level_to_description(level), grains)
+                };
+                list = list.add(Self::pollutant_row(
+                    pollen_species_to_description(species),
+                    value,
+                ));
+            }
+            col = col.push(list);
+
+            col = col.push(
+                widget::text::caption(crate::fl!("pollen-attribution"))
+                    .class(cosmic::theme::Text::Accent),
+            );
+        }
+
+        col.into()
     }
 
     /// Renders the saved locations sub-view with back button and location list.
