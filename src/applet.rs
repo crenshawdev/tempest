@@ -1733,25 +1733,23 @@ impl Tempest {
 
     /// Renders the 7-day Forecast tab content.
     fn render_forecast_tab(&self, weather: &WeatherData) -> Element<'_, Message> {
-        use cosmic::iced::{Alignment, Length};
-
-        const COL_DAY: Length = Length::FillPortion(3);
-        const COL_ICON: Length = Length::Fixed(24.0);
-        const COL_HIGH: Length = Length::FillPortion(1);
-        const COL_LOW: Length = Length::FillPortion(1);
-        const COL_COND: Length = Length::FillPortion(2);
+        const COL_DAY: cosmic::iced::Length = cosmic::iced::Length::FillPortion(3);
+        const COL_ICON: cosmic::iced::Length = cosmic::iced::Length::Fixed(24.0);
+        const COL_HIGH: cosmic::iced::Length = cosmic::iced::Length::FillPortion(1);
+        const COL_LOW: cosmic::iced::Length = cosmic::iced::Length::FillPortion(1);
+        const COL_COND: cosmic::iced::Length = cosmic::iced::Length::FillPortion(2);
 
         let spacing = cosmic::theme::spacing();
         let mut col = widget::Column::new()
             .spacing(spacing.space_xxs)
             .padding([0, spacing.space_xxs, 0, spacing.space_m])
-            .width(Length::Fill);
+            .width(cosmic::iced::Length::Fill);
 
         // Table header
         col = col.push(
             widget::Row::new()
                 .spacing(spacing.space_xxs)
-                .align_y(Alignment::Center)
+                .align_y(cosmic::iced::Alignment::Center)
                 .padding([0, spacing.space_xxs])
                 .push(
                     widget::container(widget::text::heading(crate::fl!("forecast-day")))
@@ -1778,7 +1776,7 @@ impl Tempest {
             col = col.push(
                 widget::Row::new()
                     .spacing(spacing.space_xxs)
-                    .align_y(Alignment::Center)
+                    .align_y(cosmic::iced::Alignment::Center)
                     .padding([0, spacing.space_xxs])
                     .push(
                         widget::container(widget::text::body(format_date(&day.date)))
