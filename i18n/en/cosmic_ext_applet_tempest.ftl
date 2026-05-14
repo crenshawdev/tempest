@@ -36,7 +36,6 @@ label-no2 = Nitrogen Dioxide (NO2)
 label-co = Carbon Monoxide (CO)
 air-quality-index = Air quality index
 air-quality-close = Close
-locations-back = Back
 
 # Air quality
 air-quality-unavailable = Air quality data unavailable

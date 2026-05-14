@@ -1402,6 +1402,26 @@ impl Tempest {
         col.into()
     }
 
+    /// Header for sub-views (pollutants, pollen, locations): centered title
+    /// with a close button on the right.
+    fn subview_header(title: String, on_close: Message) -> Element<'static, Message> {
+        let spacing = cosmic::theme::spacing();
+        widget::Row::new()
+            .align_y(cosmic::iced::Alignment::Center)
+            .spacing(spacing.space_xs)
+            .push(
+                widget::container(widget::text::heading(title))
+                    .width(cosmic::iced::Length::Fill)
+                    .align_x(cosmic::iced::alignment::Horizontal::Center),
+            )
+            .push(
+                widget::button::icon(widget::icon::from_name("window-close-symbolic"))
+                    .padding(spacing.space_xxs)
+                    .on_press(on_close),
+            )
+            .into()
+    }
+
     /// Renders the pollutants sub-view with Back button and pollutant list.
     fn render_pollutants_view(&self) -> Element<'_, Message> {
         let spacing = cosmic::theme::spacing();
@@ -1412,26 +1432,10 @@ impl Tempest {
             spacing.space_m,
         ]);
 
-        let close_btn = widget::button::custom(
-            widget::Row::new()
-                .spacing(spacing.space_xxxs)
-                .align_y(cosmic::iced::Alignment::Center)
-                .push(widget::text::body(crate::fl!("air-quality-close")))
-                .push(widget::icon::from_name("go-next-symbolic").size(16)),
-        )
-        .class(cosmic::theme::Button::Link)
-        .on_press(Message::HidePollutants);
-
-        let header = widget::Row::new()
-            .align_y(cosmic::iced::Alignment::Center)
-            .push(
-                widget::container(widget::text::heading(crate::fl!("air-quality-index")))
-                    .width(cosmic::iced::Length::Fill)
-                    .align_x(cosmic::iced::alignment::Horizontal::Center),
-            )
-            .push(close_btn);
-
-        col = col.push(header);
+        col = col.push(Self::subview_header(
+            crate::fl!("air-quality-index"),
+            Message::HidePollutants,
+        ));
 
         // Pollutant list
         if let Some(ref aq) = self.air_quality {
@@ -1485,26 +1489,10 @@ impl Tempest {
             spacing.space_m,
         ]);
 
-        let close_btn = widget::button::custom(
-            widget::Row::new()
-                .spacing(spacing.space_xxxs)
-                .align_y(cosmic::iced::Alignment::Center)
-                .push(widget::text::body(crate::fl!("air-quality-close")))
-                .push(widget::icon::from_name("go-next-symbolic").size(16)),
-        )
-        .class(cosmic::theme::Button::Link)
-        .on_press(Message::HidePollen);
-
-        let header = widget::Row::new()
-            .align_y(cosmic::iced::Alignment::Center)
-            .push(
-                widget::container(widget::text::heading(crate::fl!("label-pollen")))
-                    .width(cosmic::iced::Length::Fill)
-                    .align_x(cosmic::iced::alignment::Horizontal::Center),
-            )
-            .push(close_btn);
-
-        col = col.push(header);
+        col = col.push(Self::subview_header(
+            crate::fl!("label-pollen"),
+            Message::HidePollen,
+        ));
 
         if let Some(Some(ref p)) = self.pollen {
             let rows = [
@@ -1550,18 +1538,10 @@ impl Tempest {
             spacing.space_m,
         ]);
 
-        // Back button
-        let back_btn = widget::button::custom(
-            widget::Row::new()
-                .spacing(spacing.space_xxxs)
-                .align_y(cosmic::iced::Alignment::Center)
-                .push(widget::icon::from_name("go-previous-symbolic").size(16))
-                .push(widget::text::body(crate::fl!("locations-back"))),
-        )
-        .class(cosmic::theme::Button::Link)
-        .on_press(Message::HideLocations);
-
-        col = col.push(back_btn);
+        col = col.push(Self::subview_header(
+            crate::fl!("section-saved-locations"),
+            Message::HideLocations,
+        ));
         col = col.push(widget::divider::horizontal::default());
 
         let mut list = widget::list_column();
