@@ -560,7 +560,7 @@ impl Application for Tempest {
         let mut column = widget::Column::new().spacing(spacing.space_xs).padding([
             spacing.space_xs,
             spacing.space_xs,
-            spacing.space_m,
+            0,
             spacing.space_xs,
         ]);
 
@@ -690,7 +690,8 @@ impl Application for Tempest {
             }
         }
 
-        let scrollable = widget::scrollable(column).height(cosmic::iced::Length::Shrink);
+        let padded = widget::container(column).padding([0, spacing.space_l, spacing.space_l, 0]);
+        let scrollable = widget::scrollable(padded).height(cosmic::iced::Length::Shrink);
 
         self.core
             .applet
@@ -1624,45 +1625,51 @@ impl Tempest {
                     _ => "weather-severe-alert-symbolic",
                 };
 
-                list = list.add(
-                    widget::Column::new()
-                        .spacing(spacing.space_xxxs)
-                        .push(
-                            widget::Row::new()
-                                .spacing(spacing.space_xxs)
-                                .push(
-                                    widget::icon::from_name(severity_icon)
-                                        .size(16)
-                                        .symbolic(true),
-                                )
-                                .push(widget::text::body(&alert.event)),
-                        )
-                        .push(widget::text::caption(&alert.headline))
-                        .push_maybe(if alert.description.is_empty() {
-                            None
-                        } else {
-                            Some(
-                                widget::container(
-                                    widget::scrollable(widget::text::caption(&alert.description))
-                                        .height(cosmic::iced::Length::Shrink),
-                                )
-                                .padding([spacing.space_xxxs, 0, spacing.space_xxxs, 0])
-                                .max_height(160.0),
+                list =
+                    list.add(
+                        widget::Column::new()
+                            .spacing(spacing.space_xxxs)
+                            .push(
+                                widget::Row::new()
+                                    .spacing(spacing.space_xxs)
+                                    .push(
+                                        widget::icon::from_name(severity_icon)
+                                            .size(16)
+                                            .symbolic(true),
+                                    )
+                                    .push(widget::text::body(&alert.event)),
                             )
-                        })
-                        .push({
-                            let time_fmt = if self.military_time {
-                                "%b %d %H:%M"
+                            .push(widget::text::caption(&alert.headline))
+                            .push_maybe(if alert.description.is_empty() {
+                                None
                             } else {
-                                "%b %d %I:%M %p"
-                            };
-                            let expires_time = alert.expires.format(time_fmt).to_string();
-                            widget::text::caption(crate::fl!(
-                                "expires",
-                                time = expires_time.as_str()
-                            ))
-                        }),
-                );
+                                Some(
+                                    widget::container(
+                                        widget::scrollable(
+                                            widget::container(widget::text::caption(
+                                                &alert.description,
+                                            ))
+                                            .padding([0, spacing.space_s, 0, 0]),
+                                        )
+                                        .height(cosmic::iced::Length::Shrink),
+                                    )
+                                    .padding([spacing.space_xxxs, 0, spacing.space_xxxs, 0])
+                                    .max_height(160.0),
+                                )
+                            })
+                            .push({
+                                let time_fmt = if self.military_time {
+                                    "%b %d %H:%M"
+                                } else {
+                                    "%b %d %I:%M %p"
+                                };
+                                let expires_time = alert.expires.format(time_fmt).to_string();
+                                widget::text::caption(crate::fl!(
+                                    "expires",
+                                    time = expires_time.as_str()
+                                ))
+                            }),
+                    );
             }
             col = col.push(list);
         }
