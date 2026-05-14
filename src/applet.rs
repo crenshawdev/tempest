@@ -557,12 +557,10 @@ impl Application for Tempest {
 
     fn view_window(&self, _id: Id) -> Element<'_, Self::Message> {
         let spacing = cosmic::theme::spacing();
-        let mut column = widget::Column::new().spacing(spacing.space_xs).padding([
-            spacing.space_xs,
-            spacing.space_xs,
-            0,
-            spacing.space_xs,
-        ]);
+        let mut column =
+            widget::Column::new()
+                .spacing(spacing.space_xs)
+                .padding([spacing.space_xs, 0, 0, 0]);
 
         // Header row with timestamp and action buttons
         let has_alerts = !self.alerts.is_empty();
@@ -690,7 +688,12 @@ impl Application for Tempest {
             }
         }
 
-        let padded = widget::container(column).padding([0, spacing.space_l, spacing.space_l, 0]);
+        let padded = widget::container(column).padding([
+            0,
+            spacing.space_l,
+            spacing.space_l,
+            spacing.space_l,
+        ]);
         let scrollable = widget::scrollable(padded).height(cosmic::iced::Length::Shrink);
 
         self.core
