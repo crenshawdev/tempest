@@ -162,3 +162,7 @@ panel-display = Panel Display
 weather-fetch-error = Failure to retrieve Weather Data, check your network connection and try again
 locations-back = Back
 section-saved-locations = SAVED LOCATIONS
+section-air-quality = AIR QUALITY
+settings-aqicn-token = aqicn.org token (optional)
+settings-aqicn-token-hint = Free tokens at aqicn.org/data-platform/token/
+aqicn-attribution = Air quality data by World Air Quality Index Project
