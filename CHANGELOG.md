@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.8.3] - 2026-05-14
 
+### Added
+
+- Pollen forecast for European locations via CAMS (Copernicus
+  Atmosphere Monitoring Service), powered by weathervane 0.4. The
+  Current tab shows the highest-severity active species with a
+  caption counting the rest. A new Pollen sub-view lists every
+  species with its grain count and dims off-season species.
+
 ### Changed
 
 - Popup text sizes pick up the cosmic typography role helpers

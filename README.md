@@ -84,7 +84,7 @@ Translators: lorduskordus (Czech), therealmate (Hungarian), VandaL (Polish), Mar
 
 ### 2.8.3
 
-COSMIC compliance polish in the popup. Text sizes pick up the cosmic typography role helpers instead of hand-rolled pixel values, so the scale tracks theme changes. Scrollable surfaces in the popup and alert descriptions now reserve room for the scrollbar so it stops clipping content. The Forecast tab's header and rows share a single column-width contract, and the header reads as a heading rather than a caption. The saved locations sub-view picks up the same centered-title-with-close header that pollutants and pollen already use, so the three sub-views match.
+Pollen forecast for European locations via CAMS, surfaced in the Current tab. The highest-severity active species leads, with a caption counting the rest, and a new Pollen sub-view breaks out every species with its grain count. Plus a COSMIC compliance polish in the popup. Text sizes pick up the cosmic typography role helpers instead of hand-rolled pixel values, so the scale tracks system theme changes. Scrollable surfaces in the popup and alert descriptions now reserve room for the scrollbar so it stops clipping content. The Forecast tab's header and rows share a single column-width contract, and the header reads as a heading rather than a caption. The saved locations sub-view picks up the same centered-title-with-close header that pollutants and pollen already use, so the three sub-views match.
 
 ### 2.8.2
 
