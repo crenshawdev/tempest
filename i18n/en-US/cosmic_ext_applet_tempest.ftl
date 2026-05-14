@@ -42,7 +42,6 @@ label-ozone = Ozone (O3)
 label-no2 = Nitrogen Dioxide (NO2)
 label-co = Carbon Monoxide (CO)
 air-quality-index = Air quality index
-air-quality-close = Close
 # Air quality
 air-quality-unavailable = Air quality data unavailable
 pm25 = PM2.5: { $value } ug/m3
@@ -160,5 +159,4 @@ settings-auto-units = Auto-select Units
 settings-auto-units-hint = Based on location
 panel-display = Panel Display
 weather-fetch-error = Failure to retrieve Weather Data, check your network connection and try again
-locations-back = Back
 section-saved-locations = SAVED LOCATIONS
