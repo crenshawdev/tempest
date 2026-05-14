@@ -616,7 +616,7 @@ impl Application for Tempest {
                         widget::Row::new()
                             .spacing(spacing.space_xxs)
                             .align_y(cosmic::iced::Alignment::Center)
-                            .push(text(&self.config.location_name).size(18))
+                            .push(widget::text::title4(&self.config.location_name))
                             .push(widget::icon::from_name("go-next-symbolic").size(14)),
                     )
                     .class(cosmic::theme::Button::Text)
@@ -627,7 +627,7 @@ impl Application for Tempest {
             );
         } else {
             column = column.push(
-                widget::container(text(&self.config.location_name).size(18))
+                widget::container(widget::text::title4(&self.config.location_name))
                     .align_x(cosmic::iced::alignment::Horizontal::Center)
                     .width(cosmic::iced::Length::Fill),
             );
@@ -642,7 +642,7 @@ impl Application for Tempest {
                     widget::Column::new()
                         .spacing(spacing.space_xs)
                         .push(widget::icon::from_name("dialog-error-symbolic").size(40))
-                        .push(text(crate::fl!("failed-to-load")).size(18))
+                        .push(widget::text::title4(crate::fl!("failed-to-load")))
                         .push(widget::text::body(error).width(cosmic::iced::Length::Fill))
                         .push(
                             widget::button::standard(crate::fl!("retry"))
@@ -659,7 +659,7 @@ impl Application for Tempest {
                         .spacing(spacing.space_xs)
                         .align_x(cosmic::iced::alignment::Horizontal::Center)
                         .push(widget::icon::from_name("content-loading-symbolic").size(40))
-                        .push(text(crate::fl!("loading")).size(18)),
+                        .push(widget::text::title4(crate::fl!("loading"))),
                 )
                 .align_x(cosmic::iced::alignment::Horizontal::Center)
                 .width(cosmic::iced::Length::Fill),
@@ -1242,14 +1242,11 @@ impl Tempest {
         col = col.push(
             widget::Column::new()
                 .spacing(spacing.space_xxxs)
-                .push(
-                    text(
-                        self.config
-                            .temperature_unit
-                            .format(weather.current.temperature),
-                    )
-                    .size(36),
-                )
+                .push(widget::text::title1(
+                    self.config
+                        .temperature_unit
+                        .format(weather.current.temperature),
+                ))
                 .push(widget::text::body(condition_to_description(
                     weather.current.condition,
                 ))),
@@ -1325,7 +1322,10 @@ impl Tempest {
                     .align_y(cosmic::iced::Alignment::Center)
                     .push(
                         widget::Column::new()
-                            .push(text(format!("{} {}", aq.aqi, aqi_description)).size(20))
+                            .push(widget::text::title4(format!(
+                                "{} {}",
+                                aq.aqi, aqi_description
+                            )))
                             .push(widget::text::caption(crate::fl!("air-quality-index"))),
                     )
                     .push(widget::space::horizontal())
@@ -1382,7 +1382,7 @@ impl Tempest {
                         .align_y(cosmic::iced::Alignment::Center)
                         .push(
                             widget::Column::new()
-                                .push(text(headline).size(20))
+                                .push(widget::text::title4(headline))
                                 .push(widget::text::caption(caption)),
                         )
                         .push(widget::space::horizontal())
@@ -1608,7 +1608,7 @@ impl Tempest {
                                 .size(40)
                                 .symbolic(true),
                         )
-                        .push(text(crate::fl!("no-active-alerts")).size(16))
+                        .push(widget::text::title4(crate::fl!("no-active-alerts")))
                         .push(widget::text::caption(crate::fl!("area-clear"))),
                 )
                 .align_x(cosmic::iced::alignment::Horizontal::Center)
@@ -1695,7 +1695,10 @@ impl Tempest {
                     .push(widget::text::body(
                         self.config.temperature_unit.format(hour.temperature),
                     ))
-                    .push(text(format!("{}%", hour.precipitation_probability)).size(11));
+                    .push(widget::text::caption(format!(
+                        "{}%",
+                        hour.precipitation_probability
+                    )));
 
                 row = row.push(
                     widget::container(cell)
@@ -1829,8 +1832,7 @@ impl Tempest {
                         widget::Column::new()
                             .push(widget::text::body(&self.config.location_name))
                             .push(
-                                text(crate::fl!("detected-via-ip"))
-                                    .size(11)
+                                widget::text::caption(crate::fl!("detected-via-ip"))
                                     .class(cosmic::theme::Text::Accent),
                             )
                             .width(cosmic::iced::Length::Fill),
@@ -1887,8 +1889,7 @@ impl Tempest {
                 widget::Column::new()
                     .push(widget::text::body(&self.config.location_name))
                     .push(
-                        text(crate::fl!("manually-selected"))
-                            .size(11)
+                        widget::text::caption(crate::fl!("manually-selected"))
                             .class(cosmic::theme::Text::Accent),
                     ),
             );
@@ -1951,7 +1952,9 @@ impl Tempest {
             widget::Row::new()
                 .spacing(spacing.space_xxs)
                 .align_y(cosmic::iced::Alignment::Center)
-                .push(text(crate::fl!("settings-auto-units-hint")).size(11))
+                .push(widget::text::caption(crate::fl!(
+                    "settings-auto-units-hint"
+                )))
                 .push(
                     widget::toggler(self.config.auto_units).on_toggle(|_| Message::ToggleAutoUnits),
                 ),
@@ -1966,7 +1969,7 @@ impl Tempest {
             widget::Row::new()
                 .spacing(spacing.space_xxs)
                 .align_y(cosmic::iced::Alignment::Center)
-                .push(text(crate::fl!("settings-min")).size(13))
+                .push(widget::text::body(crate::fl!("settings-min")))
                 .push(
                     widget::text_input("15", &self.refresh_input)
                         .on_input(Message::UpdateRefreshInterval),
@@ -1992,8 +1995,7 @@ impl Tempest {
                         .width(cosmic::iced::Length::Fill),
                 )
                 .push(
-                    text(crate::fl!("settings-aqicn-token-hint"))
-                        .size(11)
+                    widget::text::caption(crate::fl!("settings-aqicn-token-hint"))
                         .class(cosmic::theme::Text::Accent),
                 ),
         );
@@ -2040,9 +2042,12 @@ impl Tempest {
             widget::Row::new()
                 .align_y(cosmic::iced::Alignment::Center)
                 .push(
-                    text(format!("{} {}", crate::fl!("settings-version"), VERSION))
-                        .size(13)
-                        .class(cosmic::theme::Text::Accent),
+                    widget::text::caption(format!(
+                        "{} {}",
+                        crate::fl!("settings-version"),
+                        VERSION
+                    ))
+                    .class(cosmic::theme::Text::Accent),
                 )
                 .push(widget::space::horizontal())
                 .push(
