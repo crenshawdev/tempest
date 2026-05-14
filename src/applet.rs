@@ -1422,7 +1422,7 @@ impl Tempest {
             .into()
     }
 
-    /// Renders the pollutants sub-view with Back button and pollutant list.
+    /// Renders the pollutants sub-view with a close header and pollutant list.
     fn render_pollutants_view(&self) -> Element<'_, Message> {
         let spacing = cosmic::theme::spacing();
         let mut col = widget::Column::new().spacing(spacing.space_m).padding([
@@ -1528,7 +1528,7 @@ impl Tempest {
         col.into()
     }
 
-    /// Renders the saved locations sub-view with back button and location list.
+    /// Renders the saved locations sub-view with a close header and location list.
     fn render_locations_view(&self) -> Element<'_, Message> {
         let spacing = cosmic::theme::spacing();
         let mut col = widget::Column::new().spacing(spacing.space_xxs).padding([

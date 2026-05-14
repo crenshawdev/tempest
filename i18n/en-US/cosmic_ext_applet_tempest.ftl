@@ -42,7 +42,6 @@ label-ozone = Ozone (O3)
 label-no2 = Nitrogen Dioxide (NO2)
 label-co = Carbon Monoxide (CO)
 air-quality-index = Air quality index
-air-quality-close = Close
 # Air quality
 air-quality-unavailable = Air quality data unavailable
 pm25 = PM2.5: { $value } ug/m3
