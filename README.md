@@ -82,6 +82,10 @@ Translators: lorduskordus (Czech), therealmate (Hungarian), VandaL (Polish), Mar
 
 ## Changelog
 
+### 2.8.3
+
+Pollen forecast for European locations via CAMS, surfaced in the Current tab. The highest-severity active species leads, with a caption counting the rest, and a new Pollen sub-view breaks out every species with its grain count. Plus a COSMIC compliance polish in the popup. Text sizes pick up the cosmic typography role helpers instead of hand-rolled pixel values, so the scale tracks system theme changes. Scrollable surfaces in the popup and alert descriptions now reserve room for the scrollbar so it stops clipping content. The Forecast tab's header and rows share a single column-width contract, and the header reads as a heading rather than a caption. The saved locations sub-view picks up the same centered-title-with-close header that pollutants and pollen already use, so the three sub-views match.
+
 ### 2.8.2
 
 Polish pass to bring the popup in line with the COSMIC design spec in Figma. The Air Quality view now leads with a centered title and a Close button on the right, replacing the old Back button on the left. Spacing and icon sizes across the popup, the alerts panel, and the loading and error states are tuned to match the reference. The popup is a touch narrower, and alert descriptions resize to fit instead of always reserving a fixed block of space. No new features and no changes to the data Tempest pulls or how it pulls it.
