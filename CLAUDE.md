@@ -17,3 +17,7 @@ Default to push and create an MR. Skip the 4-option menu after `superpowers:fini
 ## Audit and Review Outputs
 
 Audit, review, plan, and analysis files go to `~/Documents/` with a descriptive name (e.g. `~/Documents/tempest-ui-audit.md`). Never write them inside the repo. They are personal working notes, not project artifacts, and should not show up in `git status`.
+
+## i18n Key Edits
+
+When adding or renaming an `fl!()` key, edit only `i18n/en/cosmic_ext_applet_tempest.ftl` and `i18n/en-US/cosmic_ext_applet_tempest.ftl`. The PreToolUse hook blocks other locales. Weblate fills in the rest on sync. Leave orphan strings in non-English locales for Weblate to reconcile.
