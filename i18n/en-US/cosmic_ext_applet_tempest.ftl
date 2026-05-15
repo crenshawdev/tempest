@@ -128,10 +128,10 @@ forecast-high = High
 forecast-low = Low
 forecast-conditions = Conditions
 # Settings sections
-section-location = LOCATION
-section-units = UNITS
-section-updates = UPDATES
-section-panel-display = PANEL DISPLAY
+section-location = Location
+section-units = Units
+section-updates = Updates
+section-panel-display = Panel display
 # Settings
 settings-auto-detect = Auto-detect
 detected-via-ip = Detected via IP
@@ -157,9 +157,9 @@ settings-support = Support
 settings-tip-kofi = Tip me on Ko-fi
 settings-auto-units = Auto-select Units
 settings-auto-units-hint = Based on location
-panel-display = Panel Display
+panel-display = Panel display
 weather-fetch-error = Failure to retrieve Weather Data, check your network connection and try again
-section-saved-locations = SAVED LOCATIONS
+section-saved-locations = Saved locations
 
 # Popup header tooltips
 tooltip-refresh = Refresh weather

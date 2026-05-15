@@ -126,12 +126,12 @@ forecast-low = Low
 forecast-conditions = Conditions
 
 # Settings sections
-section-location = LOCATION
-section-units = UNITS
-section-updates = UPDATES
-section-saved-locations = SAVED LOCATIONS
-section-panel-display = PANEL DISPLAY
-section-air-quality = AIR QUALITY
+section-location = Location
+section-units = Units
+section-updates = Updates
+section-saved-locations = Saved locations
+section-panel-display = Panel display
+section-air-quality = Air quality
 
 # Settings
 settings-auto-detect = Auto-detect
