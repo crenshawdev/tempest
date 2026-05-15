@@ -5,6 +5,40 @@ All notable changes to Tempest will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.3] - 2026-05-14
+
+### Added
+
+- Pollen forecast for European locations via CAMS (Copernicus
+  Atmosphere Monitoring Service), powered by weathervane 0.4. The
+  Current tab shows the highest-severity active species with a
+  caption counting the rest. A new Pollen sub-view lists every
+  species with its grain count and dims off-season species.
+
+### Changed
+
+- Popup text sizes pick up the cosmic typography role helpers
+  (`text::title1`, `text::title4`, `text::body`, `text::caption`)
+  instead of hand-rolled pixel values, so the scale tracks system
+  theme changes.
+- Main popup and alert description scrollables wrap their content in
+  a padded container before passing it to `widget::scrollable`,
+  matching the libcosmic context_drawer convention. The scrollbar
+  no longer overlays content on the right edge.
+- Forecast tab header and rows share a single set of column-width
+  constants, with matched alignment, padding, and spacing. Header
+  cells switch from the caption role to the heading role per the
+  libcosmic table contract.
+- Saved locations sub-view picks up the centered-title-with-close
+  header that pollutants and pollen already use, so the three
+  sub-views render consistently. The close button uses
+  `window-close-symbolic` everywhere.
+
+### Removed
+
+- Unused `locations-back` and `air-quality-close` fluent keys (the
+  new icon-only close button replaces the labelled text buttons).
+
 ## [2.8.2] - 2026-05-13
 
 ### Changed
@@ -332,6 +366,8 @@ features. The applet does what I built it to do.
 - Persistent configuration storage
 - Global weather coverage
 
+[2.8.3]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/compare/2.8.2...2.8.3
+[2.8.2]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.8.2
 [2.8.1]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.8.1
 [2.6.0]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.6.0
 [2.5.0]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.5.0

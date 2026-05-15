@@ -35,8 +35,6 @@ label-ozone = Ozone (O3)
 label-no2 = Nitrogen Dioxide (NO2)
 label-co = Carbon Monoxide (CO)
 air-quality-index = Air quality index
-air-quality-close = Close
-locations-back = Back
 
 # Air quality
 air-quality-unavailable = Air quality data unavailable
@@ -69,9 +67,9 @@ weather-unknown = Unknown
 # Air quality levels - US AQI
 aqi-us-good = Good
 aqi-us-moderate = Moderate
-aqi-us-unhealthy-sensitive = Unhealthy for Sensitive Groups
+aqi-us-unhealthy-sensitive = Unhealthy for sensitive groups
 aqi-us-unhealthy = Unhealthy
-aqi-us-very-unhealthy = Very Unhealthy
+aqi-us-very-unhealthy = Very unhealthy
 aqi-us-hazardous = Hazardous
 
 # Air quality levels - European AQI
@@ -128,12 +126,12 @@ forecast-low = Low
 forecast-conditions = Conditions
 
 # Settings sections
-section-location = LOCATION
-section-units = UNITS
-section-updates = UPDATES
-section-saved-locations = SAVED LOCATIONS
-section-panel-display = PANEL DISPLAY
-section-air-quality = AIR QUALITY
+section-location = Location
+section-units = Units
+section-updates = Updates
+section-saved-locations = Saved locations
+section-panel-display = Panel display
+section-air-quality = Air quality
 
 # Settings
 settings-auto-detect = Auto-detect
@@ -147,7 +145,7 @@ settings-measurement = Measurement
 settings-pressure = Pressure
 unit-metric = Metric
 unit-imperial = Imperial
-settings-refresh-interval = Refresh Interval
+settings-refresh-interval = Refresh interval
 settings-min = min
 settings-weather-alerts = Weather alerts
 show-icon = Weather icon
@@ -159,10 +157,16 @@ settings-version = Version
 settings-support = Support
 settings-tip-kofi = Tip me on Ko-fi
 
-settings-auto-units = Auto-select Units
+settings-auto-units = Auto-select units
 settings-auto-units-hint = Based on location
 
 # Air quality token (aqicn.org)
 settings-aqicn-token = aqicn.org token (optional)
 settings-aqicn-token-hint = Free tokens at aqicn.org/data-platform/token/
 aqicn-attribution = Air quality data by World Air Quality Index Project
+
+# Popup header tooltips
+tooltip-refresh = Refresh weather
+tooltip-alerts = Weather alerts
+tooltip-settings = Settings
+panel-error = ERR
