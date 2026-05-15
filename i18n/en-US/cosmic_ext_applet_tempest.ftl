@@ -160,3 +160,9 @@ settings-auto-units-hint = Based on location
 panel-display = Panel Display
 weather-fetch-error = Failure to retrieve Weather Data, check your network connection and try again
 section-saved-locations = SAVED LOCATIONS
+
+# Popup header tooltips
+tooltip-refresh = Refresh weather
+tooltip-alerts = Weather alerts
+tooltip-settings = Settings
+panel-error = ERR

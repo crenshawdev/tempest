@@ -5,7 +5,7 @@ use cosmic::cosmic_config::{self, cosmic_config_derive::CosmicConfigEntry, Cosmi
 use cosmic::iced::platform_specific::shell::wayland::commands::popup::{destroy_popup, get_popup};
 use cosmic::iced::window::Id;
 use cosmic::iced::{Limits, Subscription};
-use cosmic::widget::{self, segmented_button, settings, text};
+use cosmic::widget::{self, segmented_button, settings};
 use cosmic::{Action, Application, Element};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
@@ -227,6 +227,21 @@ fn active_pollen_species(data: &PollenData) -> Vec<(PollenSpecies, f32, PollenLe
     .map(|(s, g)| (s, g, categorize_pollen(s, g)))
     .filter(|(_, _, level)| *level != PollenLevel::OffSeason)
     .collect()
+}
+
+/// Picks the panel text role to match the current size tier.
+fn panel_text(size: cosmic::applet::Size, label: &str) -> Element<'_, Message> {
+    use cosmic::applet::cosmic_panel_config::PanelSize;
+    use cosmic::applet::Size;
+    match size {
+        Size::PanelSize(p) => match p {
+            PanelSize::XL => widget::text::title1(label).into(),
+            PanelSize::L => widget::text::title2(label).into(),
+            PanelSize::M => widget::text::title3(label).into(),
+            _ => widget::text::heading(label).into(),
+        },
+        _ => widget::text::heading(label).into(),
+    }
 }
 
 impl Default for Tempest {
@@ -461,13 +476,17 @@ impl Application for Tempest {
             self.current_condition.icon_name(is_night)
         };
 
-        let icon = widget::icon::from_name(icon_name).size(16).symbolic(true);
+        let panel_icon_size = self.core.applet.suggested_size(true).0;
 
-        let temperature_text = text(&self.display_label);
+        let icon = widget::icon::from_name(icon_name)
+            .size(panel_icon_size)
+            .symbolic(true);
+
+        let temperature_text = panel_text(self.core.applet.size.clone(), &self.display_label);
 
         let has_alerts = !self.alerts.is_empty();
         let alert_icon = widget::icon::from_name("dialog-warning-symbolic")
-            .size(16)
+            .size(panel_icon_size)
             .symbolic(true);
 
         // Precompute optional panel strings once for both orientations
@@ -524,7 +543,6 @@ impl Application for Tempest {
                 .into_iter()
                 .flatten()
             {
-                row = row.push(widget::text::caption("|"));
                 row = row.push(widget::text::caption(label.clone()));
             }
             Element::from(row)
@@ -580,29 +598,35 @@ impl Application for Tempest {
             header = header.push(widget::text::caption(l_updated));
         }
 
-        // Alert button - styled to stand out when alerts are active
-        let alerts_btn = widget::button::icon(widget::icon::from_name(alerts_icon))
-            .on_press(Message::SelectTab(PopupTab::Alerts))
-            .padding(spacing.space_xs);
-        let alerts_btn = if has_alerts {
-            alerts_btn.class(cosmic::theme::Button::Destructive)
-        } else {
-            alerts_btn
-        };
+        let refresh_btn = widget::tooltip::tooltip(
+            widget::button::icon(widget::icon::from_name("view-refresh-symbolic"))
+                .on_press(Message::RefreshWeather)
+                .padding(spacing.space_xs),
+            widget::text::body(crate::fl!("tooltip-refresh")),
+            widget::tooltip::Position::Bottom,
+        );
+
+        let alerts_btn = widget::tooltip::tooltip(
+            widget::button::icon(widget::icon::from_name(alerts_icon))
+                .on_press(Message::SelectTab(PopupTab::Alerts))
+                .padding(spacing.space_xs),
+            widget::text::body(crate::fl!("tooltip-alerts")),
+            widget::tooltip::Position::Bottom,
+        );
+
+        let settings_btn = widget::tooltip::tooltip(
+            widget::button::icon(widget::icon::from_name("emblem-system-symbolic"))
+                .on_press(Message::SelectTab(PopupTab::Settings))
+                .padding(spacing.space_xs),
+            widget::text::body(crate::fl!("tooltip-settings")),
+            widget::tooltip::Position::Bottom,
+        );
 
         header = header
             .push(widget::space::horizontal())
-            .push(
-                widget::button::icon(widget::icon::from_name("view-refresh-symbolic"))
-                    .on_press(Message::RefreshWeather)
-                    .padding(spacing.space_xs),
-            )
+            .push(refresh_btn)
             .push(alerts_btn)
-            .push(
-                widget::button::icon(widget::icon::from_name("emblem-system-symbolic"))
-                    .on_press(Message::SelectTab(PopupTab::Settings))
-                    .padding(spacing.space_xs),
-            );
+            .push(settings_btn);
 
         column = column.push(header);
 
@@ -639,7 +663,7 @@ impl Application for Tempest {
                 widget::container(
                     widget::Column::new()
                         .spacing(spacing.space_xs)
-                        .push(widget::icon::from_name("dialog-error-symbolic").size(40))
+                        .push(widget::icon::from_name("dialog-error-symbolic").size(48))
                         .push(widget::text::title4(crate::fl!("failed-to-load")))
                         .push(widget::text::body(error).width(cosmic::iced::Length::Fill))
                         .push(
@@ -656,7 +680,7 @@ impl Application for Tempest {
                     widget::Column::new()
                         .spacing(spacing.space_xs)
                         .align_x(cosmic::iced::alignment::Horizontal::Center)
-                        .push(widget::icon::from_name("content-loading-symbolic").size(40))
+                        .push(widget::icon::from_name("content-loading-symbolic").size(48))
                         .push(widget::text::title4(crate::fl!("loading"))),
                 )
                 .align_x(cosmic::iced::alignment::Horizontal::Center)
@@ -726,6 +750,8 @@ impl Application for Tempest {
                 if self.popup.as_ref() == Some(&id) {
                     self.popup = None;
                     self.showing_pollutants = false;
+                    self.showing_pollen = false;
+                    self.showing_locations = false;
                 }
             }
             Message::RefreshWeather => {
@@ -810,7 +836,7 @@ impl Application for Tempest {
                     }
                     Err(e) => {
                         tracing::error!("Failed to fetch weather: {}", e);
-                        self.display_label = "ERR".to_string();
+                        self.display_label = crate::fl!("panel-error");
                         self.current_condition = weathervane::WeatherCondition::Unknown;
                         self.error_message = Some(crate::fl!("weather-fetch-error"));
 
@@ -1175,6 +1201,8 @@ impl Application for Tempest {
     }
 }
 
+const UG_PER_M3: &str = "µg/m³";
+
 impl Tempest {
     fn save_config(&self) {
         if let Some(ref handler) = self.config_handler {
@@ -1442,23 +1470,23 @@ impl Tempest {
             let list = widget::list_column()
                 .add(Self::pollutant_row(
                     crate::fl!("label-co"),
-                    format!("{:.1} ug/m3", aq.carbon_monoxide),
+                    format!("{:.1} {}", aq.carbon_monoxide, UG_PER_M3),
                 ))
                 .add(Self::pollutant_row(
                     crate::fl!("label-no2"),
-                    format!("{:.1} ug/m3", aq.nitrogen_dioxide),
+                    format!("{:.1} {}", aq.nitrogen_dioxide, UG_PER_M3),
                 ))
                 .add(Self::pollutant_row(
                     crate::fl!("label-ozone"),
-                    format!("{:.1} ug/m3", aq.ozone),
+                    format!("{:.1} {}", aq.ozone, UG_PER_M3),
                 ))
                 .add(Self::pollutant_row(
                     crate::fl!("label-pm10"),
-                    format!("{:.1} ug/m3", aq.pm10),
+                    format!("{:.1} {}", aq.pm10, UG_PER_M3),
                 ))
                 .add(Self::pollutant_row(
                     crate::fl!("label-pm25"),
-                    format!("{:.1} ug/m3", aq.pm2_5),
+                    format!("{:.1} {}", aq.pm2_5, UG_PER_M3),
                 ));
             col = col.push(list);
         }
@@ -1533,7 +1561,7 @@ impl Tempest {
         let spacing = cosmic::theme::spacing();
         let mut col = widget::Column::new().spacing(spacing.space_xxs).padding([
             0,
-            spacing.space_xxs,
+            spacing.space_m,
             0,
             spacing.space_m,
         ]);
@@ -1589,7 +1617,7 @@ impl Tempest {
                         .align_x(cosmic::iced::alignment::Horizontal::Center)
                         .push(
                             widget::icon::from_name("weather-clear-symbolic")
-                                .size(40)
+                                .size(48)
                                 .symbolic(true),
                         )
                         .push(widget::text::title4(crate::fl!("no-active-alerts")))
@@ -1801,9 +1829,7 @@ impl Tempest {
 
     /// Creates a styled section header for the settings tab.
     fn section_header(label: String) -> Element<'static, Message> {
-        widget::text::caption(label)
-            .class(cosmic::theme::Text::Accent)
-            .into()
+        widget::text::title4(label).into()
     }
 
     /// Renders the Settings tab content.
@@ -1834,10 +1860,7 @@ impl Tempest {
                     .push(
                         widget::Column::new()
                             .push(widget::text::body(&self.config.location_name))
-                            .push(
-                                widget::text::caption(crate::fl!("detected-via-ip"))
-                                    .class(cosmic::theme::Text::Accent),
-                            )
+                            .push(widget::text::caption(crate::fl!("detected-via-ip")))
                             .width(cosmic::iced::Length::Fill),
                     )
                     .push(
@@ -1891,10 +1914,7 @@ impl Tempest {
             col = col.push(
                 widget::Column::new()
                     .push(widget::text::body(&self.config.location_name))
-                    .push(
-                        widget::text::caption(crate::fl!("manually-selected"))
-                            .class(cosmic::theme::Text::Accent),
-                    ),
+                    .push(widget::text::caption(crate::fl!("manually-selected"))),
             );
         }
 
@@ -1997,10 +2017,9 @@ impl Tempest {
                         .on_input(Message::UpdateAqicnToken)
                         .width(cosmic::iced::Length::Fill),
                 )
-                .push(
-                    widget::text::caption(crate::fl!("settings-aqicn-token-hint"))
-                        .class(cosmic::theme::Text::Accent),
-                ),
+                .push(widget::text::caption(crate::fl!(
+                    "settings-aqicn-token-hint"
+                ))),
         );
 
         // PANEL DISPLAY section
@@ -2044,14 +2063,11 @@ impl Tempest {
         col = col.push(
             widget::Row::new()
                 .align_y(cosmic::iced::Alignment::Center)
-                .push(
-                    widget::text::caption(format!(
-                        "{} {}",
-                        crate::fl!("settings-version"),
-                        VERSION
-                    ))
-                    .class(cosmic::theme::Text::Accent),
-                )
+                .push(widget::text::caption(format!(
+                    "{} {}",
+                    crate::fl!("settings-version"),
+                    VERSION
+                )))
                 .push(widget::space::horizontal())
                 .push(
                     widget::button::standard(crate::fl!("settings-tip-kofi"))
