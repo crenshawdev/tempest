@@ -1942,24 +1942,36 @@ impl Tempest {
         }
 
         // UNITS section
+        let temperature_row = widget::Column::new()
+            .spacing(spacing.space_xxs)
+            .push(widget::text::body(crate::fl!("settings-temperature")))
+            .push(
+                widget::segmented_control::horizontal(&self.temperature_model)
+                    .on_activate(Message::TemperatureUnitActivated),
+            );
+
+        let measurement_row = widget::Column::new()
+            .spacing(spacing.space_xxs)
+            .push(widget::text::body(crate::fl!("settings-measurement")))
+            .push(
+                widget::segmented_control::horizontal(&self.measurement_model)
+                    .on_activate(Message::MeasurementActivated),
+            );
+
+        let pressure_row = widget::Column::new()
+            .spacing(spacing.space_xxs)
+            .push(widget::text::body(crate::fl!("settings-pressure")))
+            .push(
+                widget::segmented_control::horizontal(&self.pressure_model)
+                    .on_activate(Message::PressureUnitActivated),
+            );
+
         col = col.push(
             settings::section()
                 .title(crate::fl!("section-units"))
-                .add(settings::item(
-                    crate::fl!("settings-temperature"),
-                    widget::segmented_control::horizontal(&self.temperature_model)
-                        .on_activate(Message::TemperatureUnitActivated),
-                ))
-                .add(settings::item(
-                    crate::fl!("settings-measurement"),
-                    widget::segmented_control::horizontal(&self.measurement_model)
-                        .on_activate(Message::MeasurementActivated),
-                ))
-                .add(settings::item(
-                    crate::fl!("settings-pressure"),
-                    widget::segmented_control::horizontal(&self.pressure_model)
-                        .on_activate(Message::PressureUnitActivated),
-                ))
+                .add(temperature_row)
+                .add(measurement_row)
+                .add(pressure_row)
                 .add(settings::item(
                     crate::fl!("settings-auto-units"),
                     widget::toggler(self.config.auto_units).on_toggle(|_| Message::ToggleAutoUnits),

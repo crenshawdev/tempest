@@ -67,9 +67,9 @@ weather-unknown = Unknown
 # Air quality levels - US AQI
 aqi-us-good = Good
 aqi-us-moderate = Moderate
-aqi-us-unhealthy-sensitive = Unhealthy for Sensitive Groups
+aqi-us-unhealthy-sensitive = Unhealthy for sensitive groups
 aqi-us-unhealthy = Unhealthy
-aqi-us-very-unhealthy = Very Unhealthy
+aqi-us-very-unhealthy = Very unhealthy
 aqi-us-hazardous = Hazardous
 
 # Air quality levels - European AQI
@@ -145,7 +145,7 @@ settings-measurement = Measurement
 settings-pressure = Pressure
 unit-metric = Metric
 unit-imperial = Imperial
-settings-refresh-interval = Refresh Interval
+settings-refresh-interval = Refresh interval
 settings-min = min
 settings-weather-alerts = Weather alerts
 show-icon = Weather icon
@@ -157,7 +157,7 @@ settings-version = Version
 settings-support = Support
 settings-tip-kofi = Tip me on Ko-fi
 
-settings-auto-units = Auto-select Units
+settings-auto-units = Auto-select units
 settings-auto-units-hint = Based on location
 
 # Air quality token (aqicn.org)
