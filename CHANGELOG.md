@@ -5,6 +5,62 @@ All notable changes to Tempest will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.4] - 2026-05-15
+
+### Changed
+
+- Settings tab migrates six of seven sections (Saved Locations,
+  Units, Updates, Air Quality, Panel Display, Support) to libcosmic's
+  canonical `settings::section` pattern. Each section renders as a
+  titled card. Location stays hand-rolled because its conditional
+  auto-vs-manual branch doesn't fit the single-chain section
+  builder. Section header strings drop ALL CAPS for sentence case
+  now that they render at `text::title4` weight.
+- AQI and pollen rows in the Current tab move from
+  `widget::button::custom(...).class(Button::Text)` to
+  `widget::list::button` wrapped in a single-row
+  `widget::list_column`, picking up the rounded corners and hover
+  treatment cosmic-files uses for tappable list rows.
+- Sub-view headers (Pollutants, Pollen, Saved Locations) swap the
+  X-close on the right for a back arrow (`go-previous-symbolic`)
+  on the left, matching the drill-in navigation convention used
+  in cosmic-settings, cosmic-store, cosmic-files, and cosmic-edit.
+  Sub-view titles bump to `text::title4`.
+- Panel button icons and temperature label track the panel size
+  tier. Icons pull from `self.core.applet.suggested_size(true)`.
+  Text picks a role per tier (heading for XS, title3 for M,
+  title2 for L, title1 for XL). The pipe separator between chips
+  drops out, since row spacing already separates them.
+- Popup header buttons (refresh, alerts, settings) wrap in
+  `widget::tooltip::tooltip` with new Fluent keys. Alerts button
+  drops the misused `Button::Destructive` class. The icon swap
+  to `dialog-warning-symbolic` already flags active alerts, and
+  destructive is reserved for delete and shutdown.
+- Temperature, Measurement, and Pressure unit selectors
+  restructure from `settings::item(label, segmented_control)` to
+  a Column with label above and segmented control at full width
+  below. The section card padding was leaving Pressure's three-
+  button control too narrow to fit three-character labels.
+- Hero icons in loading, error, and no-active-alerts states bump
+  from 40 to 48 px. Hourly and forecast condition icons bump
+  from 20 to 24 px. Both land on Freedesktop symbolic scale
+  points.
+- Pollutant unit symbol centralizes on a `UG_PER_M3` const with
+  proper Unicode `µg/m³`. Panel error label routes through a new
+  `panel-error` Fluent key. Accent color recedes from routine
+  subtitles, hints, and the version label, kept only on the
+  aqicn and pollen attributions where it communicates a content
+  requirement.
+- Other title-case stragglers (Refresh Interval, Unhealthy for
+  Sensitive Groups, Very Unhealthy, Cloud Cover, Auto-select
+  Units) drop to sentence case to match the writing voice.
+
+### Fixed
+
+- Closing the popup while a sub-view was open could leave the
+  sub-view active on next popup open. `Message::PopupClosed` now
+  resets all three `showing_*` flags.
+
 ## [2.8.3] - 2026-05-14
 
 ### Added

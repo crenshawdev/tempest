@@ -88,6 +88,11 @@
   </categories>
 
   <releases>
+    <release version="2.8.4" date="2026-05-15">
+      <description>
+        <p>Another COSMIC conformance pass. Settings tab sections render as proper titled cards now, matching cosmic-settings. The AQI and pollen rows in the Current tab read as tappable cards with chevron, replacing the flat text-button styling. Sub-view headers swap the X-close on the right for a back arrow on the left, since sub-views are drill-in pages and that's the convention every other COSMIC app uses. Panel button icons and the temperature label scale with the panel size tier instead of pinning to a single size. Popup header buttons get tooltips. The alerts header button drops the destructive red it was using to flag active alerts. Section headers move from caption-with-accent to title4, ALL CAPS settings labels drop to sentence case, and overuse of accent color on routine subtitles is pruned back. The Temperature, Measurement, and Pressure unit selectors get full width below their labels instead of being squeezed into the right half of a row.</p>
+      </description>
+    </release>
     <release version="2.8.3" date="2026-05-14">
       <description>
         <p>Pollen forecast for European locations via CAMS, surfaced in the Current tab. The highest-severity active species leads, with a caption counting the rest, and a new Pollen sub-view breaks out every species with its grain count. Plus a COSMIC compliance polish in the popup. Text sizes pick up the cosmic typography role helpers instead of hand-rolled pixel values, so the scale tracks system theme changes. Scrollable surfaces in the popup and alert descriptions now reserve room for the scrollbar so it stops clipping content. The Forecast tab's header and rows share a single column-width contract, and the header reads as a heading rather than a caption. The saved locations sub-view picks up the same centered-title-with-close header that pollutants and pollen already use, so the three sub-views match.</p>
