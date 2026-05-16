@@ -63,7 +63,6 @@ weather-freezing-drizzle = Freezing drizzle
 weather-freezing-rain = Freezing rain
 weather-thunderstorm-hail = Thunderstorm with hail
 weather-unknown = Unknown
-
 # Air quality levels - US AQI
 aqi-us-good = Good
 aqi-us-moderate = Moderate
@@ -71,7 +70,6 @@ aqi-us-unhealthy-sensitive = Unhealthy for Sensitive Groups
 aqi-us-unhealthy = Unhealthy
 aqi-us-very-unhealthy = Very Unhealthy
 aqi-us-hazardous = Hazardous
-
 # Air quality levels - European AQI
 aqi-eu-good = Good
 aqi-eu-fair = Fair
@@ -79,7 +77,6 @@ aqi-eu-moderate = Moderate
 aqi-eu-poor = Poor
 aqi-eu-very-poor = Very Poor
 aqi-eu-extremely-poor = Extremely Poor
-
 # Day abbreviations
 day-mon = Mon
 day-tue = Tue
@@ -88,7 +85,6 @@ day-thu = Thu
 day-fri = Fri
 day-sat = Sat
 day-sun = Sun
-
 # Month abbreviations
 month-jan = Jan
 month-feb = Feb
@@ -102,7 +98,6 @@ month-sep = Sep
 month-oct = Oct
 month-nov = Nov
 month-dec = Dec
-
 forecast-day = День
 forecast-high = Макс.
 forecast-low = Мин.
