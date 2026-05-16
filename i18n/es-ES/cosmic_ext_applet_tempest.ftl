@@ -4,18 +4,15 @@ loading = Cargando datos del tiempo...
 updated = Actualizado: { $time }
 retry = Reintentar
 failed-to-load = Error al cargar el tiempo
-
 # Panel
 aqi-label = ICA { $value }
 panel-dew-point = Punto de rocío { $value }
 panel-pressure = { $value }
-
 # Tabs
 tab-current = Actual
 tab-hourly = Por horas
 tab-forecast = 7 días
 tab-air-quality = Aire
-
 # Current conditions - labels
 label-feels-like = Sensación térmica
 label-humidity = Humedad
@@ -27,7 +24,6 @@ label-visibility = Visibilidad
 label-pressure = Presión
 label-sunrise = Amanecer
 label-sunset = Atardecer
-
 # Current conditions
 feels-like = Sensación térmica: { $temp }
 humidity = Humedad: { $value }%
@@ -39,7 +35,6 @@ visibility = Visibilidad: { $value } { $unit }
 pressure = Presión: { $value }
 sunrise = Amanecer: { $time }
 sunset = Atardecer: { $time }
-
 # Air quality - labels
 label-pm25 = Partículas menores de 2,5 μm (PM2.5)
 label-pm10 = Partículas menores de 10 μm (PM10)
@@ -48,7 +43,6 @@ label-no2 = Dióxido de nitrógeno (NO2)
 label-co = Monóxido de carbono (CO)
 air-quality-index = Índice de calidad del aire
 air-quality-back = Volver
-
 # Air quality
 air-quality-unavailable = Datos de calidad del aire no disponibles
 pm25 = PM2.5: { $value } ug/m3
@@ -56,14 +50,12 @@ pm10 = PM10: { $value } ug/m3
 ozone = Ozono: { $value } ug/m3
 no2 = NO2: { $value } ug/m3
 co = CO: { $value } ug/m3
-
 # Alerts
 alerts-disabled = Las alertas meteorológicas están desactivadas
 alerts-enable-hint = Actívalas en Ajustes
 no-active-alerts = No hay alertas activas
 area-clear = No hay incidencias en tu zona
 expires = Expira: { $time }
-
 # Weather conditions
 weather-clear-sky = Despejado
 weather-mainly-clear = Mayormente despejado
@@ -81,7 +73,6 @@ weather-freezing-drizzle = Llovizna engelante
 weather-freezing-rain = Lluvia engelante
 weather-thunderstorm-hail = Tormenta con granizo
 weather-unknown = Desconocido
-
 # Air quality levels - US AQI
 aqi-us-good = Buena
 aqi-us-moderate = Moderada
@@ -89,7 +80,6 @@ aqi-us-unhealthy-sensitive = Perjudicial para grupos sensibles
 aqi-us-unhealthy = Perjudicial
 aqi-us-very-unhealthy = Muy perjudicial
 aqi-us-hazardous = Peligrosa
-
 # Air quality levels - European AQI
 aqi-eu-good = Buena
 aqi-eu-fair = Aceptable
@@ -97,7 +87,6 @@ aqi-eu-moderate = Moderada
 aqi-eu-poor = Deficiente
 aqi-eu-very-poor = Muy deficiente
 aqi-eu-extremely-poor = Extremadamente deficiente
-
 # Day abbreviations
 day-mon = Lun
 day-tue = Mar
@@ -106,7 +95,6 @@ day-thu = Jue
 day-fri = Vie
 day-sat = Sáb
 day-sun = Dom
-
 # Month abbreviations
 month-jan = Ene
 month-feb = Feb
@@ -120,19 +108,16 @@ month-sep = Sep
 month-oct = Oct
 month-nov = Nov
 month-dec = Dic
-
 # Forecast table
 forecast-day = Día
 forecast-high = Máx.
 forecast-low = Mín.
 forecast-conditions = Condiciones
-
 # Settings sections
 section-location = UBICACIÓN
 section-units = UNIDADES
 section-updates = ACTUALIZACIONES
 section-panel-display = PANEL
-
 # Settings
 settings-auto-detect = Detectar automáticamente
 detected-via-ip = Detectado por IP
@@ -162,7 +147,6 @@ panel-display = Visualización del panel
 weather-fetch-error = Error al obtener los datos del tiempo; comprueba tu conexión e inténtalo de nuevo
 locations-back = Volver
 section-saved-locations = UBICACIONES GUARDADAS
-
 # Air quality token (aqicn.org)
 settings-aqicn-token = aqicn.org token (opcional)
 settings-aqicn-token-hint = Tokens gratuitos en aqicn.org/data-platform/token/
