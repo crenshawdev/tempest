@@ -152,3 +152,5 @@ pollen-attribution = Дані: CAMS / Copernicus
 tooltip-settings = Налаштування
 tooltip-alerts = Попередження про погоду
 tooltip-refresh = Оновити погоду
+pollen-level-off-season = Не сезон
+panel-error = ПОМ
