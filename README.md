@@ -28,7 +28,7 @@ Location resolves by IP geolocation, city search, or manual coordinates. Bookmar
 
 ## Architecture
 
-Weather logic, API calls, region detection, and network monitoring live in a standalone library crate, `tempest-core`. The applet is the frontend. The split was done in 2.6.0 and moved roughly 1,700 lines out of the applet tree.
+Weather logic, API calls, region detection, and network monitoring live in a standalone library crate, `weathervane`. The applet is the frontend. The split was done in 2.6.0 and moved roughly 1,700 lines out of the applet tree.
 
 Network failures retry with exponential backoff (5s, 15s, 30s, 60s). The applet listens to NetworkManager over D-Bus and refreshes immediately when connectivity comes back. HTTP requests time out at 15 seconds so dead connections don't hang the UI.
 
