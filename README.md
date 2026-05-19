@@ -8,13 +8,9 @@ A weather applet for COSMIC Desktop. Panel display, tabbed popup with current co
 <summary><strong>More screenshots</strong></summary>
 <br>
 
-| 7-Day Forecast | Weather Alerts |
-|----------------|----------------|
-| ![7-Day](screenshots/tempest-7day.png) | ![Alerts](screenshots/tempest-alerts.png) |
-
-| Saved Locations |
-|-----------------|
-| ![Locations](screenshots/tempest-locations.png) |
+| Hourly Forecast | 7-Day Forecast |
+|-----------------|----------------|
+| ![Hourly](screenshots/tempest-hourly.png) | ![7-Day](screenshots/tempest-7day.png) |
 
 </details>
 
