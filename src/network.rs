@@ -4,7 +4,7 @@ use cosmic::iced::Subscription;
 
 pub use weathervane::NetworkEvent;
 
-/// Subscribes to network connectivity changes via tempest-core.
+/// Subscribes to network connectivity changes via weathervane.
 ///
 /// Yields `NetworkEvent::Connected` when the system transitions to
 /// full connectivity. Wraps the library's raw stream into an iced

@@ -528,42 +528,31 @@ impl Application for Tempest {
             (None, None, None)
         };
 
-        let data = if self.core.applet.is_horizontal() {
-            let mut row = widget::Row::new()
+        let mut children: Vec<Element<'_, Message>> = Vec::new();
+        if has_alerts {
+            children.push(alert_icon.into());
+        }
+        if self.config.show_icon_in_panel {
+            children.push(icon.into());
+        }
+        children.push(temperature_text);
+        for label in [&aqi_label, &dew_point_label, &pressure_label, &sun_label]
+            .into_iter()
+            .flatten()
+        {
+            children.push(widget::text::caption(label.clone()).into());
+        }
+
+        let data: Element<'_, Message> = if self.core.applet.is_horizontal() {
+            widget::Row::with_children(children)
                 .align_y(Alignment::Center)
-                .spacing(spacing.space_xxs);
-            if has_alerts {
-                row = row.push(alert_icon);
-            }
-            if self.config.show_icon_in_panel {
-                row = row.push(icon);
-            }
-            row = row.push(temperature_text);
-            for label in [&aqi_label, &dew_point_label, &pressure_label, &sun_label]
-                .into_iter()
-                .flatten()
-            {
-                row = row.push(widget::text::caption(label.clone()));
-            }
-            Element::from(row)
+                .spacing(spacing.space_xxs)
+                .into()
         } else {
-            let mut col = widget::Column::new()
+            widget::Column::with_children(children)
                 .align_x(Alignment::Center)
-                .spacing(spacing.space_xxs);
-            if has_alerts {
-                col = col.push(alert_icon);
-            }
-            if self.config.show_icon_in_panel {
-                col = col.push(icon);
-            }
-            col = col.push(temperature_text);
-            for label in [&aqi_label, &dew_point_label, &pressure_label, &sun_label]
-                .into_iter()
-                .flatten()
-            {
-                col = col.push(widget::text::caption(label.clone()));
-            }
-            Element::from(col)
+                .spacing(spacing.space_xxs)
+                .into()
         };
 
         let button = widget::button::custom(data)
@@ -729,23 +718,7 @@ impl Application for Tempest {
 
     fn update(&mut self, message: Self::Message) -> Task<Self::Message> {
         match message {
-            Message::TogglePopup => {
-                return if let Some(p) = self.popup.take() {
-                    destroy_popup(p)
-                } else {
-                    let new_id = Id::unique();
-                    self.popup.replace(new_id);
-                    let mut popup_settings = self.core.applet.get_popup_settings(
-                        self.core.main_window_id().unwrap(),
-                        new_id,
-                        None,
-                        None,
-                        None,
-                    );
-                    popup_settings.positioner.size_limits = self.popup_limits();
-                    get_popup(popup_settings)
-                }
-            }
+            Message::TogglePopup => return self.handle_toggle_popup(),
             Message::PopupClosed(id) => {
                 if self.popup.as_ref() == Some(&id) {
                     self.popup = None;
@@ -754,113 +727,8 @@ impl Application for Tempest {
                     self.showing_locations = false;
                 }
             }
-            Message::RefreshWeather => {
-                self.is_loading = true;
-                self.error_message = None;
-
-                let lat = self.config.latitude;
-                let lon = self.config.longitude;
-                let temp_unit = self.config.temperature_unit;
-                let measurement = self.config.measurement_system;
-                let alerts_enabled = self.config.alerts_enabled;
-
-                // Fetch weather and air quality in parallel
-                let weather_task = Task::perform(
-                    async move {
-                        fetch_weather(lat, lon, temp_unit, measurement)
-                            .await
-                            .map_err(|e| e.to_string())
-                    },
-                    |result| Action::App(Message::WeatherUpdated(result)),
-                );
-
-                let aqicn_token = self.config.aqicn_token.clone();
-                let air_quality_task = Task::perform(
-                    async move {
-                        fetch_air_quality(lat, lon, aqicn_token.as_deref())
-                            .await
-                            .map_err(|e| e.to_string())
-                    },
-                    |result| Action::App(Message::AirQualityUpdated(result)),
-                );
-
-                // Fetch alerts if enabled
-                let alerts_task = if alerts_enabled {
-                    Task::perform(
-                        async move { fetch_alerts(lat, lon).await.map_err(|e| e.to_string()) },
-                        |result| Action::App(Message::AlertsUpdated(result)),
-                    )
-                } else {
-                    Task::none()
-                };
-
-                // Pollen is region-optional. fetch_pollen returns Ok(None) for
-                // coordinates outside CAMS coverage, so call unconditionally
-                // and let the render layer decide whether to surface the row.
-                let pollen_task = Task::perform(
-                    async move { fetch_pollen(lat, lon).await.map_err(|e| e.to_string()) },
-                    |result| Action::App(Message::PollenUpdated(result)),
-                );
-
-                return Task::batch([weather_task, air_quality_task, alerts_task, pollen_task]);
-            }
-            Message::WeatherUpdated(result) => {
-                self.is_loading = false;
-
-                match result {
-                    Ok(data) => {
-                        self.retry_count = 0;
-                        self.current_condition = data.current.condition;
-                        self.display_label = self
-                            .config
-                            .temperature_unit
-                            .format(data.current.temperature);
-                        self.weather_data = Some(data);
-                        self.error_message = None;
-
-                        // Update last updated timestamp and cache formatted display
-                        let now = chrono::Local::now();
-                        self.config.last_updated = Some(now.timestamp());
-                        let fmt = if self.military_time {
-                            "%H:%M"
-                        } else {
-                            "%I:%M %p"
-                        };
-                        let formatted = now.format(fmt).to_string();
-                        self.last_updated_display = Some(if self.military_time {
-                            formatted
-                        } else {
-                            formatted.trim_start_matches('0').to_string()
-                        });
-                        self.save_config();
-                    }
-                    Err(e) => {
-                        tracing::error!("Failed to fetch weather: {}", e);
-                        self.display_label = crate::fl!("panel-error");
-                        self.current_condition = weathervane::WeatherCondition::Unknown;
-                        self.error_message = Some(crate::fl!("weather-fetch-error"));
-
-                        // Schedule a retry with exponential backoff
-                        const BACKOFF_SECS: [u64; 4] = [5, 15, 30, 60];
-                        if (self.retry_count as usize) < BACKOFF_SECS.len() {
-                            let delay = BACKOFF_SECS[self.retry_count as usize];
-                            self.retry_count += 1;
-                            tracing::info!("Scheduling retry {} in {}s", self.retry_count, delay);
-                            return Task::perform(
-                                async move {
-                                    tokio::time::sleep(Duration::from_secs(delay)).await;
-                                    Message::RetryFetch
-                                },
-                                Action::App,
-                            );
-                        }
-                        tracing::warn!(
-                            "Giving up after {} retries, waiting for next refresh",
-                            self.retry_count
-                        );
-                    }
-                }
-            }
+            Message::RefreshWeather => return self.handle_refresh_weather(),
+            Message::WeatherUpdated(result) => return self.handle_weather_updated(result),
             Message::AirQualityUpdated(result) => match result {
                 Ok(data) => {
                     self.current_aqi = Some((data.aqi, data.standard));
@@ -874,7 +742,6 @@ impl Application for Tempest {
             },
             Message::AlertsUpdated(result) => match result {
                 Ok(new_alerts) => {
-                    // Send notifications for new alerts
                     for alert in &new_alerts {
                         if !self.seen_alert_ids.contains(&alert.id) {
                             self.send_alert_notification(alert);
@@ -889,7 +756,7 @@ impl Application for Tempest {
             },
             Message::Tick => {
                 self.retry_count = 0;
-                return Task::perform(async { Message::RefreshWeather }, Action::App);
+                return Self::refresh_task();
             }
             Message::ToggleAlertsEnabled => {
                 self.config.alerts_enabled = !self.config.alerts_enabled;
@@ -897,7 +764,7 @@ impl Application for Tempest {
                     self.alerts.clear();
                 }
                 self.save_config();
-                return Task::perform(async { Message::RefreshWeather }, Action::App);
+                return Self::refresh_task();
             }
             Message::ToggleAutoUnits => {
                 self.config.auto_units = !self.config.auto_units;
@@ -909,7 +776,7 @@ impl Application for Tempest {
                     }
                 }
                 self.save_config();
-                return Task::perform(async { Message::RefreshWeather }, Action::App);
+                return Self::refresh_task();
             }
             Message::ToggleShowAqiInPanel => {
                 self.config.show_aqi_in_panel = !self.config.show_aqi_in_panel;
@@ -953,26 +820,7 @@ impl Application for Tempest {
                     self.search_results.clear();
                 }
             },
-            Message::SelectLocation(idx) => {
-                if let Some(location) = self.search_results.get(idx) {
-                    let country = location.country.clone();
-                    self.config.latitude = location.latitude;
-                    self.config.longitude = location.longitude;
-                    self.config.location_name = location.display_name.clone();
-                    self.config.use_auto_location = false;
-                    // Update manual location storage
-                    self.config.manual_latitude = Some(location.latitude);
-                    self.config.manual_longitude = Some(location.longitude);
-                    self.config.manual_location_name = Some(location.display_name.clone());
-
-                    self.apply_units_for_country(&country);
-
-                    self.city_input.clear();
-                    self.search_results.clear();
-                    self.save_config();
-                    return Task::perform(async { Message::RefreshWeather }, Action::App);
-                }
-            }
+            Message::SelectLocation(idx) => return self.handle_select_location(idx),
             Message::UpdateRefreshInterval(value) => {
                 self.refresh_input = value.clone();
                 if let Ok(interval) = value.parse::<u64>() {
@@ -992,63 +840,18 @@ impl Application for Tempest {
                 };
                 self.save_config();
             }
-            Message::ToggleAutoLocation => {
-                self.config.use_auto_location = !self.config.use_auto_location;
-
-                if self.config.use_auto_location {
-                    // Save current manual location before switching to auto
-                    self.config.manual_latitude = Some(self.config.latitude);
-                    self.config.manual_longitude = Some(self.config.longitude);
-                    self.config.manual_location_name = Some(self.config.location_name.clone());
-                    self.save_config();
-
-                    return Task::perform(
-                        async { detect_location().await.map_err(|e| e.to_string()) },
-                        |result| Action::App(Message::LocationDetected(result)),
-                    );
-                } else {
-                    // Restore previous manual location if available
-                    if let (Some(lat), Some(lon), Some(name)) = (
-                        self.config.manual_latitude,
-                        self.config.manual_longitude,
-                        self.config.manual_location_name.clone(),
-                    ) {
-                        self.config.latitude = lat;
-                        self.config.longitude = lon;
-                        self.config.location_name = name;
-                    }
-                    self.save_config();
-
-                    return Task::perform(async { Message::RefreshWeather }, Action::App);
-                }
-            }
+            Message::ToggleAutoLocation => return self.handle_toggle_auto_location(),
             Message::DetectLocation => {
                 return Task::perform(
                     async { detect_location().await.map_err(|e| e.to_string()) },
                     |result| Action::App(Message::LocationDetected(result)),
                 );
             }
-            Message::LocationDetected(result) => match result {
-                Ok(loc) => {
-                    self.config.latitude = loc.latitude;
-                    self.config.longitude = loc.longitude;
-                    self.config.location_name = loc.display_name;
-                    let country = loc.country;
-
-                    self.apply_units_for_country(&country);
-
-                    self.save_config();
-                    return Task::perform(async { Message::RefreshWeather }, Action::App);
-                }
-                Err(e) => {
-                    tracing::error!("Failed to detect location: {}", e);
-                }
-            },
+            Message::LocationDetected(result) => return self.handle_location_detected(result),
             Message::SelectTab(tab) => {
                 self.active_tab = tab;
                 self.config.default_tab = tab;
                 self.showing_pollutants = false;
-                // Rebuild the model to sync selection state
                 self.tab_model = build_tab_model(tab_for_segmented_control(tab));
                 self.save_config();
             }
@@ -1066,7 +869,7 @@ impl Application for Tempest {
                 if let Some(&unit) = self.temperature_model.data::<TemperatureUnit>(entity) {
                     self.config.temperature_unit = unit;
                     self.save_config();
-                    return Task::perform(async { Message::RefreshWeather }, Action::App);
+                    return Self::refresh_task();
                 }
             }
             Message::MeasurementActivated(entity) => {
@@ -1074,7 +877,7 @@ impl Application for Tempest {
                 if let Some(&system) = self.measurement_model.data::<MeasurementSystem>(entity) {
                     self.config.measurement_system = system;
                     self.save_config();
-                    return Task::perform(async { Message::RefreshWeather }, Action::App);
+                    return Self::refresh_task();
                 }
             }
             Message::PressureUnitActivated(entity) => {
@@ -1084,26 +887,7 @@ impl Application for Tempest {
                     self.save_config();
                 }
             }
-            Message::SystemTimeConfig(config) => {
-                self.military_time = config.military_time;
-                // Refresh the cached timestamp display with new format
-                if let Some(timestamp) = self.config.last_updated {
-                    if let Some(dt) = chrono::DateTime::from_timestamp(timestamp, 0) {
-                        let local = dt.with_timezone(&chrono::Local);
-                        let fmt = if self.military_time {
-                            "%H:%M"
-                        } else {
-                            "%I:%M %p"
-                        };
-                        let formatted = local.format(fmt).to_string();
-                        self.last_updated_display = Some(if self.military_time {
-                            formatted
-                        } else {
-                            formatted.trim_start_matches('0').to_string()
-                        });
-                    }
-                }
-            }
+            Message::SystemTimeConfig(config) => self.handle_system_time_config(config),
             Message::ShowPollutants => {
                 self.showing_pollutants = true;
             }
@@ -1144,31 +928,10 @@ impl Application for Tempest {
                     self.config.use_auto_location = false;
                     self.showing_locations = false;
                     self.save_config();
-                    return Task::perform(async { Message::RefreshWeather }, Action::App);
+                    return Self::refresh_task();
                 }
             }
-            Message::SaveLocation(idx) => {
-                if let Some(location) = self.search_results.get(idx) {
-                    if self.config.saved_locations.len() < 8 {
-                        let saved = crate::config::SavedLocation {
-                            name: location.display_name.clone(),
-                            latitude: location.latitude,
-                            longitude: location.longitude,
-                        };
-                        if !self
-                            .config
-                            .saved_locations
-                            .iter()
-                            .any(|l| l.matches_coords(saved.latitude, saved.longitude))
-                        {
-                            self.config.saved_locations.push(saved);
-                            self.save_config();
-                        }
-                    }
-                }
-                self.search_results.clear();
-                self.city_input.clear();
-            }
+            Message::SaveLocation(idx) => self.handle_save_location(idx),
             Message::RemoveSavedLocation(idx) => {
                 if idx < self.config.saved_locations.len() {
                     self.config.saved_locations.remove(idx);
@@ -1181,16 +944,16 @@ impl Application for Tempest {
                 }
             }
             Message::RetryFetch => {
-                return Task::perform(async { Message::RefreshWeather }, Action::App);
+                return Self::refresh_task();
             }
             Message::NetworkChanged(crate::network::NetworkEvent::Connected) => {
                 self.retry_count = 0;
-                return Task::perform(async { Message::RefreshWeather }, Action::App);
+                return Self::refresh_task();
             }
             Message::SystemResumed => {
                 weathervane::reset_http_client();
                 self.retry_count = 0;
-                return Task::perform(async { Message::RefreshWeather }, Action::App);
+                return Self::refresh_task();
             }
         }
         Task::none()
@@ -1204,6 +967,261 @@ impl Application for Tempest {
 const UG_PER_M3: &str = "µg/m³";
 
 impl Tempest {
+    /// Standard "trigger a fresh weather pull" task, used by message handlers
+    /// that change anything weather-bearing (unit swaps, location changes,
+    /// network/sleep wake-ups, manual retries).
+    fn refresh_task() -> Task<Message> {
+        Task::perform(async { Message::RefreshWeather }, Action::App)
+    }
+
+    /// Opens the popup, or closes it if already open.
+    fn handle_toggle_popup(&mut self) -> Task<Message> {
+        if let Some(p) = self.popup.take() {
+            destroy_popup(p)
+        } else {
+            let new_id = Id::unique();
+            self.popup.replace(new_id);
+            let mut popup_settings = self.core.applet.get_popup_settings(
+                self.core.main_window_id().unwrap(),
+                new_id,
+                None,
+                None,
+                None,
+            );
+            popup_settings.positioner.size_limits = self.popup_limits();
+            get_popup(popup_settings)
+        }
+    }
+
+    /// Fires every fetch (weather, air quality, optional alerts, optional pollen)
+    /// in parallel. Pollen runs unconditionally because the API itself signals
+    /// "not covered" via `Ok(None)`, see [`Message::PollenUpdated`].
+    fn handle_refresh_weather(&mut self) -> Task<Message> {
+        self.is_loading = true;
+        self.error_message = None;
+
+        let lat = self.config.latitude;
+        let lon = self.config.longitude;
+        let temp_unit = self.config.temperature_unit;
+        let measurement = self.config.measurement_system;
+        let alerts_enabled = self.config.alerts_enabled;
+
+        let weather_task = Task::perform(
+            async move {
+                fetch_weather(lat, lon, temp_unit, measurement)
+                    .await
+                    .map_err(|e| e.to_string())
+            },
+            |result| Action::App(Message::WeatherUpdated(result)),
+        );
+
+        let aqicn_token = self.config.aqicn_token.clone();
+        let air_quality_task = Task::perform(
+            async move {
+                fetch_air_quality(lat, lon, aqicn_token.as_deref())
+                    .await
+                    .map_err(|e| e.to_string())
+            },
+            |result| Action::App(Message::AirQualityUpdated(result)),
+        );
+
+        let alerts_task = if alerts_enabled {
+            Task::perform(
+                async move { fetch_alerts(lat, lon).await.map_err(|e| e.to_string()) },
+                |result| Action::App(Message::AlertsUpdated(result)),
+            )
+        } else {
+            Task::none()
+        };
+
+        let pollen_task = Task::perform(
+            async move { fetch_pollen(lat, lon).await.map_err(|e| e.to_string()) },
+            |result| Action::App(Message::PollenUpdated(result)),
+        );
+
+        Task::batch([weather_task, air_quality_task, alerts_task, pollen_task])
+    }
+
+    /// Stores fresh weather data and updates the cached timestamp display, or
+    /// schedules an exponential-backoff retry on failure.
+    fn handle_weather_updated(&mut self, result: Result<WeatherData, String>) -> Task<Message> {
+        self.is_loading = false;
+
+        match result {
+            Ok(data) => {
+                self.retry_count = 0;
+                self.current_condition = data.current.condition;
+                self.display_label = self
+                    .config
+                    .temperature_unit
+                    .format(data.current.temperature);
+                self.weather_data = Some(data);
+                self.error_message = None;
+
+                let now = chrono::Local::now();
+                self.config.last_updated = Some(now.timestamp());
+                self.last_updated_display = Some(self.format_time_of_day(now));
+                self.save_config();
+                Task::none()
+            }
+            Err(e) => {
+                tracing::error!("Failed to fetch weather: {}", e);
+                self.display_label = crate::fl!("panel-error");
+                self.current_condition = weathervane::WeatherCondition::Unknown;
+                self.error_message = Some(crate::fl!("weather-fetch-error"));
+
+                const BACKOFF_SECS: [u64; 4] = [5, 15, 30, 60];
+                if (self.retry_count as usize) < BACKOFF_SECS.len() {
+                    let delay = BACKOFF_SECS[self.retry_count as usize];
+                    self.retry_count += 1;
+                    tracing::info!("Scheduling retry {} in {}s", self.retry_count, delay);
+                    Task::perform(
+                        async move {
+                            tokio::time::sleep(Duration::from_secs(delay)).await;
+                            Message::RetryFetch
+                        },
+                        Action::App,
+                    )
+                } else {
+                    tracing::warn!(
+                        "Giving up after {} retries, waiting for next refresh",
+                        self.retry_count
+                    );
+                    Task::none()
+                }
+            }
+        }
+    }
+
+    /// Formats a chrono datetime using the current `military_time` setting.
+    /// In 12-hour mode the leading zero on hours like "09:30 AM" is stripped.
+    fn format_time_of_day(&self, dt: chrono::DateTime<chrono::Local>) -> String {
+        let fmt = if self.military_time {
+            "%H:%M"
+        } else {
+            "%I:%M %p"
+        };
+        let formatted = dt.format(fmt).to_string();
+        if self.military_time {
+            formatted
+        } else {
+            formatted.trim_start_matches('0').to_string()
+        }
+    }
+
+    /// Swaps between auto-detect (saves current as manual fallback, kicks off
+    /// detection) and manual mode (restores saved manual location and refreshes).
+    fn handle_toggle_auto_location(&mut self) -> Task<Message> {
+        self.config.use_auto_location = !self.config.use_auto_location;
+
+        if self.config.use_auto_location {
+            self.config.manual_latitude = Some(self.config.latitude);
+            self.config.manual_longitude = Some(self.config.longitude);
+            self.config.manual_location_name = Some(self.config.location_name.clone());
+            self.save_config();
+
+            Task::perform(
+                async { detect_location().await.map_err(|e| e.to_string()) },
+                |result| Action::App(Message::LocationDetected(result)),
+            )
+        } else {
+            if let (Some(lat), Some(lon), Some(name)) = (
+                self.config.manual_latitude,
+                self.config.manual_longitude,
+                self.config.manual_location_name.clone(),
+            ) {
+                self.config.latitude = lat;
+                self.config.longitude = lon;
+                self.config.location_name = name;
+            }
+            self.save_config();
+            Self::refresh_task()
+        }
+    }
+
+    /// Reformats the cached timestamp when the COSMIC time applet switches
+    /// between 12h and 24h modes.
+    fn handle_system_time_config(&mut self, config: TimeAppletConfig) {
+        self.military_time = config.military_time;
+        if let Some(timestamp) = self.config.last_updated {
+            if let Some(dt) = chrono::DateTime::from_timestamp(timestamp, 0) {
+                let local = dt.with_timezone(&chrono::Local);
+                self.last_updated_display = Some(self.format_time_of_day(local));
+            }
+        }
+    }
+
+    /// Picks a location from the search-results list and refreshes.
+    fn handle_select_location(&mut self, idx: usize) -> Task<Message> {
+        let Some(location) = self.search_results.get(idx) else {
+            return Task::none();
+        };
+        let country = location.country.clone();
+        self.config.latitude = location.latitude;
+        self.config.longitude = location.longitude;
+        self.config.location_name = location.display_name.clone();
+        self.config.use_auto_location = false;
+        self.config.manual_latitude = Some(location.latitude);
+        self.config.manual_longitude = Some(location.longitude);
+        self.config.manual_location_name = Some(location.display_name.clone());
+
+        self.apply_units_for_country(&country);
+
+        self.city_input.clear();
+        self.search_results.clear();
+        self.save_config();
+        Self::refresh_task()
+    }
+
+    /// Bookmarks a search result into `saved_locations`, deduplicated by
+    /// coordinate, capped at the configured 8-slot limit.
+    fn handle_save_location(&mut self, idx: usize) {
+        if let Some(location) = self.search_results.get(idx) {
+            if self.config.saved_locations.len() < 8 {
+                let saved = crate::config::SavedLocation {
+                    name: location.display_name.clone(),
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                };
+                if !self
+                    .config
+                    .saved_locations
+                    .iter()
+                    .any(|l| l.matches_coords(saved.latitude, saved.longitude))
+                {
+                    self.config.saved_locations.push(saved);
+                    self.save_config();
+                }
+            }
+        }
+        self.search_results.clear();
+        self.city_input.clear();
+    }
+
+    /// Applies an auto-detected location and refreshes; logs the error on failure.
+    fn handle_location_detected(
+        &mut self,
+        result: Result<DetectedLocation, String>,
+    ) -> Task<Message> {
+        match result {
+            Ok(loc) => {
+                self.config.latitude = loc.latitude;
+                self.config.longitude = loc.longitude;
+                self.config.location_name = loc.display_name;
+                let country = loc.country;
+
+                self.apply_units_for_country(&country);
+
+                self.save_config();
+                Self::refresh_task()
+            }
+            Err(e) => {
+                tracing::error!("Failed to detect location: {}", e);
+                Task::none()
+            }
+        }
+    }
+
     fn save_config(&self) {
         if let Some(ref handler) = self.config_handler {
             if let Err(e) = self.config.write_entry(handler) {
@@ -1820,11 +1838,6 @@ impl Tempest {
         col.into()
     }
 
-    /// Creates a styled section header for the settings tab.
-    fn section_header(label: String) -> Element<'static, Message> {
-        widget::text::title4(label).into()
-    }
-
     /// Renders the Settings tab content.
     fn render_settings_tab(&self) -> Element<'_, Message> {
         let spacing = cosmic::theme::spacing();
@@ -1835,18 +1848,36 @@ impl Tempest {
             spacing.space_m,
         ]);
 
-        // LOCATION section
-        col = col.push(Self::section_header(crate::fl!("section-location")));
+        col = col.push(self.render_location_section());
+        if let Some(saved) = self.render_saved_locations_section() {
+            col = col.push(saved);
+        }
+        col = col.push(self.render_units_section());
+        col = col.push(widget::text::caption(crate::fl!(
+            "settings-auto-units-hint"
+        )));
+        col = col.push(self.render_updates_section());
+        col = col.push(self.render_aq_section());
+        col = col.push(self.render_panel_display_section());
+        col = col.push(self.render_support_section());
 
-        col = col.push(settings::item(
-            crate::fl!("settings-auto-detect"),
-            widget::toggler(self.config.use_auto_location)
-                .on_toggle(|_| Message::ToggleAutoLocation),
-        ));
+        col.into()
+    }
+
+    /// LOCATION section: auto-detect toggle plus either the detected-location
+    /// status row (auto on) or the manual search input and result list (auto off).
+    fn render_location_section(&self) -> Element<'_, Message> {
+        let spacing = cosmic::theme::spacing();
+        let mut section = settings::section()
+            .title(crate::fl!("section-location"))
+            .add(settings::item(
+                crate::fl!("settings-auto-detect"),
+                widget::toggler(self.config.use_auto_location)
+                    .on_toggle(|_| Message::ToggleAutoLocation),
+            ));
 
         if self.config.use_auto_location {
-            // Auto-detect enabled: show location with subtitle and refresh button
-            col = col.push(
+            section = section.add(
                 widget::Row::new()
                     .spacing(spacing.space_xxs)
                     .align_y(cosmic::iced::Alignment::Center)
@@ -1862,8 +1893,7 @@ impl Tempest {
                     ),
             );
         } else {
-            // Manual mode: show search input
-            col = col.push(
+            section = section.add(
                 widget::Row::new()
                     .spacing(spacing.space_xxs)
                     .push(
@@ -1881,9 +1911,15 @@ impl Tempest {
                     ),
             );
 
-            // Search results with select and save buttons
             for (idx, result) in self.search_results.iter().enumerate() {
-                col = col.push(
+                let save_btn = widget::tooltip::tooltip(
+                    widget::button::icon(widget::icon::from_name("bookmark-new-symbolic").size(16))
+                        .on_press(Message::SaveLocation(idx))
+                        .padding(spacing.space_xxs),
+                    widget::text::body(crate::fl!("tooltip-save-location")),
+                    widget::tooltip::Position::Left,
+                );
+                section = section.add(
                     widget::Row::new()
                         .spacing(spacing.space_xxxs)
                         .align_y(cosmic::iced::Alignment::Center)
@@ -1893,55 +1929,64 @@ impl Tempest {
                                 .padding(spacing.space_xxs)
                                 .width(cosmic::iced::Length::Fill),
                         )
-                        .push(
-                            widget::button::icon(
-                                widget::icon::from_name("bookmark-new-symbolic").size(16),
-                            )
-                            .on_press(Message::SaveLocation(idx))
-                            .padding(spacing.space_xxs),
-                        ),
+                        .push(save_btn),
                 );
             }
 
-            // Show current location with "Manually selected" subtitle
-            col = col.push(
+            section = section.add(
                 widget::Column::new()
                     .push(widget::text::body(&self.config.location_name))
                     .push(widget::text::caption(crate::fl!("manually-selected"))),
             );
         }
 
-        // SAVED LOCATIONS section
-        if !self.config.saved_locations.is_empty() {
-            let mut saved_section =
-                settings::section().title(crate::fl!("section-saved-locations"));
-            let mut list = widget::list_column();
-            for (idx, location) in self.config.saved_locations.iter().enumerate() {
-                let is_active = (location.latitude - self.config.latitude).abs() < 0.01
-                    && (location.longitude - self.config.longitude).abs() < 0.01;
+        section.into()
+    }
 
-                let mut row = widget::Row::new()
-                    .spacing(spacing.space_xxs)
-                    .align_y(cosmic::iced::Alignment::Center)
-                    .push(widget::text::body(&location.name).width(cosmic::iced::Length::Fill));
-
-                if is_active {
-                    row = row.push(widget::icon::from_name("emblem-ok-symbolic").size(16));
-                }
-
-                row = row.push(
-                    widget::button::icon(widget::icon::from_name("edit-delete-symbolic").size(16))
-                        .on_press(Message::RemoveSavedLocation(idx))
-                        .padding(spacing.space_xxxs),
-                );
-
-                list = list.add(row);
-            }
-            saved_section = saved_section.add(list);
-            col = col.push(saved_section);
+    /// SAVED LOCATIONS section. Returns None when the list is empty so the
+    /// section is hidden entirely rather than rendered as an empty container.
+    fn render_saved_locations_section(&self) -> Option<Element<'_, Message>> {
+        if self.config.saved_locations.is_empty() {
+            return None;
         }
+        let spacing = cosmic::theme::spacing();
+        let mut list = widget::list_column();
+        for (idx, location) in self.config.saved_locations.iter().enumerate() {
+            let is_active = (location.latitude - self.config.latitude).abs() < 0.01
+                && (location.longitude - self.config.longitude).abs() < 0.01;
 
-        // UNITS section
+            let mut row = widget::Row::new()
+                .spacing(spacing.space_xxs)
+                .align_y(cosmic::iced::Alignment::Center)
+                .push(widget::text::body(&location.name).width(cosmic::iced::Length::Fill));
+
+            if is_active {
+                row = row.push(widget::icon::from_name("emblem-ok-symbolic").size(16));
+            }
+
+            let remove_btn = widget::tooltip::tooltip(
+                widget::button::icon(widget::icon::from_name("edit-delete-symbolic").size(16))
+                    .on_press(Message::RemoveSavedLocation(idx))
+                    .padding(spacing.space_xxxs),
+                widget::text::body(crate::fl!("tooltip-remove-saved-location")),
+                widget::tooltip::Position::Left,
+            );
+            row = row.push(remove_btn);
+
+            list = list.add(row);
+        }
+        Some(
+            settings::section()
+                .title(crate::fl!("section-saved-locations"))
+                .add(list)
+                .into(),
+        )
+    }
+
+    /// UNITS section: temperature, measurement, and pressure pickers plus the
+    /// "auto-select by location" toggle.
+    fn render_units_section(&self) -> Element<'_, Message> {
+        let spacing = cosmic::theme::spacing();
         let temperature_row = widget::Column::new()
             .spacing(spacing.space_xxs)
             .push(widget::text::body(crate::fl!("settings-temperature")))
@@ -1966,114 +2011,114 @@ impl Tempest {
                     .on_activate(Message::PressureUnitActivated),
             );
 
-        col = col.push(
-            settings::section()
-                .title(crate::fl!("section-units"))
-                .add(temperature_row)
-                .add(measurement_row)
-                .add(pressure_row)
-                .add(settings::item(
-                    crate::fl!("settings-auto-units"),
-                    widget::toggler(self.config.auto_units).on_toggle(|_| Message::ToggleAutoUnits),
-                )),
-        );
-        col = col.push(widget::text::caption(crate::fl!(
-            "settings-auto-units-hint"
-        )));
+        settings::section()
+            .title(crate::fl!("section-units"))
+            .add(temperature_row)
+            .add(measurement_row)
+            .add(pressure_row)
+            .add(settings::item(
+                crate::fl!("settings-auto-units"),
+                widget::toggler(self.config.auto_units).on_toggle(|_| Message::ToggleAutoUnits),
+            ))
+            .into()
+    }
 
-        // UPDATES section
-        col = col.push(
-            settings::section()
-                .title(crate::fl!("section-updates"))
-                .add(settings::item(
-                    crate::fl!("settings-refresh-interval"),
-                    widget::Row::new()
-                        .spacing(spacing.space_xxs)
-                        .align_y(cosmic::iced::Alignment::Center)
-                        .push(widget::text::body(crate::fl!("settings-min")))
-                        .push(
-                            widget::text_input("15", &self.refresh_input)
-                                .on_input(Message::UpdateRefreshInterval),
-                        ),
-                ))
-                .add(settings::item(
-                    crate::fl!("settings-weather-alerts"),
-                    widget::toggler(self.config.alerts_enabled)
-                        .on_toggle(|_| Message::ToggleAlertsEnabled),
-                )),
-        );
+    /// UPDATES section: refresh interval and weather-alerts toggle.
+    fn render_updates_section(&self) -> Element<'_, Message> {
+        let spacing = cosmic::theme::spacing();
+        settings::section()
+            .title(crate::fl!("section-updates"))
+            .add(settings::item(
+                crate::fl!("settings-refresh-interval"),
+                widget::Row::new()
+                    .spacing(spacing.space_xxs)
+                    .align_y(cosmic::iced::Alignment::Center)
+                    .push(widget::text::body(crate::fl!("settings-min")))
+                    .push(
+                        widget::text_input("15", &self.refresh_input)
+                            .on_input(Message::UpdateRefreshInterval),
+                    ),
+            ))
+            .add(settings::item(
+                crate::fl!("settings-weather-alerts"),
+                widget::toggler(self.config.alerts_enabled)
+                    .on_toggle(|_| Message::ToggleAlertsEnabled),
+            ))
+            .into()
+    }
 
-        // AIR QUALITY section
-        col = col.push(
-            settings::section()
-                .title(crate::fl!("section-air-quality"))
-                .add(
-                    widget::Column::new()
-                        .spacing(spacing.space_xxxs)
-                        .push(widget::text::body(crate::fl!("settings-aqicn-token")))
-                        .push(
-                            widget::text_input("", &self.aqicn_token_input)
-                                .on_input(Message::UpdateAqicnToken)
-                                .width(cosmic::iced::Length::Fill),
-                        )
-                        .push(widget::text::caption(crate::fl!(
-                            "settings-aqicn-token-hint"
-                        ))),
-                ),
-        );
+    /// AIR QUALITY section: optional aqicn.org token input.
+    fn render_aq_section(&self) -> Element<'_, Message> {
+        let spacing = cosmic::theme::spacing();
+        settings::section()
+            .title(crate::fl!("section-air-quality"))
+            .add(
+                widget::Column::new()
+                    .spacing(spacing.space_xxxs)
+                    .push(widget::text::body(crate::fl!("settings-aqicn-token")))
+                    .push(
+                        widget::text_input("", &self.aqicn_token_input)
+                            .on_input(Message::UpdateAqicnToken)
+                            .width(cosmic::iced::Length::Fill),
+                    )
+                    .push(widget::text::caption(crate::fl!(
+                        "settings-aqicn-token-hint"
+                    ))),
+            )
+            .into()
+    }
 
-        // PANEL DISPLAY section
-        col = col.push(
-            settings::section()
-                .title(crate::fl!("section-panel-display"))
-                .add(settings::item(
-                    crate::fl!("show-icon"),
-                    widget::toggler(self.config.show_icon_in_panel)
-                        .on_toggle(|_| Message::ToggleShowIconInPanel),
-                ))
-                .add(settings::item(
-                    crate::fl!("show-aqi"),
-                    widget::toggler(self.config.show_aqi_in_panel)
-                        .on_toggle(|_| Message::ToggleShowAqiInPanel),
-                ))
-                .add(settings::item(
-                    crate::fl!("show-pressure"),
-                    widget::toggler(self.config.show_pressure_in_panel)
-                        .on_toggle(|_| Message::ToggleShowPressureInPanel),
-                ))
-                .add(settings::item(
-                    crate::fl!("show-dew-point"),
-                    widget::toggler(self.config.show_dew_point_in_panel)
-                        .on_toggle(|_| Message::ToggleShowDewPointInPanel),
-                ))
-                .add(settings::item(
-                    crate::fl!("show-sunrise-sunset"),
-                    widget::toggler(self.config.show_sunrise_sunset_in_panel)
-                        .on_toggle(|_| Message::ToggleShowSunriseSunsetInPanel),
-                )),
-        );
+    /// PANEL DISPLAY section: per-element show/hide toggles for the panel button.
+    fn render_panel_display_section(&self) -> Element<'_, Message> {
+        settings::section()
+            .title(crate::fl!("section-panel-display"))
+            .add(settings::item(
+                crate::fl!("show-icon"),
+                widget::toggler(self.config.show_icon_in_panel)
+                    .on_toggle(|_| Message::ToggleShowIconInPanel),
+            ))
+            .add(settings::item(
+                crate::fl!("show-aqi"),
+                widget::toggler(self.config.show_aqi_in_panel)
+                    .on_toggle(|_| Message::ToggleShowAqiInPanel),
+            ))
+            .add(settings::item(
+                crate::fl!("show-pressure"),
+                widget::toggler(self.config.show_pressure_in_panel)
+                    .on_toggle(|_| Message::ToggleShowPressureInPanel),
+            ))
+            .add(settings::item(
+                crate::fl!("show-dew-point"),
+                widget::toggler(self.config.show_dew_point_in_panel)
+                    .on_toggle(|_| Message::ToggleShowDewPointInPanel),
+            ))
+            .add(settings::item(
+                crate::fl!("show-sunrise-sunset"),
+                widget::toggler(self.config.show_sunrise_sunset_in_panel)
+                    .on_toggle(|_| Message::ToggleShowSunriseSunsetInPanel),
+            ))
+            .into()
+    }
 
-        // SUPPORT section
-        col = col.push(
-            settings::section()
-                .title(crate::fl!("settings-support"))
-                .add(
-                    widget::Row::new()
-                        .align_y(cosmic::iced::Alignment::Center)
-                        .push(widget::text::caption(format!(
-                            "{} {}",
-                            crate::fl!("settings-version"),
-                            VERSION
-                        )))
-                        .push(widget::space::horizontal())
-                        .push(
-                            widget::button::standard(crate::fl!("settings-tip-kofi"))
-                                .on_press(Message::OpenKofi),
-                        ),
-                ),
-        );
-
-        col.into()
+    /// SUPPORT section: version label and a tip-jar button.
+    fn render_support_section(&self) -> Element<'_, Message> {
+        settings::section()
+            .title(crate::fl!("settings-support"))
+            .add(
+                widget::Row::new()
+                    .align_y(cosmic::iced::Alignment::Center)
+                    .push(widget::text::caption(format!(
+                        "{} {}",
+                        crate::fl!("settings-version"),
+                        VERSION
+                    )))
+                    .push(widget::space::horizontal())
+                    .push(
+                        widget::button::standard(crate::fl!("settings-tip-kofi"))
+                            .on_press(Message::OpenKofi),
+                    ),
+            )
+            .into()
     }
 
     /// Returns the size limits for the popup window.
