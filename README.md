@@ -8,13 +8,9 @@ A weather applet for COSMIC Desktop. Panel display, tabbed popup with current co
 <summary><strong>More screenshots</strong></summary>
 <br>
 
-| 7-Day Forecast | Weather Alerts |
-|----------------|----------------|
-| ![7-Day](screenshots/tempest-7day.png) | ![Alerts](screenshots/tempest-alerts.png) |
-
-| Saved Locations |
-|-----------------|
-| ![Locations](screenshots/tempest-locations.png) |
+| Hourly Forecast | 7-Day Forecast |
+|-----------------|----------------|
+| ![Hourly](screenshots/tempest-hourly.png) | ![7-Day](screenshots/tempest-7day.png) |
 
 </details>
 
@@ -81,6 +77,10 @@ Czech, French, German, Hungarian, Polish, Portuguese (Brazil), Russian, Simplifi
 Translators: lorduskordus (Czech), therealmate (Hungarian), VandaL (Polish), Marco Agostini (Portuguese/Brazil), FaNToMaSikkk (Russian), Geeson Wan (Simplified Chinese), bittin (Swedish), Димко (Ukrainian).
 
 ## Changelog
+
+### 2.8.5
+
+Settings polish. The Location section moves to the same titled-card layout the other six sections already use, instead of floating loose under a heading. Save-location and remove-saved-location icon buttons grow tooltips so it's obvious what they do. Saved locations and Air quality headers in the en-US locale drop ALL CAPS for sentence case, catching up with what en already had. Under the hood the settings tab splits into one method per section and the message dispatch splits into per-handler methods, so adding a setting or wiring a new message touches one small place instead of scrolling through a few hundred lines. Stale `tempest-core` doc-comment references in `weather.rs` and `network.rs` rename to `weathervane`.
 
 ### 2.8.4
 

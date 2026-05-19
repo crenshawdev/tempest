@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
-//! Thin i18n adapters over tempest-core.
+//! Thin i18n adapters over weathervane.
 //!
 //! The core library returns typed enums. This module matches on them
 //! to produce localized strings via the applet's Fluent translations.
