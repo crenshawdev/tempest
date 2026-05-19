@@ -169,4 +169,6 @@ aqicn-attribution = Air quality data by World Air Quality Index Project
 tooltip-refresh = Refresh weather
 tooltip-alerts = Weather alerts
 tooltip-settings = Settings
+tooltip-save-location = Save location
+tooltip-remove-saved-location = Remove saved location
 panel-error = ERR
