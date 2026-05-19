@@ -5,6 +5,52 @@ All notable changes to Tempest will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.5] - 2026-05-19
+
+### Changed
+
+- Location section in Settings moves to the canonical
+  `settings::section` pattern that the other six sections already
+  use. The 2.8.4 pass left it hand-rolled because its
+  auto-vs-manual conditional didn't fit the single-chain section
+  builder. This release just adds rows conditionally to the
+  section instead, so Location reads as a titled card like the
+  rest of the tab.
+- Save-location and remove-saved-location icon buttons in the
+  search-results list and Saved locations card pick up tooltips
+  (`tooltip-save-location`, `tooltip-remove-saved-location`). Both
+  buttons were icon-only with no label or hint until now.
+- `en-US` locale gets the popup header tooltip keys
+  (`tooltip-refresh`, `tooltip-alerts`, `tooltip-settings`) that
+  2.8.4 added only to `en`. Same for the new save and remove
+  keys. Saved locations and Air quality section headers in
+  `en-US` drop ALL CAPS for sentence case, matching `en`.
+- Internal refactor of `render_settings_tab` from a 248-line
+  block to seven per-section helpers
+  (`render_location_section`, `render_units_section`,
+  `render_updates_section`, `render_aq_section`,
+  `render_panel_display_section`, `render_support_section`,
+  `render_saved_locations_section`). Adding a setting now touches
+  one small method instead of scrolling through the whole tab.
+- Internal refactor of `update` from a 465-line message
+  dispatch to a thin match that delegates the gnarly arms
+  (TogglePopup, RefreshWeather, WeatherUpdated, ToggleAutoLocation,
+  SystemTimeConfig, SelectLocation, SaveLocation, LocationDetected)
+  to private `handle_*` methods. The 11 inline copies of
+  `Task::perform(async { Message::RefreshWeather }, Action::App)`
+  collapse to `Self::refresh_task()`.
+- Panel button orientation branch no longer duplicates child
+  pushes between Row and Column. Children collect into a `Vec`
+  once and dispatch to `Row::with_children` or
+  `Column::with_children` based on `is_horizontal()`.
+
+### Fixed
+
+- Stale `tempest-core` references in `src/weather.rs` and
+  `src/network.rs` doc comments rename to `weathervane`. The
+  crate was renamed months ago and these two comments were the
+  last places the old name lingered.
+
 ## [2.8.4] - 2026-05-15
 
 ### Changed
@@ -422,6 +468,8 @@ features. The applet does what I built it to do.
 - Persistent configuration storage
 - Global weather coverage
 
+[2.8.5]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/compare/2.8.4...2.8.5
+[2.8.4]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/compare/2.8.3...2.8.4
 [2.8.3]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/compare/2.8.2...2.8.3
 [2.8.2]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.8.2
 [2.8.1]: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/releases/v2.8.1
