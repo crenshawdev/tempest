@@ -88,6 +88,11 @@
   </categories>
 
   <releases>
+    <release version="2.8.5" date="2026-05-19">
+      <description>
+        <p>Settings polish. The Location section now reads as a proper titled card like every other section in the tab, instead of a loose heading floating above its controls. Save-location and remove-saved-location icon buttons grow tooltips so it's obvious what they do. Sentence case across the Saved locations and Air quality headers in the en-US locale, matching the rest. Internal cleanup under the hood: the settings tab and the message dispatch were both heavy single-function blocks and got split along their natural seams, so adding a setting or wiring a new message touches one small place instead of scrolling through a few hundred lines.</p>
+      </description>
+    </release>
     <release version="2.8.4" date="2026-05-15">
       <description>
         <p>Another COSMIC conformance pass. Settings tab sections render as proper titled cards now, matching cosmic-settings. The AQI and pollen rows in the Current tab read as tappable cards with chevron, replacing the flat text-button styling. Sub-view headers swap the X-close on the right for a back arrow on the left, since sub-views are drill-in pages and that's the convention every other COSMIC app uses. Panel button icons and the temperature label scale with the panel size tier instead of pinning to a single size. Popup header buttons get tooltips. The alerts header button drops the destructive red it was using to flag active alerts. Section headers move from caption-with-accent to title4, ALL CAPS settings labels drop to sentence case, and overuse of accent color on routine subtitles is pruned back. The Temperature, Measurement, and Pressure unit selectors get full width below their labels instead of being squeezed into the right half of a row.</p>

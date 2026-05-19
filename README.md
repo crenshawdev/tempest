@@ -82,6 +82,10 @@ Translators: lorduskordus (Czech), therealmate (Hungarian), VandaL (Polish), Mar
 
 ## Changelog
 
+### 2.8.5
+
+Settings polish. The Location section moves to the same titled-card layout the other six sections already use, instead of floating loose under a heading. Save-location and remove-saved-location icon buttons grow tooltips so it's obvious what they do. Saved locations and Air quality headers in the en-US locale drop ALL CAPS for sentence case, catching up with what en already had. Under the hood the settings tab splits into one method per section and the message dispatch splits into per-handler methods, so adding a setting or wiring a new message touches one small place instead of scrolling through a few hundred lines. Stale `tempest-core` doc-comment references in `weather.rs` and `network.rs` rename to `weathervane`.
+
 ### 2.8.4
 
 Another COSMIC conformance pass. Settings tab sections render as proper titled cards now, matching cosmic-settings. The AQI and pollen rows in the Current tab read as tappable cards with chevron, replacing the flat text-button styling. Sub-view headers swap the X-close on the right for a back arrow on the left, since sub-views are drill-in pages and that's the convention every other COSMIC app uses. Panel button icons and the temperature label scale with the panel size tier instead of pinning to a single size. Popup header buttons (refresh, alerts, settings) wear tooltips. The alerts header button drops the destructive red it was using to flag active alerts. Destructive is reserved for delete and shutdown, and the warning icon swap already conveys the state. Section headers move from caption-with-accent to title4, ALL CAPS settings labels drop to sentence case, and overuse of accent color on routine subtitles is pruned back. The Temperature, Measurement, and Pressure unit selectors get full width below their labels instead of being squeezed into the right half of a row. Plus a small latent bug where closing the popup mid-sub-view could leave it stuck on reopen.
