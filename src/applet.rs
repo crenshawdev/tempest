@@ -593,7 +593,8 @@ impl Application for Tempest {
                 .padding(spacing.space_xs),
             widget::text::body(crate::fl!("tooltip-refresh")),
             widget::tooltip::Position::Bottom,
-        );
+        )
+        .gap(spacing.space_xxxs);
 
         let alerts_btn = widget::tooltip::tooltip(
             widget::button::icon(widget::icon::from_name(alerts_icon))
@@ -601,7 +602,8 @@ impl Application for Tempest {
                 .padding(spacing.space_xs),
             widget::text::body(crate::fl!("tooltip-alerts")),
             widget::tooltip::Position::Bottom,
-        );
+        )
+        .gap(spacing.space_xxxs);
 
         let settings_btn = widget::tooltip::tooltip(
             widget::button::icon(widget::icon::from_name("emblem-system-symbolic"))
@@ -609,7 +611,8 @@ impl Application for Tempest {
                 .padding(spacing.space_xs),
             widget::text::body(crate::fl!("tooltip-settings")),
             widget::tooltip::Position::Bottom,
-        );
+        )
+        .gap(spacing.space_xxxs);
 
         header = header
             .push(widget::space::horizontal())
@@ -1881,7 +1884,8 @@ impl Tempest {
                         .padding(spacing.space_xxs),
                     widget::text::body(crate::fl!("tooltip-save-location")),
                     widget::tooltip::Position::Left,
-                );
+                )
+                .gap(spacing.space_xxxs);
                 section = section.add(
                     widget::Row::new()
                         .spacing(spacing.space_xxxs)
@@ -1933,7 +1937,8 @@ impl Tempest {
                     .padding(spacing.space_xxxs),
                 widget::text::body(crate::fl!("tooltip-remove-saved-location")),
                 widget::tooltip::Position::Left,
-            );
+            )
+            .gap(spacing.space_xxxs);
             row = row.push(remove_btn);
 
             list = list.add(row);
