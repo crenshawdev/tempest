@@ -1710,10 +1710,7 @@ impl Tempest {
 
             // Pad incomplete rows
             for _ in chunk.len()..hours_per_row {
-                row = row.push(
-                    widget::container(widget::Space::new())
-                        .width(cosmic::iced::Length::FillPortion(1)),
-                );
+                row = row.push(widget::Space::new().width(cosmic::iced::Length::FillPortion(1)));
             }
 
             col = col.push(row);
@@ -1745,7 +1742,7 @@ impl Tempest {
                     widget::container(widget::text::heading(crate::fl!("forecast-day")))
                         .width(COL_DAY),
                 )
-                .push(widget::container(widget::Space::new()).width(COL_ICON))
+                .push(widget::Space::new().width(COL_ICON))
                 .push(
                     widget::container(widget::text::heading(crate::fl!("forecast-high")))
                         .width(COL_HIGH),
