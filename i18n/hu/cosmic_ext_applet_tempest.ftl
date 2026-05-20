@@ -159,3 +159,5 @@ tooltip-refresh = Időjárás frissítése
 tooltip-alerts = Időjárási figyelmeztetések
 tooltip-settings = Beállítások
 panel-error = HIBA
+tooltip-save-location = Hely mentése
+tooltip-remove-saved-location = Mentett hely törlése
