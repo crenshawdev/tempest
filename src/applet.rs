@@ -2077,7 +2077,7 @@ impl Tempest {
                     )))
                     .push(widget::space::horizontal())
                     .push(
-                        widget::button::standard(crate::fl!("settings-tip-kofi"))
+                        widget::button::link(crate::fl!("settings-tip-kofi"))
                             .on_press(Message::OpenKofi),
                     ),
             )
