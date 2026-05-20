@@ -8,7 +8,9 @@ vendor/
 vendor.tar
 .idea/
 .claude/
+.planning/
 
 # MemPalace per-project files (issue #185)
 mempalace.yaml
 entities.json
+CLAUDE.md
