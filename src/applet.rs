@@ -1281,12 +1281,7 @@ impl Tempest {
     /// Renders the Current weather tab content.
     fn render_current_tab(&self, weather: &WeatherData) -> Element<'_, Message> {
         let spacing = cosmic::theme::spacing();
-        let mut col = widget::Column::new().spacing(spacing.space_s).padding([
-            0,
-            spacing.space_m,
-            0,
-            spacing.space_m,
-        ]);
+        let mut col = widget::Column::new().spacing(spacing.space_s);
 
         // Temperature and condition grouped together
         col = col.push(
@@ -1464,12 +1459,7 @@ impl Tempest {
     /// Renders the pollutants sub-view with a close header and pollutant list.
     fn render_pollutants_view(&self) -> Element<'_, Message> {
         let spacing = cosmic::theme::spacing();
-        let mut col = widget::Column::new().spacing(spacing.space_m).padding([
-            0,
-            spacing.space_m,
-            0,
-            spacing.space_m,
-        ]);
+        let mut col = widget::Column::new().spacing(spacing.space_m);
 
         col = col.push(Self::subview_header(
             crate::fl!("air-quality-index"),
@@ -1521,12 +1511,7 @@ impl Tempest {
     /// "Off season" instead of a numeric reading.
     fn render_pollen_view(&self) -> Element<'_, Message> {
         let spacing = cosmic::theme::spacing();
-        let mut col = widget::Column::new().spacing(spacing.space_m).padding([
-            0,
-            spacing.space_m,
-            0,
-            spacing.space_m,
-        ]);
+        let mut col = widget::Column::new().spacing(spacing.space_m);
 
         col = col.push(Self::subview_header(
             crate::fl!("label-pollen"),
@@ -1570,12 +1555,7 @@ impl Tempest {
     /// Renders the saved locations sub-view with a close header and location list.
     fn render_locations_view(&self) -> Element<'_, Message> {
         let spacing = cosmic::theme::spacing();
-        let mut col = widget::Column::new().spacing(spacing.space_xxs).padding([
-            0,
-            spacing.space_m,
-            0,
-            spacing.space_m,
-        ]);
+        let mut col = widget::Column::new().spacing(spacing.space_xxs);
 
         col = col.push(Self::subview_header(
             crate::fl!("section-saved-locations"),
@@ -1601,12 +1581,7 @@ impl Tempest {
     /// Renders the Alerts tab content.
     fn render_alerts_tab(&self) -> Element<'_, Message> {
         let spacing = cosmic::theme::spacing();
-        let mut col = widget::Column::new().spacing(spacing.space_xxs).padding([
-            0,
-            spacing.space_m,
-            0,
-            spacing.space_m,
-        ]);
+        let mut col = widget::Column::new().spacing(spacing.space_xxs);
 
         if !self.config.alerts_enabled {
             col = col.push(
@@ -1841,12 +1816,7 @@ impl Tempest {
     /// Renders the Settings tab content.
     fn render_settings_tab(&self) -> Element<'_, Message> {
         let spacing = cosmic::theme::spacing();
-        let mut col = widget::Column::new().spacing(spacing.space_xs).padding([
-            0,
-            spacing.space_xxs,
-            0,
-            spacing.space_m,
-        ]);
+        let mut col = widget::Column::new().spacing(spacing.space_xs);
 
         col = col.push(self.render_location_section());
         if let Some(saved) = self.render_saved_locations_section() {
