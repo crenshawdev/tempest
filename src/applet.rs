@@ -1391,10 +1391,7 @@ impl Tempest {
                 .unwrap_or(false);
             let region = detect_region(self.config.latitude, self.config.longitude);
             if token_set && region != Region::Europe {
-                col = col.push(
-                    widget::text::caption(crate::fl!("aqicn-attribution"))
-                        .class(cosmic::theme::Text::Accent),
-                );
+                col = col.push(widget::text::caption(crate::fl!("aqicn-attribution")));
             }
         } else {
             col = col.push(widget::divider::horizontal::default());
@@ -1543,10 +1540,7 @@ impl Tempest {
             }
             col = col.push(list);
 
-            col = col.push(
-                widget::text::caption(crate::fl!("pollen-attribution"))
-                    .class(cosmic::theme::Text::Accent),
-            );
+            col = col.push(widget::text::caption(crate::fl!("pollen-attribution")));
         }
 
         col.into()
