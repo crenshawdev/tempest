@@ -1736,7 +1736,6 @@ impl Tempest {
         let spacing = cosmic::theme::spacing();
         let mut col = widget::Column::new()
             .spacing(spacing.space_xxs)
-            .padding([0, spacing.space_xxs, 0, spacing.space_m])
             .width(cosmic::iced::Length::Fill);
 
         // Table header
