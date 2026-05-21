@@ -154,3 +154,5 @@ tooltip-alerts = Попередження про погоду
 tooltip-refresh = Оновити погоду
 pollen-level-off-season = Не сезон
 panel-error = ПОМ
+tooltip-remove-saved-location = Вилучити розташування
+tooltip-save-location = Збережені
