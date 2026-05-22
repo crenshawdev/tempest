@@ -169,3 +169,5 @@ pollen-level-moderate = Střední
 pollen-level-high = Vysoký
 pollen-level-very-high = Velmi vysoký
 tooltip-alerts = Upozornění na počasí
+tooltip-remove-saved-location = Odstranit uložené místo
+tooltip-save-location = Uložit místo
