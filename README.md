@@ -1,3 +1,11 @@
+# Tempest — End of Life
+
+Tempest has reached end of life. It's been removed from the COSMIC Store and this repository is archived.
+
+No further development, fixes, or releases will happen. The code stays up for reference and for anyone who wants to fork it, but it's unmaintained and unsupported.
+
+Thanks to everyone who used it.
+
 # Tempest
 
 A weather applet for COSMIC Desktop. Panel display, tabbed popup with current conditions, hourly and 7-day forecasts, weather alerts, air quality. No account, no API key.
