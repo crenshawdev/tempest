@@ -10,6 +10,11 @@ vendor.tar
 .claude/
 .planning/
 
+# Flatpak build / publish artifacts
+.flatpak-builder/
+.flatpak-build/
+/public/
+
 # MemPalace per-project files (issue #185)
 mempalace.yaml
 entities.json

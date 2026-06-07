@@ -2,12 +2,13 @@
   "$schema": "https://raw.githubusercontent.com/flatpak/flatpak-builder/main/data/flatpak-manifest.schema.json",
   "id": "com.vintagetechie.CosmicExtAppletTempest",
   "runtime": "org.freedesktop.Platform",
-  "runtime-version": "24.08",
+  "runtime-version": "25.08",
   "sdk": "org.freedesktop.Sdk",
   "sdk-extensions": [
     "org.freedesktop.Sdk.Extension.rust-stable"
   ],
   "command": "cosmic-ext-applet-tempest",
+  "default-branch": "stable",
   "finish-args": [
     "--share=ipc",
     "--socket=wayland",
@@ -39,7 +40,7 @@
         {
           "type": "git",
           "url": "https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest.git",
-          "tag": "v2.4.1"
+          "tag": "v2.8.5"
         },
         "cargo-sources.json"
       ]
