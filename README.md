@@ -36,9 +36,32 @@ Panel elements toggle independently: temperature, weather icon, AQI, pressure, d
 
 ## Install
 
-COSMIC Store: search for Tempest under Applets.
+Tempest is self-distributed. It's not in the COSMIC Store.
 
-From source:
+### Arch (AUR)
+
+```bash
+paru -S cosmic-ext-applet-tempest
+```
+
+### Flatpak
+
+Add the VintageTechie remote once. Everything I ship lives there.
+
+```bash
+flatpak install --from https://vintagetechie.gitlab.io/flatpak/vintagetechie.flatpakrepo
+flatpak install com.vintagetechie.CosmicExtAppletTempest
+```
+
+Installed from the old cosmic-utils remote? Different origin, so it won't auto-update. Switch once:
+
+```bash
+flatpak uninstall com.vintagetechie.CosmicExtAppletTempest
+flatpak install --from https://vintagetechie.gitlab.io/flatpak/vintagetechie.flatpakrepo
+flatpak install com.vintagetechie.CosmicExtAppletTempest
+```
+
+### From source
 
 ```bash
 git clone https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest
@@ -47,7 +70,7 @@ just build-release
 sudo just install
 ```
 
-`.deb` and `.rpm` builds:
+### deb / rpm
 
 ```bash
 just build-deb && sudo just install-deb    # Debian/Ubuntu
