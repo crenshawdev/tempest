@@ -49,16 +49,16 @@ paru -S cosmic-ext-applet-tempest
 Add the VintageTechie remote once. Everything I ship lives there.
 
 ```bash
-flatpak install --from https://vintagetechie.gitlab.io/flatpak/vintagetechie.flatpakrepo
-flatpak install com.vintagetechie.CosmicExtAppletTempest
+flatpak remote-add --if-not-exists vintagetechie https://vintagetechie.gitlab.io/flatpak/vintagetechie.flatpakrepo
+flatpak install vintagetechie com.vintagetechie.CosmicExtAppletTempest
 ```
 
 Installed from the old cosmic-utils remote? Different origin, so it won't auto-update. Switch once:
 
 ```bash
 flatpak uninstall com.vintagetechie.CosmicExtAppletTempest
-flatpak install --from https://vintagetechie.gitlab.io/flatpak/vintagetechie.flatpakrepo
-flatpak install com.vintagetechie.CosmicExtAppletTempest
+flatpak remote-add --if-not-exists vintagetechie https://vintagetechie.gitlab.io/flatpak/vintagetechie.flatpakrepo
+flatpak install vintagetechie com.vintagetechie.CosmicExtAppletTempest
 ```
 
 ### From source
