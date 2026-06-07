@@ -45,6 +45,12 @@ libraries of the built binary — re-check with `namcap`/`ldd` if dependencies c
 
 App id: `com.vintagetechie.CosmicExtAppletTempest` · published branch: `stable`.
 
+> **This repo's Pages remote is an intermediate, not what users add.** Users install from the
+> shared **VintageTechie Flatpak store** (`gitlab.com/vintagetechie/flatpak`), which pulls this
+> app's published repo, re-signs it with the store key, and serves one remote for all apps.
+> On each release the `trigger-store` CI job pokes the store to re-aggregate. That job needs
+> two more CI/CD variables here: `STORE_TRIGGER_TOKEN` (masked) and `STORE_PROJECT_ID`.
+
 Files:
 - `com.vintagetechie.CosmicExtAppletTempest.json` — manifest (repo root)
 - `cargo-sources.json` — offline crate/git sources for the sandboxed build (repo root)
