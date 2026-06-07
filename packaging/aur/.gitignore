@@ -1,0 +1,7 @@
+# makepkg build artifacts — only PKGBUILD and .SRCINFO are tracked
+/src/
+/pkg/
+/*.tar.gz
+/*.pkg.tar.zst
+/*.pkg.tar.zst.sig
+makepkg.log
