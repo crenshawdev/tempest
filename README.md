@@ -101,6 +101,10 @@ Translators: lorduskordus (Czech), therealmate (Hungarian), VandaL (Polish), Mar
 
 ## Changelog
 
+### 2.8.6
+
+No code changes — distribution only. Tempest is off the COSMIC Store and self-distributed now: the AUR, and a self-hosted Flatpak remote at https://vintagetechie.gitlab.io/flatpak. Add the remote once and everything I ship lives there. If you installed the Flatpak from the old cosmic-utils remote it's a different origin and won't auto-update, so switch over once. The applet itself is identical to 2.8.5.
+
 ### 2.8.5
 
 Settings polish. The Location section moves to the same titled-card layout the other six sections already use, instead of floating loose under a heading. Save-location and remove-saved-location icon buttons grow tooltips so it's obvious what they do. Saved locations and Air quality headers in the en-US locale drop ALL CAPS for sentence case, catching up with what en already had. Under the hood the settings tab splits into one method per section and the message dispatch splits into per-handler methods, so adding a setting or wiring a new message touches one small place instead of scrolling through a few hundred lines. Stale `tempest-core` doc-comment references in `weather.rs` and `network.rs` rename to `weathervane`.

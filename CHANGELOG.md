@@ -5,6 +5,18 @@ All notable changes to Tempest will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.6] - 2026-06-07
+
+### Changed
+
+- Tempest is now self-distributed. It is no longer on the COSMIC Store;
+  install from the AUR (`cosmic-ext-applet-tempest`) or the self-hosted
+  Flatpak remote at https://vintagetechie.gitlab.io/flatpak.
+- Flatpak users on the old cosmic-utils remote must switch origins; the new
+  remote is a different origin and will not auto-update.
+
+No code changes in this release; the applet is identical to 2.8.5.
+
 ## [2.8.5] - 2026-05-19
 
 ### Changed

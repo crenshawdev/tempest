@@ -953,7 +953,7 @@ dependencies = [
 
 [[package]]
 name = "cosmic-ext-applet-tempest"
-version = "2.8.5"
+version = "2.8.6"
 dependencies = [
  "async-stream",
  "chrono",
