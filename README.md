@@ -70,13 +70,6 @@ just build-release
 sudo just install
 ```
 
-### deb / rpm
-
-```bash
-just build-deb && sudo just install-deb    # Debian/Ubuntu
-just build-rpm && sudo just install-rpm    # Fedora/openSUSE
-```
-
 Vendored builds: `just vendor && just vendor-build`
 
 ## Configuration

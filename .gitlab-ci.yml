@@ -5,7 +5,6 @@ workflow:
 
 stages:
   - check
-  - build
   - release
 
 variables:
@@ -18,47 +17,6 @@ lint:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   script:
     - echo "passed"
-
-build-deb:
-  stage: build
-  image: rust:latest
-  rules:
-    - if: $CI_COMMIT_TAG =~ /^v.*/
-  before_script:
-    - apt-get update && apt-get install -y libwayland-dev libxkbcommon-dev pkg-config
-    - cargo install cargo-deb
-  script:
-    - cargo build --release
-    - cargo deb --no-build
-  artifacts:
-    paths:
-      - target/debian/*.deb
-    expire_in: 1 week
-  cache:
-    key: cargo-cache
-    paths:
-      - .cargo/registry
-      - .cargo/git
-      - target/
-
-release:
-  stage: release
-  image: registry.gitlab.com/gitlab-org/release-cli:latest
-  rules:
-    - if: $CI_COMMIT_TAG =~ /^v.*/
-  needs:
-    - job: build-deb
-      artifacts: true
-  script:
-    - echo "Creating release for ${CI_COMMIT_TAG}"
-  release:
-    tag_name: $CI_COMMIT_TAG
-    name: "Release ${CI_COMMIT_TAG}"
-    description: "Release ${CI_COMMIT_TAG}"
-    assets:
-      links:
-        - name: "Debian package"
-          url: "${CI_PROJECT_URL}/-/jobs/artifacts/${CI_COMMIT_TAG}/download?job=build-deb"
 
 # Builds, GPG-signs, and publishes the self-hosted Flatpak remote to GitLab Pages.
 # Required CI/CD variables (Settings > CI/CD > Variables):
