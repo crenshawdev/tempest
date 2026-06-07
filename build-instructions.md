@@ -2,7 +2,32 @@
 
 Weather applet for COSMIC Desktop with automatic location detection
 
-## Installation 
+## Installation
+
+> Tempest is **self-distributed** (delisted from the cosmic-utils Flatpak repo). Install it
+> from one of the channels below, or build from source.
+
+### Arch Linux (AUR)
+
+```bash
+paru -S cosmic-ext-applet-tempest   # or: yay -S cosmic-ext-applet-tempest
+```
+
+### Flatpak (self-hosted remote)
+
+```bash
+flatpak install --from https://vintagetechie.gitlab.io/cosmic-ext-applet-tempest/vintagetechie-tempest.flatpakrepo
+```
+
+Already have Tempest from the old cosmic-utils remote? It will **not** auto-update to this
+one — it's a different origin. Switch over once:
+
+```bash
+flatpak uninstall com.vintagetechie.CosmicExtAppletTempest
+flatpak install --from https://vintagetechie.gitlab.io/cosmic-ext-applet-tempest/vintagetechie-tempest.flatpakrepo
+```
+
+### Build from source
 
 Clone the repository:
 
