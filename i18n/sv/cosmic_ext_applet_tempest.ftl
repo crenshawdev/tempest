@@ -169,3 +169,5 @@ tooltip-refresh = Uppdatera väder
 tooltip-alerts = Vädervarningar
 tooltip-settings = Inställningar
 panel-error = FEL
+tooltip-save-location = Spara plats
+tooltip-remove-saved-location = Ta bort sparad plats
