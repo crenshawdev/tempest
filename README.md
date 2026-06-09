@@ -1,6 +1,6 @@
 # Tempest
 
-A weather applet for COSMIC Desktop. Panel display, tabbed popup with current conditions, hourly and 7-day forecasts, weather alerts, air quality. No account, no API key.
+A weather applet for COSMIC Desktop. Panel display, tabbed popup with current conditions, hourly and 7-day forecasts, a 24-hour meteogram, weather alerts, air quality. No account, no API key.
 
 ![Current conditions](screenshots/tempest-main.png)
 
@@ -32,7 +32,7 @@ Weather logic, API calls, region detection, and network monitoring live in a sta
 
 Network failures retry with exponential backoff (5s, 15s, 30s, 60s). The applet listens to NetworkManager over D-Bus and refreshes immediately when connectivity comes back. HTTP requests time out at 15 seconds so dead connections don't hang the UI.
 
-Panel elements toggle independently: temperature, weather icon, AQI, pressure, dew point, sunrise, sunset. The popup is tabbed: current, hourly, 7-day, alerts, settings. Settings persist. The applet respects the system's 12/24 hour time preference.
+Panel elements toggle independently: temperature, weather icon, AQI, pressure, dew point, sunrise, sunset. The popup is tabbed: current, hourly, 7-day, graph, alerts, settings. Settings persist. The applet respects the system's 12/24 hour time preference.
 
 ## Install
 
@@ -93,6 +93,10 @@ Czech, French, German, Hungarian, Polish, Portuguese (Brazil), Russian, Simplifi
 Translators: lorduskordus (Czech), therealmate (Hungarian), VandaL (Polish), Marco Agostini (Portuguese/Brazil), FaNToMaSikkk (Russian), Geeson Wan (Simplified Chinese), bittin (Swedish), Димко (Ukrainian).
 
 ## Changelog
+
+### 2.9.0
+
+A graph, finally. The new Graph tab draws a YR.no-style meteogram for the next 24 hours: temperature line over precipitation bars up top, sustained and gust wind below, weather symbols and a now-marker across both, night hours shaded. It's the codebase's first iced canvas, sized to fit the 480px popup, which now scrolls. The Hourly tab picks up per-hour wind and precipitation amount next to the columns it already had. Both lean on weathervane 0.5 for the hourly data. Turn the meteogram off in Settings if you'd rather keep the old tab set. And every June, a thin Philadelphia pride flag rides across the top of the popup and under the panel readout — on by default, one toggle in Settings to turn it off. Plus translation updates for Czech, Swedish, and Simplified Chinese.
 
 ### 2.8.6
 

@@ -88,6 +88,11 @@
   </categories>
 
   <releases>
+    <release version="2.9.0" date="2026-06-09">
+      <description>
+        <p>A new Graph tab draws a YR.no-style 24-hour meteogram: the temperature line over auto-scaled precipitation bars up top, sustained and gust wind below, with weather symbols, a now-marker, and shaded night hours across both panels. The Hourly tab now shows per-hour wind speed and precipitation amount. Both read from weathervane 0.5. And every June a thin Philadelphia eight-stripe pride flag runs across the top of the popup and under the panel readout, on by default with a toggle in Settings. Plus translation updates for Czech, Swedish, and Simplified Chinese.</p>
+      </description>
+    </release>
     <release version="2.8.6" date="2026-06-07">
       <description>
         <p>Distribution change only, no code changes. Tempest is now self-distributed through the AUR and a self-hosted Flatpak remote, off the COSMIC Store.</p>

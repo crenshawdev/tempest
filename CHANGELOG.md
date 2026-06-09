@@ -5,6 +5,28 @@ All notable changes to Tempest will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.0] - 2026-06-09
+
+### Added
+
+- Meteogram: a YR.no-style 24-hour graph in a new Graph tab. The top panel
+  carries the temperature line over auto-scaled precipitation bars; the
+  bottom panel carries the sustained- and gust-wind lines. Weather symbols,
+  a labeled time axis, a now-marker, and per-hour night shading run across
+  both panels. It is the codebase's first iced canvas, sized to fit the
+  480px popup (which now scrolls). Toggle in Settings, on by default.
+- The Hourly tab now shows per-hour wind speed and precipitation amount
+  next to the columns it already had.
+- Pride Month accent: the Philadelphia eight-stripe flag as a thin bar
+  across the top of the popup and under the panel readout, every June. On
+  by default, with a toggle in Settings.
+
+### Changed
+
+- weathervane updated to 0.5 for the per-hour wind and precipitation data
+  the meteogram and the enriched Hourly grid read from.
+- Translation updates: Czech, Swedish, and Simplified Chinese.
+
 ## [2.8.6] - 2026-06-07
 
 ### Changed
