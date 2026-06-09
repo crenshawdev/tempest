@@ -474,7 +474,7 @@ impl Application for Tempest {
     }
 
     fn view(&self) -> Element<'_, Self::Message> {
-        use chrono::{Local, Timelike};
+        use chrono::{Datelike, Local, Timelike};
         use cosmic::iced::Alignment;
 
         let spacing = cosmic::theme::spacing();
@@ -565,7 +565,25 @@ impl Application for Tempest {
             children.push(widget::text::caption(label.clone()).into());
         }
 
-        let data: Element<'_, Message> = if self.core.applet.is_horizontal() {
+        // Roomy-tier classifier: the panel Pride accent only shows on the larger
+        // size tiers (M/L/XL), mirroring the `panel_text` role match. The smaller
+        // tiers (and the `_` fallback) are not roomy, so the accent is skipped there.
+        let roomy_tier = {
+            use cosmic::applet::cosmic_panel_config::PanelSize;
+            use cosmic::applet::Size;
+            matches!(
+                self.core.applet.size.clone(),
+                Size::PanelSize(PanelSize::M | PanelSize::L | PanelSize::XL)
+            )
+        };
+        let show_panel_pride = crate::pride::should_show_panel_accent(
+            crate::pride::is_pride_month(Local::now().month()),
+            self.config.pride_accent,
+            roomy_tier,
+        );
+
+        let is_horizontal = self.core.applet.is_horizontal();
+        let readout: Element<'_, Message> = if is_horizontal {
             widget::Row::with_children(children)
                 .align_y(Alignment::Center)
                 .spacing(spacing.space_xxs)
@@ -577,6 +595,25 @@ impl Application for Tempest {
                 .into()
         };
 
+        // When the accent shows, wrap the readout with the rainbow bar on the
+        // OPPOSITE axis: a horizontal readout gets an underline below it (outer
+        // Column); a vertical readout gets a side-stripe beside it (outer Row).
+        let data: Element<'_, Message> = if show_panel_pride {
+            if is_horizontal {
+                widget::Column::with_children(vec![readout, crate::pride::rainbow_bar(true, 3.0)])
+                    .align_x(Alignment::Center)
+                    .spacing(spacing.space_xxs)
+                    .into()
+            } else {
+                widget::Row::with_children(vec![readout, crate::pride::rainbow_bar(false, 3.0)])
+                    .align_y(Alignment::Center)
+                    .spacing(spacing.space_xxs)
+                    .into()
+            }
+        } else {
+            readout
+        };
+
         let button = widget::button::custom(data)
             .class(cosmic::theme::Button::AppletIcon)
             .on_press(Message::TogglePopup);
@@ -585,11 +622,23 @@ impl Application for Tempest {
     }
 
     fn view_window(&self, _id: Id) -> Element<'_, Self::Message> {
+        use chrono::{Datelike, Local};
+
         let spacing = cosmic::theme::spacing();
         let mut column =
             widget::Column::new()
                 .spacing(spacing.space_xs)
                 .padding([spacing.space_xs, 0, 0, 0]);
+
+        // Pride Month accent: a thin full-width rainbow stripe at the very top of
+        // the popup. GUARANTEED to express in the fixed 480px popup whenever it is
+        // June and the toggle is on — no room gating here. (3px is the one
+        // intentional fixed pixel value, per the bar's thickness contract.)
+        let show_pride =
+            crate::pride::is_pride_month(Local::now().month()) && self.config.pride_accent;
+        if show_pride {
+            column = column.push(crate::pride::rainbow_bar(true, 3.0));
+        }
 
         // Header row with timestamp and action buttons
         let has_alerts = !self.alerts.is_empty();
@@ -2155,6 +2204,10 @@ impl Tempest {
                 crate::fl!("show-meteogram"),
                 widget::toggler(self.config.show_meteogram)
                     .on_toggle(|_| Message::ToggleShowMeteogram),
+            ))
+            .add(settings::item(
+                crate::fl!("settings-pride-accent"),
+                widget::toggler(self.config.pride_accent).on_toggle(|_| Message::TogglePrideAccent),
             ))
             .into()
     }
