@@ -20,6 +20,7 @@
 #![allow(dead_code)]
 
 use chrono::{NaiveDate, NaiveDateTime};
+use cosmic::iced::core::svg::Svg as CanvasSvg;
 use cosmic::iced::{alignment, Color, Pixels, Point, Rectangle, Size};
 use cosmic::widget::canvas::{self, Geometry, Path, Stroke, Text};
 
@@ -265,15 +266,155 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
             });
         }
 
-        // Bottom wind panel, symbols, time axis and now-marker land in Task 3.
+        // ── Bottom wind panel (GRAPH-04) ───────────────────────────────────────
+        let wind_y0 = top_y1 + PANEL_GAP;
+        let wind_y1 = wind_y0 + BOTTOM_PANEL;
+        // Auto-scale to the 24h gust max so the gust line never clips; baseline 0.
+        let gust_max = self
+            .hourly
+            .iter()
+            .map(|h| h.wind_gusts)
+            .filter(|w| w.is_finite())
+            .fold(0.0_f32, f32::max);
+        let wind_scale = gust_max.max(f32::EPSILON);
+        let wind_y = |w: f32| wind_y1 - (w / wind_scale).clamp(0.0, 1.0) * BOTTOM_PANEL;
+        let wind_color = if is_dark { WIND_DARK } else { WIND_LIGHT };
+        let gust_color = with_alpha(wind_color, GUST_ALPHA);
+
+        // Sustained wind — solid 2px line through finite windspeed centers.
+        let sustained = Path::new(|b| {
+            let mut started = false;
+            for (h, hour) in self.hourly.iter().enumerate() {
+                if !hour.windspeed.is_finite() {
+                    continue;
+                }
+                let p = Point::new(cx(h), wind_y(hour.windspeed));
+                if started {
+                    b.line_to(p);
+                } else {
+                    b.move_to(p);
+                    started = true;
+                }
+            }
+        });
+        frame.stroke(
+            &sustained,
+            Stroke::default().with_width(2.0).with_color(wind_color),
+        );
+
+        // Gusts — 1.5px dashed line, same hue at 55% alpha, [4 on, 3 off] (D-03).
+        let gusts = Path::new(|b| {
+            let mut started = false;
+            for (h, hour) in self.hourly.iter().enumerate() {
+                if !hour.wind_gusts.is_finite() {
+                    continue;
+                }
+                let p = Point::new(cx(h), wind_y(hour.wind_gusts));
+                if started {
+                    b.line_to(p);
+                } else {
+                    b.move_to(p);
+                    started = true;
+                }
+            }
+        });
+        let dash = [4.0_f32, 3.0_f32];
+        frame.stroke(
+            &gusts,
+            Stroke {
+                style: canvas::Style::Solid(gust_color),
+                width: 1.5,
+                line_dash: canvas::LineDash {
+                    segments: &dash,
+                    offset: 0,
+                },
+                ..Stroke::default()
+            },
+        );
+
+        // ── Now-marker (D-06): 1px full-height vertical line at the current hour ──
+        if let Some(now_h) = self.current_hour_index() {
+            let now_mark = with_alpha(on, 0.30);
+            let x = cx(now_h);
+            let line = Path::new(|b| {
+                b.move_to(Point::new(x, 0.0));
+                b.line_to(Point::new(x, bounds.height));
+            });
+            frame.stroke(
+                &line,
+                Stroke::default().with_width(1.0).with_color(now_mark),
+            );
+        }
+
+        // ── Weather symbols (D-04 / GRAPH-05): 8 symbols every 3h in MARGIN_TOP ──
+        // Primary path: COSMIC symbolic icon → svg handle → recolored canvas Svg →
+        // draw_svg. The Option is handled (never unwrapped). If a handle is missing
+        // the symbol is skipped here; the Stack-overlay fallback for that case is a
+        // view-tier construct (it emits widgets, which draw() cannot) and so is wired
+        // in Plan 03's view_window, which owns the Canvas + surrounding column.
+        let symbol_color = with_alpha(on, 0.85);
+        for h in (0..n).step_by(LABEL_STEP) {
+            let hour = &self.hourly[h];
+            let is_night = hour_is_night(&hour.time, self.daily).unwrap_or(false);
+            let name = hour.condition.icon_name(is_night);
+            if let Some(handle) = cosmic::widget::icon::from_name(name)
+                .symbolic(true)
+                .icon()
+                .into_svg_handle()
+            {
+                let svg = CanvasSvg::new(handle).color(symbol_color);
+                let sx = cx(h) - SYMBOL_SIZE / 2.0;
+                let sy = (MARGIN_TOP - SYMBOL_SIZE) / 2.0;
+                frame.draw_svg(
+                    Rectangle::new(Point::new(sx, sy), Size::new(SYMBOL_SIZE, SYMBOL_SIZE)),
+                    svg,
+                );
+            }
+        }
+
+        // ── Time axis (D-05 / GRAPH-06): 8 hour-only labels every 3h, centered ──
+        let time_y = wind_y1 + AXIS_LABEL_GAP / 2.0;
+        for h in (0..n).step_by(LABEL_STEP) {
+            let hour = &self.hourly[h];
+            frame.fill_text(Text {
+                content: crate::weather::format_hour(&hour.time, self.military_time),
+                position: Point::new(cx(h), time_y),
+                color: label,
+                size: Pixels(11.0),
+                align_x: alignment::Horizontal::Center.into(),
+                align_y: alignment::Vertical::Center,
+                ..Text::default()
+            });
+        }
 
         vec![frame.into_geometry()]
+    }
+}
+
+impl Meteogram<'_> {
+    /// Index of the hourly column matching the current local hour, if it is inside
+    /// the window. Returns `None` when no hour parses to the current hour (the
+    /// now-marker is then simply omitted — orientation chrome, not load-bearing).
+    fn current_hour_index(&self) -> Option<usize> {
+        use chrono::{Local, Timelike};
+        let now = Local::now();
+        let now_key = (now.date_naive(), now.hour());
+        self.hourly
+            .iter()
+            .position(|h| parse_naive(&h.time).is_some_and(|t| (t.date(), t.hour()) == now_key))
     }
 }
 
 /// Returns `color` with its alpha replaced by `a` (theme chrome dimming).
 fn with_alpha(color: Color, a: f32) -> Color {
     Color { a, ..color }
+}
+
+/// Parses an hourly/daily timestamp string with the two formats the API emits.
+fn parse_naive(s: &str) -> Option<NaiveDateTime> {
+    NaiveDateTime::parse_from_str(s, "%Y-%m-%dT%H:%M:%S")
+        .or_else(|_| NaiveDateTime::parse_from_str(s, "%Y-%m-%dT%H:%M"))
+        .ok()
 }
 
 /// Finite min/max of a slice, or `None` if it is empty.
@@ -328,17 +469,12 @@ fn nice_gridlines(lo: f32, hi: f32) -> Vec<f32> {
 /// parse/match — the caller then drops shading for that hour (D-07 graceful
 /// degradation). No `unwrap`/`expect` touches the upstream timestamp strings.
 fn hour_is_night(hour_time: &str, forecast: &[DailyForecast]) -> Option<bool> {
-    let parse = |s: &str| {
-        NaiveDateTime::parse_from_str(s, "%Y-%m-%dT%H:%M:%S")
-            .or_else(|_| NaiveDateTime::parse_from_str(s, "%Y-%m-%dT%H:%M"))
-            .ok()
-    };
-    let h = parse(hour_time)?;
+    let h = parse_naive(hour_time)?;
     let h_date = h.date();
     let day = forecast
         .iter()
         .find(|d| NaiveDate::parse_from_str(&d.date, "%Y-%m-%d").ok() == Some(h_date))?;
-    let sunrise = parse(&day.sunrise)?;
-    let sunset = parse(&day.sunset)?;
+    let sunrise = parse_naive(&day.sunrise)?;
+    let sunset = parse_naive(&day.sunset)?;
     Some(h < sunrise || h > sunset)
 }
