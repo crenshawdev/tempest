@@ -311,6 +311,7 @@ pub enum Message {
     ToggleShowPressureInPanel,
     ToggleShowDewPointInPanel,
     ToggleShowSunriseSunsetInPanel,
+    ToggleShowMeteogram,
     UpdateCityInput(String),
     SearchCity,
     CitySearchResult(Result<Vec<LocationResult>, String>),
@@ -821,6 +822,24 @@ impl Application for Tempest {
             Message::ToggleShowSunriseSunsetInPanel => {
                 self.config.show_sunrise_sunset_in_panel =
                     !self.config.show_sunrise_sunset_in_panel;
+                self.save_config();
+            }
+            Message::ToggleShowMeteogram => {
+                self.config.show_meteogram = !self.config.show_meteogram;
+                // D-14: disabling the meteogram removes the Graph segment, so a
+                // Graph active/default tab would point at a missing view — reset
+                // both to Current before rebuilding the tab bar.
+                if !self.config.show_meteogram
+                    && (self.active_tab == PopupTab::Graph
+                        || self.config.default_tab == PopupTab::Graph)
+                {
+                    self.active_tab = PopupTab::Current;
+                    self.config.default_tab = PopupTab::Current;
+                }
+                self.tab_model = build_tab_model(
+                    tab_for_segmented_control(self.active_tab),
+                    self.config.show_meteogram,
+                );
                 self.save_config();
             }
             Message::UpdateCityInput(value) => {
@@ -2119,6 +2138,11 @@ impl Tempest {
                 crate::fl!("show-sunrise-sunset"),
                 widget::toggler(self.config.show_sunrise_sunset_in_panel)
                     .on_toggle(|_| Message::ToggleShowSunriseSunsetInPanel),
+            ))
+            .add(settings::item(
+                crate::fl!("show-meteogram"),
+                widget::toggler(self.config.show_meteogram)
+                    .on_toggle(|_| Message::ToggleShowMeteogram),
             ))
             .into()
     }

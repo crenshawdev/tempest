@@ -154,6 +154,7 @@ show-aqi = AQI
 show-pressure = Pressure
 show-dew-point = Dew point
 show-sunrise-sunset = Sunrise/Sunset
+show-meteogram = Show meteogram
 settings-version = Version
 settings-support = Support
 settings-tip-kofi = Tip me on Ko-fi
