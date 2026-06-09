@@ -1787,10 +1787,16 @@ impl Tempest {
     /// the canvas to zero inside the surrounding `scrollable` (Pitfall 1). Width
     /// fills the ~416px popup content area.
     fn render_graph_tab<'a>(&self, weather: &'a WeatherData) -> Element<'a, Message> {
+        // Precip peak-label unit, derived the same way as the enriched Hourly cell.
+        let precip_unit = match self.config.measurement_system {
+            MeasurementSystem::Imperial => "in",
+            MeasurementSystem::Metric => "mm",
+        };
         cosmic::widget::Canvas::new(crate::meteogram::Meteogram {
             hourly: &weather.hourly,
             daily: &weather.forecast,
             military_time: self.military_time,
+            precip_unit,
         })
         .width(cosmic::iced::Length::Fill)
         .height(cosmic::iced::Length::Fixed(260.0))

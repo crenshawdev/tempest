@@ -12,13 +12,6 @@
 //! All chrome colors resolve from the `Theme` draw parameter (D-10); only the four series
 //! colors are fixed (D-09 — see the palette block below for the documented exception).
 
-// This module is standalone in Phase 2 Plan 02: it is fully drawable but not yet
-// constructed anywhere. Plan 03's `view_window` builds `Meteogram { .. }` for the
-// Graph tab, at which point `draw` and everything it reaches become live. Until
-// then the whole call tree reads as dead code, so allow it module-wide rather than
-// scatter per-item attributes that Plan 03 would immediately make redundant.
-#![allow(dead_code)]
-
 use chrono::{NaiveDate, NaiveDateTime};
 use cosmic::iced::core::svg::Svg as CanvasSvg;
 use cosmic::iced::{alignment, Color, Pixels, Point, Rectangle, Size};
@@ -100,6 +93,10 @@ pub struct Meteogram<'a> {
     pub daily: &'a [DailyForecast],
     /// 12h/24h time-label formatting (mirrors the system preference).
     pub military_time: bool,
+    /// Precipitation unit suffix ("mm"/"in") for the peak label. The borrowed
+    /// weather state carries no unit, so the caller derives this from the active
+    /// measurement system (weathervane already returns the values in that unit).
+    pub precip_unit: &'a str,
 }
 
 impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
@@ -250,13 +247,12 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
             );
         }
 
-        // 6. Precip peak label — the actual window max (in the user's unit, which is
-        // what weathervane already returns), drawn top-right. No unit suffix: the
-        // locked Meteogram contract has no measurement-system field to resolve mm vs
-        // in, and the Hourly tab already carries the unit string for the same data.
+        // 6. Precip peak label — the actual window max in the user's unit (which is
+        // what weathervane already returns), drawn top-right with the unit suffix
+        // (`precip_unit`, resolved by the caller from the measurement system).
         if precip_max > 0.0 {
             frame.fill_text(Text {
-                content: format!("{precip_max:.1}"),
+                content: format!("{precip_max:.1} {}", self.precip_unit),
                 position: Point::new(bounds.width - MARGIN_RIGHT + 4.0, top_y0),
                 color: label,
                 size: Pixels(11.0),
@@ -269,14 +265,23 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
         // ── Bottom wind panel (GRAPH-04) ───────────────────────────────────────
         let wind_y0 = top_y1 + PANEL_GAP;
         let wind_y1 = wind_y0 + BOTTOM_PANEL;
-        // Auto-scale to the 24h gust max so the gust line never clips; baseline 0.
+        // Auto-scale to the 24h peak of BOTH wind series, baseline 0. Scaling against
+        // the gust max alone pins the sustained line flat across the panel top whenever
+        // gust data is all-zero/missing (WR-02); taking max(gust, sustained) keeps the
+        // gust line from clipping while still plotting sustained wind proportionally.
         let gust_max = self
             .hourly
             .iter()
             .map(|h| h.wind_gusts)
             .filter(|w| w.is_finite())
             .fold(0.0_f32, f32::max);
-        let wind_scale = gust_max.max(f32::EPSILON);
+        let sustained_max = self
+            .hourly
+            .iter()
+            .map(|h| h.windspeed)
+            .filter(|w| w.is_finite())
+            .fold(0.0_f32, f32::max);
+        let wind_scale = gust_max.max(sustained_max).max(f32::EPSILON);
         let wind_y = |w: f32| wind_y1 - (w / wind_scale).clamp(0.0, 1.0) * BOTTOM_PANEL;
         let wind_color = if is_dark { WIND_DARK } else { WIND_LIGHT };
         let gust_color = with_alpha(wind_color, GUST_ALPHA);
@@ -447,6 +452,11 @@ fn nice_gridlines(lo: f32, hi: f32) -> Vec<f32> {
     } else {
         10.0
     } * mag;
+    // Independently guarantee a positive, finite step before walking multiples — the
+    // len()<8 loop cap is a backstop, not a correctness proof for extreme spans (WR-04).
+    if !step.is_finite() || step <= 0.0 {
+        return vec![lo];
+    }
     let start = (lo / step).ceil() * step;
     let mut out = Vec::new();
     let mut v = start;
