@@ -14,6 +14,7 @@ panel-pressure = { $value }
 tab-current = Current
 tab-hourly = Hourly
 tab-forecast = 7-Day
+tab-graph = Graph
 tab-air-quality = Air
 
 # Current conditions - labels

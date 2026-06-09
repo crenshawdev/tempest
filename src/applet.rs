@@ -130,14 +130,22 @@ fn tab_for_segmented_control(tab: PopupTab) -> Option<PopupTab> {
 
 /// Builds the segmented control model for tab selection.
 /// Pass `None` to build with no active selection (for Settings/Alerts tabs).
-fn build_tab_model(active: Option<PopupTab>) -> segmented_button::SingleSelectModel {
+/// The Graph segment is appended as the 4th tab only when `show_meteogram` is
+/// enabled (D-12) — disabling the meteogram removes it from the bar (D-14).
+fn build_tab_model(
+    active: Option<PopupTab>,
+    show_meteogram: bool,
+) -> segmented_button::SingleSelectModel {
     let mut model = segmented_button::SingleSelectModel::default();
 
-    let tabs = [
+    let mut tabs = vec![
         (PopupTab::Current, crate::fl!("tab-current")),
         (PopupTab::Hourly, crate::fl!("tab-hourly")),
         (PopupTab::Forecast, crate::fl!("tab-forecast")),
     ];
+    if show_meteogram {
+        tabs.push((PopupTab::Graph, crate::fl!("tab-graph")));
+    }
 
     for (tab, label) in tabs {
         let id = model.insert().text(label).data(tab).id();
@@ -265,7 +273,10 @@ impl Default for Tempest {
             is_loading: true,
             error_message: None,
             active_tab,
-            tab_model: build_tab_model(tab_for_segmented_control(active_tab)),
+            tab_model: build_tab_model(
+                tab_for_segmented_control(active_tab),
+                config.show_meteogram,
+            ),
             temperature_model: build_temperature_model(config.temperature_unit),
             measurement_model: build_measurement_model(config.measurement_system),
             pressure_model: build_pressure_model(config.pressure_unit),
@@ -370,8 +381,17 @@ impl Application for Tempest {
         }
 
         let refresh_input = config.refresh_interval_minutes.to_string();
-        let active_tab = config.default_tab;
-        let tab_model = build_tab_model(tab_for_segmented_control(active_tab));
+        // D-14: a persisted `default_tab == Graph` while the meteogram is disabled
+        // (e.g. a hand-edited config) must not open the popup to a missing view —
+        // fall back to Current. The Graph segment is also omitted from the tab bar
+        // below, so there is no clickable path back to the absent view.
+        let active_tab = if config.default_tab == PopupTab::Graph && !config.show_meteogram {
+            PopupTab::Current
+        } else {
+            config.default_tab
+        };
+        let tab_model =
+            build_tab_model(tab_for_segmented_control(active_tab), config.show_meteogram);
         let temperature_model = build_temperature_model(config.temperature_unit);
         let measurement_model = build_measurement_model(config.measurement_system);
 
@@ -700,7 +720,7 @@ impl Application for Tempest {
                 PopupTab::Alerts => column = column.push(self.render_alerts_tab()),
                 PopupTab::Hourly => column = column.push(self.render_hourly_tab(weather)),
                 PopupTab::Forecast => column = column.push(self.render_forecast_tab(weather)),
-                PopupTab::Graph => {} // TODO(Plan 03): replace with canvas dispatch
+                PopupTab::Graph => column = column.push(self.render_graph_tab(weather)),
                 PopupTab::Settings => column = column.push(self.render_settings_tab()),
             }
         }
@@ -856,7 +876,8 @@ impl Application for Tempest {
                 self.active_tab = tab;
                 self.config.default_tab = tab;
                 self.showing_pollutants = false;
-                self.tab_model = build_tab_model(tab_for_segmented_control(tab));
+                self.tab_model =
+                    build_tab_model(tab_for_segmented_control(tab), self.config.show_meteogram);
                 self.save_config();
             }
             Message::TabActivated(entity) => {
@@ -1739,6 +1760,24 @@ impl Tempest {
     }
 
     /// Renders the 7-day Forecast tab content.
+    /// Renders the Graph tab: the YR.no-style meteogram canvas (GRAPH-01).
+    ///
+    /// The canvas is constructed against `meteogram::Meteogram`'s LOCKED field
+    /// contract (`hourly` / `daily` / `military_time`; `&Vec<T>` coerces to the
+    /// struct's `&[T]` fields). Height MUST be `Fixed(260.0)` — `Shrink` collapses
+    /// the canvas to zero inside the surrounding `scrollable` (Pitfall 1). Width
+    /// fills the ~416px popup content area.
+    fn render_graph_tab<'a>(&self, weather: &'a WeatherData) -> Element<'a, Message> {
+        cosmic::widget::Canvas::new(crate::meteogram::Meteogram {
+            hourly: &weather.hourly,
+            daily: &weather.forecast,
+            military_time: self.military_time,
+        })
+        .width(cosmic::iced::Length::Fill)
+        .height(cosmic::iced::Length::Fixed(260.0))
+        .into()
+    }
+
     fn render_forecast_tab(&self, weather: &WeatherData) -> Element<'_, Message> {
         const COL_DAY: cosmic::iced::Length = cosmic::iced::Length::FillPortion(3);
         const COL_ICON: cosmic::iced::Length = cosmic::iced::Length::Fixed(24.0);
