@@ -5,6 +5,7 @@ mod config;
 mod i18n;
 mod meteogram;
 mod network;
+mod pride;
 mod sleep;
 mod weather;
 
