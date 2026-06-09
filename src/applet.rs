@@ -1681,6 +1681,14 @@ impl Tempest {
         for chunk in weather.hourly.chunks(hours_per_row) {
             let mut row = widget::Row::new().spacing(spacing.space_xxs);
 
+            // Wind unit (km/h or mph) matches the Current tab derivation; precipitation
+            // amount unit (mm or in) is derived from the measurement system the same way.
+            let wind_unit = self.config.measurement_system.wind_speed_unit();
+            let precip_unit = match self.config.measurement_system {
+                MeasurementSystem::Imperial => "in",
+                MeasurementSystem::Metric => "mm",
+            };
+
             for hour in chunk {
                 let cell = widget::Column::new()
                     .spacing(spacing.space_xxxs)
@@ -1700,6 +1708,16 @@ impl Tempest {
                     .push(widget::text::caption(format!(
                         "{}%",
                         hour.precipitation_probability
+                    )))
+                    // HOUR-01: per-hour wind speed (weathervane 0.5, already in user's unit)
+                    .push(widget::text::caption(format!(
+                        "{:.0} {wind_unit}",
+                        hour.windspeed
+                    )))
+                    // HOUR-02: per-hour precipitation amount (weathervane 0.5, user's unit)
+                    .push(widget::text::caption(format!(
+                        "{:.1} {precip_unit}",
+                        hour.precipitation
                     )));
 
                 row = row.push(
