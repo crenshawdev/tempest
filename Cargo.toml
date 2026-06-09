@@ -20,7 +20,7 @@ tokio = { version = "1", features = ["time"] }
 notify-rust = "4"
 cosmic-randr-shell = { git = "https://github.com/pop-os/cosmic-randr" }
 futures = "0.3"
-weathervane = "0.4"
+weathervane = "0.5"
 
 
 [dependencies.i18n-embed]
