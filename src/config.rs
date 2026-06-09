@@ -12,6 +12,7 @@ pub enum PopupTab {
     Alerts,
     Hourly,
     Forecast,
+    Graph,
     Settings,
 }
 
@@ -57,6 +58,9 @@ pub struct Config {
     /// Show sunrise/sunset times in the panel display.
     #[serde(default)]
     pub show_sunrise_sunset_in_panel: bool,
+    /// Show the meteogram Graph tab in the popup.
+    #[serde(default = "default_show_meteogram")]
+    pub show_meteogram: bool,
     /// Bookmarked locations for quick switching.
     #[serde(default)]
     pub saved_locations: Vec<SavedLocation>,
@@ -82,6 +86,10 @@ fn default_show_icon_in_panel() -> bool {
     true
 }
 
+fn default_show_meteogram() -> bool {
+    true // D-13: ON for new AND migrating users
+}
+
 impl Default for Config {
     fn default() -> Self {
         Self {
@@ -105,6 +113,7 @@ impl Default for Config {
             show_pressure_in_panel: false,
             show_dew_point_in_panel: false,
             show_sunrise_sunset_in_panel: false,
+            show_meteogram: true,
             saved_locations: Vec::new(),
             aqicn_token: None,
         }

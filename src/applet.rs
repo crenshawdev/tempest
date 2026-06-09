@@ -700,6 +700,7 @@ impl Application for Tempest {
                 PopupTab::Alerts => column = column.push(self.render_alerts_tab()),
                 PopupTab::Hourly => column = column.push(self.render_hourly_tab(weather)),
                 PopupTab::Forecast => column = column.push(self.render_forecast_tab(weather)),
+                PopupTab::Graph => {} // TODO(Plan 03): replace with canvas dispatch
                 PopupTab::Settings => column = column.push(self.render_settings_tab()),
             }
         }
