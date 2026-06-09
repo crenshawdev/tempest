@@ -19,3 +19,6 @@ vendor.tar
 mempalace.yaml
 entities.json
 CLAUDE.md
+
+# Superpowers visual-companion scratch dir
+.superpowers/
