@@ -3,6 +3,7 @@
 mod applet;
 mod config;
 mod i18n;
+mod meteogram;
 mod network;
 mod sleep;
 mod weather;

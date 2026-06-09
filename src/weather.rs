@@ -74,8 +74,8 @@ pub fn categorize_pollen(species: PollenSpecies, grains: f32) -> PollenLevel {
 pub use weathervane::{
     detect_location, detect_region, fetch_air_quality, fetch_alerts, fetch_pollen, fetch_weather,
     format_hour, format_time, is_night_time, search_city, uses_imperial_units, AirQualityData,
-    Alert, AlertSeverity, AqiStandard, DetectedLocation, LocationResult, PollenData, Region,
-    WeatherData,
+    Alert, AlertSeverity, AqiStandard, DailyForecast, DetectedLocation, HourlyForecast,
+    LocationResult, PollenData, Region, WeatherData,
 };
 
 /// Localized description for a weather condition.
