@@ -565,11 +565,24 @@ impl Application for Tempest {
             children.push(widget::text::caption(label.clone()).into());
         }
 
-        // Panel Pride accent: shows at every panel size — the 3px bar is small
-        // enough to read at any tier. Same trigger as the popup stripe (June plus
-        // the toggle), so both surfaces light up together.
-        let show_panel_pride =
-            crate::pride::is_pride_month(Local::now().month()) && self.config.pride_accent;
+        // Panel Pride accent: shows on the default panel size (S) and larger.
+        // Only the extra-small tier (and any non-`PanelSize` fallback) is treated
+        // as too cramped for the bar, so the accent is skipped only there. S is
+        // COSMIC's default panel size, so it must be included. The popup stripe
+        // carries the nod regardless when the panel skips it.
+        let roomy_tier = {
+            use cosmic::applet::cosmic_panel_config::PanelSize;
+            use cosmic::applet::Size;
+            matches!(
+                self.core.applet.size.clone(),
+                Size::PanelSize(PanelSize::S | PanelSize::M | PanelSize::L | PanelSize::XL)
+            )
+        };
+        let show_panel_pride = crate::pride::should_show_panel_accent(
+            crate::pride::is_pride_month(Local::now().month()),
+            self.config.pride_accent,
+            roomy_tier,
+        );
 
         let is_horizontal = self.core.applet.is_horizontal();
         let readout: Element<'_, Message> = if is_horizontal {
