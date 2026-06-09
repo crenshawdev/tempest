@@ -44,16 +44,6 @@ pub fn is_pride_month(month: u32) -> bool {
     month == 6
 }
 
-/// Decides whether the panel readout should carry the rainbow accent.
-///
-/// True iff it is Pride month AND the accent is enabled AND the panel size tier
-/// is roomy enough (M/L/XL). Pure — takes the three already-resolved booleans so
-/// it can be exhaustively unit-tested without any `cosmic` types.
-#[must_use]
-pub fn should_show_panel_accent(is_pride_month: bool, enabled: bool, roomy_tier: bool) -> bool {
-    is_pride_month && enabled && roomy_tier
-}
-
 /// Builds the rainbow accent as six abutting solid-color segments.
 ///
 /// `horizontal` picks the layout: a full-width `Row` of equal-portion segments
@@ -99,7 +89,7 @@ pub fn rainbow_bar<'a, M: 'a>(horizontal: bool, thickness: f32) -> Element<'a, M
 
 #[cfg(test)]
 mod tests {
-    use super::{is_pride_month, should_show_panel_accent};
+    use super::is_pride_month;
 
     #[test]
     fn is_pride_month_only_june() {
@@ -107,29 +97,6 @@ mod tests {
         // Sample non-June months across the range.
         for m in [1, 5, 7, 12] {
             assert!(!is_pride_month(m), "month {m} must not be Pride month");
-        }
-    }
-
-    #[test]
-    fn panel_accent_true_only_when_all_three() {
-        // The single true case.
-        assert!(should_show_panel_accent(true, true, true));
-
-        // The seven false cases — every other combination of the three flags.
-        let false_cases = [
-            (true, true, false),
-            (true, false, true),
-            (true, false, false),
-            (false, true, true),
-            (false, true, false),
-            (false, false, true),
-            (false, false, false),
-        ];
-        for (pride, enabled, roomy) in false_cases {
-            assert!(
-                !should_show_panel_accent(pride, enabled, roomy),
-                "({pride}, {enabled}, {roomy}) must be false",
-            );
         }
     }
 }
