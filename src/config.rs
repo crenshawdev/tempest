@@ -61,6 +61,9 @@ pub struct Config {
     /// Show the meteogram Graph tab in the popup.
     #[serde(default = "default_show_meteogram")]
     pub show_meteogram: bool,
+    /// Show the Pride Month rainbow accent (popup stripe + panel accent) during June.
+    #[serde(default = "default_pride_accent")]
+    pub pride_accent: bool,
     /// Bookmarked locations for quick switching.
     #[serde(default)]
     pub saved_locations: Vec<SavedLocation>,
@@ -90,6 +93,10 @@ fn default_show_meteogram() -> bool {
     true // D-13: ON for new AND migrating users
 }
 
+fn default_pride_accent() -> bool {
+    true // ON for new AND migrating users (additive serde-defaulted field, version unchanged)
+}
+
 impl Default for Config {
     fn default() -> Self {
         Self {
@@ -114,6 +121,7 @@ impl Default for Config {
             show_dew_point_in_panel: false,
             show_sunrise_sunset_in_panel: false,
             show_meteogram: true,
+            pride_accent: true,
             saved_locations: Vec::new(),
             aqicn_token: None,
         }

@@ -312,6 +312,7 @@ pub enum Message {
     ToggleShowDewPointInPanel,
     ToggleShowSunriseSunsetInPanel,
     ToggleShowMeteogram,
+    TogglePrideAccent,
     UpdateCityInput(String),
     SearchCity,
     CitySearchResult(Result<Vec<LocationResult>, String>),
@@ -840,6 +841,10 @@ impl Application for Tempest {
                     tab_for_segmented_control(self.active_tab),
                     self.config.show_meteogram,
                 );
+                self.save_config();
+            }
+            Message::TogglePrideAccent => {
+                self.config.pride_accent = !self.config.pride_accent;
                 self.save_config();
             }
             Message::UpdateCityInput(value) => {
