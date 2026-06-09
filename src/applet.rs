@@ -1783,9 +1783,10 @@ impl Tempest {
     ///
     /// The canvas is constructed against `meteogram::Meteogram`'s LOCKED field
     /// contract (`hourly` / `daily` / `military_time`; `&Vec<T>` coerces to the
-    /// struct's `&[T]` fields). Height MUST be `Fixed(260.0)` — `Shrink` collapses
-    /// the canvas to zero inside the surrounding `scrollable` (Pitfall 1). Width
-    /// fills the ~416px popup content area.
+    /// struct's `&[T]` fields). Height MUST be a `Fixed` value — `Shrink` collapses
+    /// the canvas to zero inside the surrounding `scrollable` (Pitfall 1); 300px
+    /// matches the meteogram's band-height constants (grown from 260px so the panels
+    /// and time labels aren't cramped). Width fills the ~416px popup content area.
     fn render_graph_tab<'a>(&self, weather: &'a WeatherData) -> Element<'a, Message> {
         // Precip peak-label unit, derived the same way as the enriched Hourly cell.
         let precip_unit = match self.config.measurement_system {
@@ -1799,7 +1800,7 @@ impl Tempest {
             precip_unit,
         })
         .width(cosmic::iced::Length::Fill)
-        .height(cosmic::iced::Length::Fixed(260.0))
+        .height(cosmic::iced::Length::Fixed(300.0))
         .into()
     }
 

@@ -24,25 +24,27 @@ use crate::weather::{DailyForecast, HourlyForecast};
 // These are canvas draw-math constants, NOT COSMIC `spacing()` widget tokens
 // (UI-SPEC "Spacing Scale" exception): a single drawn surface lays itself out in
 // raw pixels. All are multiples of 4 for crisp rendering. The vertical bands sum
-// with the margins to the locked 260px canvas height:
-//   MARGIN_TOP 24 + TOP_PANEL 120 + PANEL_GAP 8 + BOTTOM_PANEL 70
-//   + AXIS_LABEL_GAP 16 + BOTTOM_MARGIN 22 = 260.
+// with the margins to the 300px canvas height (grown from the original 260px to
+// give the two panels and the time-axis labels breathing room within the 480px
+// popup — the popup scrolls vertically, so only height changed, not width):
+//   MARGIN_TOP 28 + TOP_PANEL 140 + PANEL_GAP 16 + BOTTOM_PANEL 80
+//   + AXIS_LABEL_GAP 20 + BOTTOM_MARGIN 16 = 300.
 
 /// Temperature-axis label gutter (left of the plot rect).
 const MARGIN_LEFT: f32 = 28.0;
 /// Precip-peak label gutter (right of the plot rect), symmetric with the left.
 const MARGIN_RIGHT: f32 = 28.0;
 /// Weather-symbol row above the top panel (18px symbol + clearance).
-const MARGIN_TOP: f32 = 24.0;
+const MARGIN_TOP: f32 = 28.0;
 /// Vertical gap between the top (temp/precip) and bottom (wind) panels.
-const PANEL_GAP: f32 = 8.0;
+const PANEL_GAP: f32 = 16.0;
 /// Time-axis label strip below the bottom panel.
-const AXIS_LABEL_GAP: f32 = 16.0;
+const AXIS_LABEL_GAP: f32 = 20.0;
 
 /// Top-panel plot height (temperature line + precipitation bars).
-const TOP_PANEL: f32 = 120.0;
+const TOP_PANEL: f32 = 140.0;
 /// Bottom-panel plot height (wind sustained + gust lines).
-const BOTTOM_PANEL: f32 = 70.0;
+const BOTTOM_PANEL: f32 = 80.0;
 
 /// Number of hourly columns the chart plots.
 const HOURS: usize = 24;
@@ -381,8 +383,11 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
         let time_y = wind_y1 + AXIS_LABEL_GAP / 2.0;
         for h in (0..n).step_by(LABEL_STEP) {
             let hour = &self.hourly[h];
+            // Compact the label (4:00 PM → 4 PM, 16:00 → 16): the on-the-hour ":00"
+            // is redundant on the axis and the full strings collide at 8-per-416px.
             frame.fill_text(Text {
-                content: crate::weather::format_hour(&hour.time, self.military_time),
+                content: crate::weather::format_hour(&hour.time, self.military_time)
+                    .replace(":00", ""),
                 position: Point::new(cx(h), time_y),
                 color: label,
                 size: Pixels(11.0),
