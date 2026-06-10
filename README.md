@@ -2,6 +2,8 @@
 
 A weather applet for COSMIC Desktop. Panel display, tabbed popup with current conditions, hourly and 7-day forecasts, a 24-hour meteogram, weather alerts, air quality. No account, no API key.
 
+> **Already running Tempest from the COSMIC Store or the old cosmic-utils Flatpak remote?** Those channels don't update anymore. Tempest is self-distributed now. See [Install](#install) to switch over once, and [I Built My Own Door](https://jcrenshaw.dev/posts/i-built-my-own-door) for why it moved.
+
 ![Current conditions](screenshots/tempest-main.png)
 
 <details>
@@ -36,7 +38,7 @@ Panel elements toggle independently: temperature, weather icon, AQI, pressure, d
 
 ## Install
 
-Tempest is self-distributed. It's not in the COSMIC Store.
+Tempest is self-distributed. It's not in the COSMIC Store. [Here's why](https://jcrenshaw.dev/posts/i-built-my-own-door).
 
 ### Arch (AUR)
 
@@ -146,4 +148,4 @@ Tempest is an independent, third-party project. It is not affiliated with, endor
 
 ## Author
 
-John Crenshaw, [blog.vintagetechie.com](https://blog.vintagetechie.com)
+John Crenshaw, [jcrenshaw.dev](https://jcrenshaw.dev)
