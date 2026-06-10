@@ -71,6 +71,12 @@
       <li>Persistent configuration including last active tab</li>
       <li>Localized in multiple languages via Weblate</li>
     </ul>
+    <p>
+      Tempest is an independent, third-party project. It is not affiliated with,
+      endorsed by, or sponsored by System76, Inc. "COSMIC" is a trademark of
+      System76, Inc. Tempest is built for the COSMIC™ desktop using the public
+      libcosmic framework.
+    </p>
   </description>
   <url type="homepage">https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest</url>
   <url type="bugtracker">https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/issues</url>
