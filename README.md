@@ -146,6 +146,10 @@ GPL-3.0-only. See [LICENSE](./LICENSE).
 
 Tempest is an independent, third-party project. It is not affiliated with, endorsed by, or sponsored by System76, Inc. "COSMIC" is a trademark of System76, Inc. Tempest is built for the COSMIC™ desktop using the public libcosmic framework.
 
+## On AI assistance
+
+Used in the open here. I read, test, and answer for every line. The bugs are mine. [Who typed it was never the question](https://jcrenshaw.dev/posts/flathub-banned-the-wrong-thing).
+
 ## Author
 
 John Crenshaw, [jcrenshaw.dev](https://jcrenshaw.dev)
