@@ -6182,6 +6182,8 @@ dependencies = [
 [[package]]
 name = "weathervane"
 version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c4c31f01e97fa043e3ddae047d3fa4b4cf5990ed36ec53284d2d8a9af1b54725"
 dependencies = [
  "async-stream",
  "chrono",
