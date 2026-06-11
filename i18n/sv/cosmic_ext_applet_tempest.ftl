@@ -171,3 +171,6 @@ tooltip-settings = Inställningar
 panel-error = FEL
 tooltip-save-location = Spara plats
 tooltip-remove-saved-location = Ta bort sparad plats
+tab-graph = Graf
+show-meteogram = Visa meteogram
+settings-pride-accent = Pride månad accentfärg
