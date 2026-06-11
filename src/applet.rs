@@ -96,10 +96,15 @@ pub struct Tempest {
     fetch_generation: u64,
 }
 
-/// Queries cosmic-randr for the primary display resolution.
-/// Returns (width, height) or None if unavailable.
-fn get_screen_resolution() -> Option<(u32, u32)> {
-    let list = futures::executor::block_on(cosmic_randr_shell::list()).ok()?;
+/// Fallback popup max height (px) used until the async resolution query resolves,
+/// and whenever cosmic-randr reports no usable display. Assumes ~1080p.
+const POPUP_MAX_HEIGHT_FALLBACK: f32 = 650.0;
+
+/// Queries cosmic-randr for the primary display resolution without blocking.
+/// Returns (width, height) or None if unavailable. Awaits the subprocess future
+/// directly so it can run off the startup critical path (PERF-02 / D-07).
+async fn get_screen_resolution_async() -> Option<(u32, u32)> {
+    let list = cosmic_randr_shell::list().await.ok()?;
 
     for (_key, output) in &list.outputs {
         if output.enabled {
@@ -111,15 +116,6 @@ fn get_screen_resolution() -> Option<(u32, u32)> {
         }
     }
     None
-}
-
-/// Calculates popup max height based on screen resolution.
-/// Uses 75% of screen height, clamped between 400-1000 pixels.
-fn calculate_popup_max_height() -> f32 {
-    match get_screen_resolution() {
-        Some((_width, height)) => (height as f32 * 0.75).clamp(400.0, 1000.0),
-        None => 650.0, // Fallback assumes ~1080p
-    }
 }
 
 /// Returns the tab as an Option, with Settings/Alerts mapped to None
@@ -289,7 +285,7 @@ impl Default for Tempest {
             showing_locations: false,
             pollen: None,
             showing_pollen: false,
-            popup_max_height: calculate_popup_max_height(),
+            popup_max_height: POPUP_MAX_HEIGHT_FALLBACK,
             retry_count: 0,
             fetch_generation: 0,
             config,
@@ -303,6 +299,9 @@ impl Default for Tempest {
 pub enum Message {
     TogglePopup,
     PopupClosed(Id),
+    /// Async result of the cosmic-randr resolution query (PERF-02 / D-07).
+    /// `None` => no usable display; the handler keeps the 650px fallback.
+    ScreenResolution(Option<(u32, u32)>),
     RefreshWeather,
     WeatherUpdated(u64, Result<WeatherData, String>),
     AirQualityUpdated(u64, Result<AirQualityData, String>),
@@ -427,7 +426,26 @@ impl Application for Tempest {
             measurement_model,
             pressure_model,
             military_time,
-            ..Default::default()
+            // Remaining fields built explicitly (no ..Default::default(), which
+            // would re-run the now-deleted blocking resolution query) — values
+            // match the Default impl.
+            popup: None,
+            weather_data: None,
+            air_quality: None,
+            alerts: Vec::new(),
+            seen_alert_ids: HashSet::new(),
+            current_condition: weathervane::WeatherCondition::Unknown,
+            current_aqi: None,
+            is_loading: true,
+            error_message: None,
+            last_updated_display: None,
+            showing_pollutants: false,
+            showing_locations: false,
+            pollen: None,
+            showing_pollen: false,
+            popup_max_height: POPUP_MAX_HEIGHT_FALLBACK,
+            retry_count: 0,
+            fetch_generation: 0,
         };
 
         // Start with auto-location if enabled, otherwise fetch weather
@@ -440,7 +458,10 @@ impl Application for Tempest {
             Task::perform(async { Message::RefreshWeather }, Action::App)
         };
 
-        (app, task)
+        // Fire the resolution query off the startup critical path (PERF-02 / D-07):
+        // the panel button renders immediately on the 650px fallback; the async
+        // result refines popup_max_height when it arrives.
+        (app, Task::batch([task, Self::screen_resolution_task()]))
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
@@ -813,6 +834,13 @@ impl Application for Tempest {
                     self.showing_locations = false;
                 }
             }
+            Message::ScreenResolution(res) => {
+                // Latest-wins: a height value needs no fetch_generation guard (D-08).
+                // Mirrors the arithmetic of the former calculate_popup_max_height().
+                self.popup_max_height = res
+                    .map(|(_, h)| (h as f32 * 0.75).clamp(400.0, 1000.0))
+                    .unwrap_or(POPUP_MAX_HEIGHT_FALLBACK);
+            }
             Message::RefreshWeather => return self.handle_refresh_weather(),
             Message::WeatherUpdated(gen, result) => {
                 return self.handle_weather_updated(gen, result);
@@ -1116,6 +1144,15 @@ impl Tempest {
         Task::perform(async { Message::RefreshWeather }, Action::App)
     }
 
+    /// One-shot async cosmic-randr resolution query (PERF-02 / D-07, D-08).
+    /// Fired at init and on each popup open so monitor/resolution changes are
+    /// picked up on the next open; the result lands as `Message::ScreenResolution`.
+    fn screen_resolution_task() -> Task<Message> {
+        Task::perform(async { get_screen_resolution_async().await }, |res| {
+            Action::App(Message::ScreenResolution(res))
+        })
+    }
+
     /// Opens the popup, or closes it if already open.
     fn handle_toggle_popup(&mut self) -> Task<Message> {
         if let Some(p) = self.popup.take() {
@@ -1131,7 +1168,10 @@ impl Tempest {
                 None,
             );
             popup_settings.positioner.size_limits = self.popup_limits();
-            get_popup(popup_settings)
+            // D-08: re-fire the resolution query so a monitor/resolution change
+            // is reflected on the next open. This open uses the cached
+            // popup_max_height; the refreshed value lands before the next open.
+            Task::batch([get_popup(popup_settings), Self::screen_resolution_task()])
         }
     }
 
