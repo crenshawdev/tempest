@@ -328,6 +328,12 @@ pub enum Message {
     SelectLocation(usize),
     UpdateRefreshInterval(String),
     UpdateAqicnToken(String),
+    /// Enter/submit commit for the refresh-interval field (PERF-03 / D-03).
+    /// Reads from `refresh_input`; the `on_submit` String payload is ignored.
+    CommitRefreshInterval,
+    /// Enter/submit commit for the AQI-token field (PERF-03 / D-03).
+    /// Reads from `aqicn_token_input`; the `on_submit` String payload is ignored.
+    CommitAqicnToken,
     DetectLocation,
     LocationDetected(Result<DetectedLocation, String>),
     ToggleAutoLocation,
@@ -847,7 +853,13 @@ impl Application for Tempest {
             Message::TogglePopup => return self.handle_toggle_popup(),
             Message::PopupClosed(id) => {
                 if self.popup.as_ref() == Some(&id) {
+                    // PERF-03 / D-05: dismiss/outside-click close route — commit
+                    // pending text-field edits and persist the last-used tab
+                    // (second of two close routes; see handle_toggle_popup).
+                    self.commit_pending_edits();
                     self.popup = None;
+                    // FIX-04: reset sub-view overlays so a reopen lands on the
+                    // tab, not a stale overlay.
                     self.showing_pollutants = false;
                     self.showing_pollen = false;
                     self.showing_locations = false;
@@ -994,25 +1006,19 @@ impl Application for Tempest {
                 }
             },
             Message::SelectLocation(idx) => return self.handle_select_location(idx),
+            // PERF-03: local-edit-only. No parse, no config write, no save per
+            // keystroke — committed on Enter (CommitRefreshInterval) and on popup
+            // close (commit_pending_edits). This stops the "typing 120 passes
+            // through a live 1-minute tick" subscription thrash.
             Message::UpdateRefreshInterval(value) => {
-                self.refresh_input = value.clone();
-                if let Ok(interval) = value.parse::<u64>() {
-                    if (1..=1440).contains(&interval) {
-                        self.config.refresh_interval_minutes = interval;
-                        self.save_config();
-                    }
-                }
+                self.refresh_input = value;
             }
+            // PERF-03: local-edit-only; committed on Enter / popup close.
             Message::UpdateAqicnToken(value) => {
-                self.aqicn_token_input = value.clone();
-                let trimmed = value.trim();
-                self.config.aqicn_token = if trimmed.is_empty() {
-                    None
-                } else {
-                    Some(trimmed.to_string())
-                };
-                self.save_config();
+                self.aqicn_token_input = value;
             }
+            Message::CommitRefreshInterval => self.commit_refresh_interval(),
+            Message::CommitAqicnToken => self.commit_aqicn_token(),
             Message::ToggleAutoLocation => return self.handle_toggle_auto_location(),
             Message::DetectLocation => {
                 return Task::perform(
@@ -1021,21 +1027,20 @@ impl Application for Tempest {
                 );
             }
             Message::LocationDetected(result) => return self.handle_location_detected(result),
+            // PERF-03 / D-05: default_tab now persists once on popup close (via
+            // commit_pending_edits), not per tab click. These handlers only
+            // update transient state; observable reopen behavior is unchanged.
             Message::SelectTab(tab) => {
                 self.active_tab = tab;
-                self.config.default_tab = tab;
                 self.leave_subviews();
                 self.tab_model =
                     build_tab_model(tab_for_segmented_control(tab), self.config.show_meteogram);
-                self.save_config();
             }
             Message::TabActivated(entity) => {
                 self.tab_model.activate(entity);
                 if let Some(&tab) = self.tab_model.data::<PopupTab>(entity) {
                     self.active_tab = tab;
-                    self.config.default_tab = tab;
                     self.leave_subviews();
-                    self.save_config();
                 }
             }
             Message::TemperatureUnitActivated(entity) => {
@@ -1159,6 +1164,59 @@ impl Tempest {
         self.showing_locations = false;
     }
 
+    /// PERF-03 / D-03, D-04: commit the refresh-interval edit buffer.
+    ///
+    /// Parses `refresh_input`; if it is a valid `u64` in `1..=1440` it is
+    /// persisted. Otherwise (non-numeric or out of range) the field REVERTS to
+    /// the last persisted value — no config write, no error UI (the error-hint
+    /// UX is deferred to Phase 6 MAINT-03). The `1..=1440` range-check also
+    /// mitigates T-04-04: a 0/overflow/non-numeric interval can never be
+    /// committed, so the tick subscription cannot be driven to a degenerate
+    /// cadence.
+    fn commit_refresh_interval(&mut self) {
+        match self.refresh_input.parse::<u64>() {
+            Ok(interval) if (1..=1440).contains(&interval) => {
+                self.config.refresh_interval_minutes = interval;
+                self.save_config();
+            }
+            _ => {
+                // Revert to the last persisted value (D-04).
+                self.refresh_input = self.config.refresh_interval_minutes.to_string();
+            }
+        }
+    }
+
+    /// PERF-03: commit the AQI-token edit buffer.
+    ///
+    /// Mirrors the original per-keystroke trim logic: an empty (after trim)
+    /// field clears the token, otherwise the trimmed value is stored. The input
+    /// buffer is normalized to the trimmed value so the field reflects what was
+    /// persisted.
+    fn commit_aqicn_token(&mut self) {
+        let trimmed = self.aqicn_token_input.trim();
+        self.config.aqicn_token = if trimmed.is_empty() {
+            None
+        } else {
+            Some(trimmed.to_string())
+        };
+        self.aqicn_token_input = trimmed.to_string();
+        self.save_config();
+    }
+
+    /// PERF-03 / D-05: commit every pending edit on popup close.
+    ///
+    /// Persists the refresh-interval and AQI-token edit buffers and the
+    /// last-used tab (`default_tab`) in a single place. Called from BOTH
+    /// popup-close routes (`handle_toggle_popup` close branch and the
+    /// `PopupClosed` dismiss handler) so a pending edit can never leak and the
+    /// reopened tab is always the last-used one.
+    fn commit_pending_edits(&mut self) {
+        self.commit_refresh_interval();
+        self.commit_aqicn_token();
+        self.config.default_tab = self.active_tab;
+        self.save_config();
+    }
+
     /// Standard "trigger a fresh weather pull" task, used by message handlers
     /// that change anything weather-bearing (unit swaps, location changes,
     /// network/sleep wake-ups, manual retries).
@@ -1178,6 +1236,10 @@ impl Tempest {
     /// Opens the popup, or closes it if already open.
     fn handle_toggle_popup(&mut self) -> Task<Message> {
         if let Some(p) = self.popup.take() {
+            // PERF-03 / D-05: panel-button close route — commit any pending
+            // text-field edits and persist the last-used tab before tearing
+            // down the popup (one of two close routes; see PopupClosed).
+            self.commit_pending_edits();
             destroy_popup(p)
         } else {
             let new_id = Id::unique();
@@ -2270,7 +2332,8 @@ impl Tempest {
                     .push(widget::text::body(crate::fl!("settings-min")))
                     .push(
                         widget::text_input("15", &self.refresh_input)
-                            .on_input(Message::UpdateRefreshInterval),
+                            .on_input(Message::UpdateRefreshInterval)
+                            .on_submit(|_| Message::CommitRefreshInterval),
                     ),
             ))
             .add(settings::item(
@@ -2293,6 +2356,7 @@ impl Tempest {
                     .push(
                         widget::text_input("", &self.aqicn_token_input)
                             .on_input(Message::UpdateAqicnToken)
+                            .on_submit(|_| Message::CommitAqicnToken)
                             .width(cosmic::iced::Length::Fill),
                     )
                     .push(widget::text::caption(crate::fl!(
