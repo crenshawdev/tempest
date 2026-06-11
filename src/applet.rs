@@ -396,6 +396,7 @@ impl Application for Tempest {
             build_tab_model(tab_for_segmented_control(active_tab), config.show_meteogram);
         let temperature_model = build_temperature_model(config.temperature_unit);
         let measurement_model = build_measurement_model(config.measurement_system);
+        let pressure_model = build_pressure_model(config.pressure_unit);
 
         // Read system time format preference for immediate correct display
         let military_time = cosmic::cosmic_config::Config::new(
@@ -420,6 +421,7 @@ impl Application for Tempest {
             tab_model,
             temperature_model,
             measurement_model,
+            pressure_model,
             military_time,
             ..Default::default()
         };
