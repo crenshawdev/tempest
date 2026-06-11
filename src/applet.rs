@@ -974,7 +974,7 @@ impl Application for Tempest {
             Message::SelectTab(tab) => {
                 self.active_tab = tab;
                 self.config.default_tab = tab;
-                self.showing_pollutants = false;
+                self.leave_subviews();
                 self.tab_model =
                     build_tab_model(tab_for_segmented_control(tab), self.config.show_meteogram);
                 self.save_config();
@@ -984,7 +984,7 @@ impl Application for Tempest {
                 if let Some(&tab) = self.tab_model.data::<PopupTab>(entity) {
                     self.active_tab = tab;
                     self.config.default_tab = tab;
-                    self.showing_pollutants = false;
+                    self.leave_subviews();
                     self.save_config();
                 }
             }
@@ -1099,6 +1099,16 @@ impl Application for Tempest {
 const UG_PER_M3: &str = "µg/m³";
 
 impl Tempest {
+    /// Clears every sub-view overlay (pollutants, pollen, locations) so the
+    /// selected tab renders instead of a stale overlay. Shared by `SelectTab`
+    /// and `TabActivated`; a later DRY pass folds it into a single
+    /// tab-selection helper.
+    fn leave_subviews(&mut self) {
+        self.showing_pollutants = false;
+        self.showing_pollen = false;
+        self.showing_locations = false;
+    }
+
     /// Standard "trigger a fresh weather pull" task, used by message handlers
     /// that change anything weather-bearing (unit swaps, location changes,
     /// network/sleep wake-ups, manual retries).
