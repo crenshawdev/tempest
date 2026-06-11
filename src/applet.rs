@@ -5,7 +5,7 @@ use cosmic::cosmic_config::{self, cosmic_config_derive::CosmicConfigEntry, Cosmi
 use cosmic::iced::platform_specific::shell::wayland::commands::popup::{destroy_popup, get_popup};
 use cosmic::iced::window::Id;
 use cosmic::iced::{Limits, Subscription};
-use cosmic::widget::{self, segmented_button, settings};
+use cosmic::widget::{self, canvas, segmented_button, settings};
 use cosmic::{Action, Application, Element};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
@@ -94,6 +94,11 @@ pub struct Tempest {
     /// Monotonic request-generation counter (FIX-03 / D-08). Bumped at every
     /// logical fetch start so superseded in-flight results can be discarded.
     fetch_generation: u64,
+    /// Shared tessellation cache for the meteogram canvas (PERF-01). Borrowed by
+    /// `Meteogram` so `draw()` reuses geometry across renders; cleared only at the
+    /// state transitions that change rendered pixels (weather replace, hourly tick,
+    /// 12/24h format change, dark/light theme change).
+    meteogram_cache: canvas::Cache,
 }
 
 /// Fallback popup max height (px) used until the async resolution query resolves,
@@ -288,6 +293,7 @@ impl Default for Tempest {
             popup_max_height: POPUP_MAX_HEIGHT_FALLBACK,
             retry_count: 0,
             fetch_generation: 0,
+            meteogram_cache: canvas::Cache::new(),
             config,
             config_handler: None,
         }
@@ -446,6 +452,7 @@ impl Application for Tempest {
             popup_max_height: POPUP_MAX_HEIGHT_FALLBACK,
             retry_count: 0,
             fetch_generation: 0,
+            meteogram_cache: canvas::Cache::new(),
         };
 
         // Start with auto-location if enabled, otherwise fetch weather
@@ -1945,13 +1952,14 @@ impl Tempest {
     /// the canvas to zero inside the surrounding `scrollable` (Pitfall 1); 300px
     /// matches the meteogram's band-height constants (grown from 260px so the panels
     /// and time labels aren't cramped). Width fills the ~416px popup content area.
-    fn render_graph_tab<'a>(&self, weather: &'a WeatherData) -> Element<'a, Message> {
+    fn render_graph_tab<'a>(&'a self, weather: &'a WeatherData) -> Element<'a, Message> {
         // Precip peak-label unit, derived the same way as the enriched Hourly cell.
         let precip_unit = match self.config.measurement_system {
             MeasurementSystem::Imperial => "in",
             MeasurementSystem::Metric => "mm",
         };
         cosmic::widget::Canvas::new(crate::meteogram::Meteogram {
+            cache: &self.meteogram_cache,
             hourly: &weather.hourly,
             daily: &weather.forecast,
             military_time: self.military_time,

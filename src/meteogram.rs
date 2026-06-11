@@ -85,10 +85,13 @@ const GUST_ALPHA: f32 = 0.55;
 ///
 /// Holds borrowed weather state only; all theme chrome is resolved from the
 /// `Theme` draw parameter. The public field set is a cross-plan compile contract
-/// — Plan 03's `view_window` constructs `Meteogram { hourly, daily, military_time }`
+/// — `render_graph_tab` constructs `Meteogram { cache, hourly, daily, military_time, precip_unit }`
 /// against exactly these names (`&Vec<T>` coerces to `&[T]`), so they must not
 /// be renamed, reordered into owned `Vec`s, or folded into a `WeatherData` ref.
 pub struct Meteogram<'a> {
+    /// Shared tessellation cache (borrowed from Tempest); draw() delegates to it
+    /// so geometry is reused across renders.
+    pub cache: &'a canvas::Cache,
     /// The 24 hourly entries (borrowed from `weather.hourly`).
     pub hourly: &'a [HourlyForecast],
     /// The daily slice, for per-hour sunrise/sunset (borrowed from `weather.forecast`).
@@ -124,15 +127,18 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
         let gridline = with_alpha(on, 0.12);
         let label = with_alpha(on, 0.70);
 
-        let mut frame = canvas::Frame::new(renderer, bounds.size());
-
+        // Delegate to the borrowed tessellation cache (PERF-01): the closure runs
+        // only when the cache is empty (post-`clear()`); otherwise cached geometry
+        // is returned without re-tessellating. The cache supplies the sized `&mut
+        // Frame` and calls `into_geometry()` itself.
+        vec![self.cache.draw(renderer, bounds.size(), |frame| {
         // 1. Background fill (D-10) — drawn whether or not there is data to plot.
         frame.fill_rectangle(Point::ORIGIN, bounds.size(), bg);
 
         // Nothing to plot without hours — leave the blank themed surface.
         let n = self.hourly.len();
         if n == 0 {
-            return vec![frame.into_geometry()];
+            return;
         }
 
         // Horizontal plot geometry (read bounds, never hardcode 416 — anti-pattern A4).
@@ -396,8 +402,7 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
                 ..Text::default()
             });
         }
-
-        vec![frame.into_geometry()]
+        })]
     }
 }
 
