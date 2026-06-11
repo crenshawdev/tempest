@@ -426,7 +426,26 @@ impl Application for Tempest {
             measurement_model,
             pressure_model,
             military_time,
-            ..Default::default()
+            // Remaining fields built explicitly (no ..Default::default(), which
+            // would re-run the now-deleted blocking resolution query) — values
+            // match the Default impl.
+            popup: None,
+            weather_data: None,
+            air_quality: None,
+            alerts: Vec::new(),
+            seen_alert_ids: HashSet::new(),
+            current_condition: weathervane::WeatherCondition::Unknown,
+            current_aqi: None,
+            is_loading: true,
+            error_message: None,
+            last_updated_display: None,
+            showing_pollutants: false,
+            showing_locations: false,
+            pollen: None,
+            showing_pollen: false,
+            popup_max_height: POPUP_MAX_HEIGHT_FALLBACK,
+            retry_count: 0,
+            fetch_generation: 0,
         };
 
         // Start with auto-location if enabled, otherwise fetch weather
@@ -439,7 +458,10 @@ impl Application for Tempest {
             Task::perform(async { Message::RefreshWeather }, Action::App)
         };
 
-        (app, task)
+        // Fire the resolution query off the startup critical path (PERF-02 / D-07):
+        // the panel button renders immediately on the 650px fallback; the async
+        // result refines popup_max_height when it arrives.
+        (app, Task::batch([task, Self::screen_resolution_task()]))
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
@@ -1122,6 +1144,15 @@ impl Tempest {
         Task::perform(async { Message::RefreshWeather }, Action::App)
     }
 
+    /// One-shot async cosmic-randr resolution query (PERF-02 / D-07, D-08).
+    /// Fired at init and on each popup open so monitor/resolution changes are
+    /// picked up on the next open; the result lands as `Message::ScreenResolution`.
+    fn screen_resolution_task() -> Task<Message> {
+        Task::perform(async { get_screen_resolution_async().await }, |res| {
+            Action::App(Message::ScreenResolution(res))
+        })
+    }
+
     /// Opens the popup, or closes it if already open.
     fn handle_toggle_popup(&mut self) -> Task<Message> {
         if let Some(p) = self.popup.take() {
@@ -1137,7 +1168,10 @@ impl Tempest {
                 None,
             );
             popup_settings.positioner.size_limits = self.popup_limits();
-            get_popup(popup_settings)
+            // D-08: re-fire the resolution query so a monitor/resolution change
+            // is reflected on the next open. This open uses the cached
+            // popup_max_height; the refreshed value lands before the next open.
+            Task::batch([get_popup(popup_settings), Self::screen_resolution_task()])
         }
     }
 
