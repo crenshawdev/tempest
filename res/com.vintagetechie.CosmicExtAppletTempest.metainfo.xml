@@ -94,6 +94,17 @@
   </categories>
 
   <releases>
+    <release version="2.9.1" date="2026-06-11">
+      <description>
+        <p>Bug-fix patch hardening four rough edges:</p>
+        <ul>
+          <li>Notifications with accented or non-ASCII alert text no longer crash the applet</li>
+          <li>The pressure-unit setting is remembered correctly after a restart</li>
+          <li>Switching location or refreshing quickly no longer briefly shows the previous location's weather</li>
+          <li>Opening Settings or Alerts from inside the pollutants, pollen, or saved-locations views now returns to the chosen tab</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.9.0" date="2026-06-09">
       <description>
         <p>A new Graph tab draws a YR.no-style 24-hour meteogram: the temperature line over auto-scaled precipitation bars up top, sustained and gust wind below, with weather symbols, a now-marker, and shaded night hours across both panels. The Hourly tab now shows per-hour wind speed and precipitation amount. Both read from weathervane 0.5. And every June a thin Philadelphia eight-stripe pride flag runs across the top of the popup and under the panel readout, on by default with a toggle in Settings. Plus translation updates for Czech, Swedish, and Simplified Chinese.</p>
