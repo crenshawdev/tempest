@@ -507,6 +507,18 @@ impl Application for Tempest {
         Some(Message::PopupClosed(id))
     }
 
+    /// Dark/light theme seam (PERF-01 / D-02): the meteogram's `is_dark` branch
+    /// selects different series and chrome colors, so a theme-mode flip must
+    /// invalidate the cached chart for an instant repaint.
+    fn system_theme_mode_update(
+        &mut self,
+        _keys: &[&'static str],
+        _new_theme: &cosmic::cosmic_theme::ThemeMode,
+    ) -> Task<Self::Message> {
+        self.meteogram_cache.clear();
+        Task::none()
+    }
+
     fn view(&self) -> Element<'_, Self::Message> {
         use chrono::{Datelike, Local, Timelike};
         use cosmic::iced::Alignment;
@@ -892,6 +904,9 @@ impl Application for Tempest {
             }
             Message::Tick => {
                 self.retry_count = 0;
+                // Hourly wall-clock advance (D-01): refresh now-marker, night
+                // shading, and current-hour index at hourly granularity.
+                self.meteogram_cache.clear();
                 return Self::refresh_task();
             }
             Message::ToggleAlertsEnabled => {
@@ -1265,6 +1280,8 @@ impl Tempest {
                     .temperature_unit
                     .format(data.current.temperature);
                 self.weather_data = Some(data);
+                // Series, bars, and axis all change — invalidate the cached chart.
+                self.meteogram_cache.clear();
                 self.error_message = None;
 
                 let now = chrono::Local::now();
@@ -1352,6 +1369,8 @@ impl Tempest {
     /// between 12h and 24h modes.
     fn handle_system_time_config(&mut self, config: TimeAppletConfig) {
         self.military_time = config.military_time;
+        // Axis time labels (format_hour) change with the 12/24h preference.
+        self.meteogram_cache.clear();
         if let Some(timestamp) = self.config.last_updated {
             if let Some(dt) = chrono::DateTime::from_timestamp(timestamp, 0) {
                 let local = dt.with_timezone(&chrono::Local);
