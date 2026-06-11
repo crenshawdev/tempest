@@ -2285,8 +2285,8 @@ fn sanitize_notification_text(input: &str, max_len: usize) -> String {
         }
     }
 
-    if output.len() > max_len {
-        output.truncate(max_len);
+    if output.chars().count() > max_len {
+        output = output.chars().take(max_len).collect();
         output.push_str("...");
     }
 
