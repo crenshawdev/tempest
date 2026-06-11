@@ -483,8 +483,11 @@ impl Application for Tempest {
         let is_night = self
             .weather_data
             .as_ref()
-            .and_then(|w| w.forecast.first())
-            .map(|day| is_night_time(&day.sunrise, &day.sunset))
+            .and_then(|w| {
+                w.forecast
+                    .first()
+                    .map(|day| is_night_time(&day.sunrise, &day.sunset, w.utc_offset_seconds))
+            })
             .unwrap_or_else(|| {
                 // Fallback to 6pm-6am if no weather data available
                 let hour = Local::now().hour();
@@ -808,7 +811,7 @@ impl Application for Tempest {
             Message::WeatherUpdated(result) => return self.handle_weather_updated(result),
             Message::AirQualityUpdated(result) => match result {
                 Ok(data) => {
-                    self.current_aqi = Some((data.aqi, data.standard));
+                    self.current_aqi = Some((data.aqi, data.standard()));
                     self.air_quality = Some(data);
                 }
                 Err(e) => {
