@@ -853,7 +853,13 @@ impl Application for Tempest {
             Message::TogglePopup => return self.handle_toggle_popup(),
             Message::PopupClosed(id) => {
                 if self.popup.as_ref() == Some(&id) {
+                    // PERF-03 / D-05: dismiss/outside-click close route — commit
+                    // pending text-field edits and persist the last-used tab
+                    // (second of two close routes; see handle_toggle_popup).
+                    self.commit_pending_edits();
                     self.popup = None;
+                    // FIX-04: reset sub-view overlays so a reopen lands on the
+                    // tab, not a stale overlay.
                     self.showing_pollutants = false;
                     self.showing_pollen = false;
                     self.showing_locations = false;
@@ -1021,21 +1027,20 @@ impl Application for Tempest {
                 );
             }
             Message::LocationDetected(result) => return self.handle_location_detected(result),
+            // PERF-03 / D-05: default_tab now persists once on popup close (via
+            // commit_pending_edits), not per tab click. These handlers only
+            // update transient state; observable reopen behavior is unchanged.
             Message::SelectTab(tab) => {
                 self.active_tab = tab;
-                self.config.default_tab = tab;
                 self.leave_subviews();
                 self.tab_model =
                     build_tab_model(tab_for_segmented_control(tab), self.config.show_meteogram);
-                self.save_config();
             }
             Message::TabActivated(entity) => {
                 self.tab_model.activate(entity);
                 if let Some(&tab) = self.tab_model.data::<PopupTab>(entity) {
                     self.active_tab = tab;
-                    self.config.default_tab = tab;
                     self.leave_subviews();
-                    self.save_config();
                 }
             }
             Message::TemperatureUnitActivated(entity) => {
@@ -1231,6 +1236,10 @@ impl Tempest {
     /// Opens the popup, or closes it if already open.
     fn handle_toggle_popup(&mut self) -> Task<Message> {
         if let Some(p) = self.popup.take() {
+            // PERF-03 / D-05: panel-button close route — commit any pending
+            // text-field edits and persist the last-used tab before tearing
+            // down the popup (one of two close routes; see PopupClosed).
+            self.commit_pending_edits();
             destroy_popup(p)
         } else {
             let new_id = Id::unique();
