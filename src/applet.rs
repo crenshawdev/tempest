@@ -91,6 +91,9 @@ pub struct Tempest {
     popup_max_height: f32,
     /// Consecutive fetch failures driving the backoff retry schedule.
     retry_count: u8,
+    /// Monotonic request-generation counter (FIX-03 / D-08). Bumped at every
+    /// logical fetch start so superseded in-flight results can be discarded.
+    fetch_generation: u64,
 }
 
 /// Queries cosmic-randr for the primary display resolution.
@@ -288,6 +291,7 @@ impl Default for Tempest {
             showing_pollen: false,
             popup_max_height: calculate_popup_max_height(),
             retry_count: 0,
+            fetch_generation: 0,
             config,
             config_handler: None,
         }
@@ -2295,6 +2299,14 @@ fn sanitize_notification_text(input: &str, max_len: usize) -> String {
     output
 }
 
+/// Returns `true` when an incoming fetch result belongs to the current request
+/// generation and should be applied; `false` for any superseded (stale or
+/// defensively future) result, which the caller drops via `Task::none()`
+/// (FIX-03 / D-08). Extracted as a pure helper for unit-testability (D-06).
+fn is_current_generation(current: u64, incoming: u64) -> bool {
+    current == incoming
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -2323,5 +2335,23 @@ mod tests {
     fn markup_and_multibyte_combined() {
         let result = sanitize_notification_text("<b>café</b>", 3);
         assert_eq!(result, "caf...");
+    }
+
+    // FIX-03 (D-06): the pure generation-compare helper. A result is applied only
+    // when its captured generation matches the current counter; any mismatch
+    // (stale-incoming or defensive future-incoming) drops the result.
+    #[test]
+    fn current_generation_matches() {
+        assert!(is_current_generation(5, 5));
+    }
+
+    #[test]
+    fn stale_incoming_generation_is_dropped() {
+        assert!(!is_current_generation(6, 5));
+    }
+
+    #[test]
+    fn defensive_mismatch_is_dropped() {
+        assert!(!is_current_generation(5, 6));
     }
 }
