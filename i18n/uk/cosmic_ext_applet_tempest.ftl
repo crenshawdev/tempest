@@ -156,3 +156,6 @@ pollen-level-off-season = Не сезон
 panel-error = ПОМ
 tooltip-remove-saved-location = Вилучити розташування
 tooltip-save-location = Збережені
+settings-pride-accent = Pride Month accent
+show-meteogram = Метеограма
+tab-graph = Графік
