@@ -2292,3 +2292,34 @@ fn sanitize_notification_text(input: &str, max_len: usize) -> String {
 
     output
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // FIX-01 regression seed (D-06): byte-based truncation panicked when `max_len`
+    // landed mid-codepoint on multibyte alert text. With char semantics this must
+    // keep exactly `max_len` characters and append the "..." suffix.
+    #[test]
+    fn truncation_is_char_safe_for_multibyte() {
+        let input = "é".repeat(100);
+        let result = sanitize_notification_text(&input, 99);
+        assert_eq!(result, format!("{}...", "é".repeat(99)));
+        assert_eq!(result.chars().count(), 99 + 3);
+    }
+
+    // ASCII text already within `max_len` is returned verbatim — no "..." suffix.
+    #[test]
+    fn ascii_text_within_limit_is_unchanged() {
+        let input = "Tornado warning";
+        assert_eq!(sanitize_notification_text(input, 99), input);
+    }
+
+    // Markup is stripped first, then the multibyte remainder is cut on a character
+    // boundary — never panics even with a small `max_len`.
+    #[test]
+    fn markup_and_multibyte_combined() {
+        let result = sanitize_notification_text("<b>café</b>", 3);
+        assert_eq!(result, "caf...");
+    }
+}
