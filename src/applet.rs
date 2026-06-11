@@ -96,10 +96,15 @@ pub struct Tempest {
     fetch_generation: u64,
 }
 
-/// Queries cosmic-randr for the primary display resolution.
-/// Returns (width, height) or None if unavailable.
-fn get_screen_resolution() -> Option<(u32, u32)> {
-    let list = futures::executor::block_on(cosmic_randr_shell::list()).ok()?;
+/// Fallback popup max height (px) used until the async resolution query resolves,
+/// and whenever cosmic-randr reports no usable display. Assumes ~1080p.
+const POPUP_MAX_HEIGHT_FALLBACK: f32 = 650.0;
+
+/// Queries cosmic-randr for the primary display resolution without blocking.
+/// Returns (width, height) or None if unavailable. Awaits the subprocess future
+/// directly so it can run off the startup critical path (PERF-02 / D-07).
+async fn get_screen_resolution_async() -> Option<(u32, u32)> {
+    let list = cosmic_randr_shell::list().await.ok()?;
 
     for (_key, output) in &list.outputs {
         if output.enabled {
@@ -111,15 +116,6 @@ fn get_screen_resolution() -> Option<(u32, u32)> {
         }
     }
     None
-}
-
-/// Calculates popup max height based on screen resolution.
-/// Uses 75% of screen height, clamped between 400-1000 pixels.
-fn calculate_popup_max_height() -> f32 {
-    match get_screen_resolution() {
-        Some((_width, height)) => (height as f32 * 0.75).clamp(400.0, 1000.0),
-        None => 650.0, // Fallback assumes ~1080p
-    }
 }
 
 /// Returns the tab as an Option, with Settings/Alerts mapped to None
@@ -289,7 +285,7 @@ impl Default for Tempest {
             showing_locations: false,
             pollen: None,
             showing_pollen: false,
-            popup_max_height: calculate_popup_max_height(),
+            popup_max_height: POPUP_MAX_HEIGHT_FALLBACK,
             retry_count: 0,
             fetch_generation: 0,
             config,
@@ -303,6 +299,9 @@ impl Default for Tempest {
 pub enum Message {
     TogglePopup,
     PopupClosed(Id),
+    /// Async result of the cosmic-randr resolution query (PERF-02 / D-07).
+    /// `None` => no usable display; the handler keeps the 650px fallback.
+    ScreenResolution(Option<(u32, u32)>),
     RefreshWeather,
     WeatherUpdated(u64, Result<WeatherData, String>),
     AirQualityUpdated(u64, Result<AirQualityData, String>),
@@ -812,6 +811,13 @@ impl Application for Tempest {
                     self.showing_pollen = false;
                     self.showing_locations = false;
                 }
+            }
+            Message::ScreenResolution(res) => {
+                // Latest-wins: a height value needs no fetch_generation guard (D-08).
+                // Mirrors the arithmetic of the former calculate_popup_max_height().
+                self.popup_max_height = res
+                    .map(|(_, h)| (h as f32 * 0.75).clamp(400.0, 1000.0))
+                    .unwrap_or(POPUP_MAX_HEIGHT_FALLBACK);
             }
             Message::RefreshWeather => return self.handle_refresh_weather(),
             Message::WeatherUpdated(gen, result) => {
