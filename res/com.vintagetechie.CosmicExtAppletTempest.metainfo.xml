@@ -94,6 +94,16 @@
   </categories>
 
   <releases>
+    <release version="2.9.2" date="2026-06-11">
+      <description>
+        <p>Performance polish — the applet does less redundant work:</p>
+        <ul>
+          <li>The 24-hour graph no longer redraws itself as you move the mouse over the popup; it updates only when the weather, the hour, the time format, or the theme changes</li>
+          <li>The panel icon appears immediately at startup instead of briefly waiting on a display-size check</li>
+          <li>Typing in the refresh-interval and air-quality token settings no longer saves on every keystroke — changes are saved when you press Enter or close the popup</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.9.1" date="2026-06-11">
       <description>
         <p>Bug-fix patch hardening four rough edges:</p>
