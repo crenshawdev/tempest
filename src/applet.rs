@@ -304,9 +304,9 @@ pub enum Message {
     TogglePopup,
     PopupClosed(Id),
     RefreshWeather,
-    WeatherUpdated(Result<WeatherData, String>),
-    AirQualityUpdated(Result<AirQualityData, String>),
-    AlertsUpdated(Result<Vec<Alert>, String>),
+    WeatherUpdated(u64, Result<WeatherData, String>),
+    AirQualityUpdated(u64, Result<AirQualityData, String>),
+    AlertsUpdated(u64, Result<Vec<Alert>, String>),
     Tick,
     ToggleAlertsEnabled,
     ToggleAutoUnits,
@@ -334,7 +334,7 @@ pub enum Message {
     SystemTimeConfig(TimeAppletConfig),
     ShowPollutants,
     HidePollutants,
-    PollenUpdated(Result<Option<PollenData>, String>),
+    PollenUpdated(u64, Result<Option<PollenData>, String>),
     ShowPollen,
     HidePollen,
     SaveLocation(usize),
@@ -814,32 +814,47 @@ impl Application for Tempest {
                 }
             }
             Message::RefreshWeather => return self.handle_refresh_weather(),
-            Message::WeatherUpdated(result) => return self.handle_weather_updated(result),
-            Message::AirQualityUpdated(result) => match result {
-                Ok(data) => {
-                    self.current_aqi = Some((data.aqi, data.standard()));
-                    self.air_quality = Some(data);
+            Message::WeatherUpdated(gen, result) => {
+                return self.handle_weather_updated(gen, result);
+            }
+            Message::AirQualityUpdated(gen, result) => {
+                // FIX-03: drop superseded results before touching any state.
+                if !is_current_generation(self.fetch_generation, gen) {
+                    return Task::none();
                 }
-                Err(e) => {
-                    tracing::warn!("Failed to fetch air quality: {}", e);
-                    self.current_aqi = None;
-                    self.air_quality = None;
-                }
-            },
-            Message::AlertsUpdated(result) => match result {
-                Ok(new_alerts) => {
-                    for alert in &new_alerts {
-                        if !self.seen_alert_ids.contains(&alert.id) {
-                            self.send_alert_notification(alert);
-                            self.seen_alert_ids.insert(alert.id.clone());
-                        }
+                match result {
+                    Ok(data) => {
+                        self.current_aqi = Some((data.aqi, data.standard()));
+                        self.air_quality = Some(data);
                     }
-                    self.alerts = new_alerts;
+                    Err(e) => {
+                        tracing::warn!("Failed to fetch air quality: {}", e);
+                        self.current_aqi = None;
+                        self.air_quality = None;
+                    }
                 }
-                Err(e) => {
-                    tracing::warn!("Failed to fetch alerts: {}", e);
+            }
+            Message::AlertsUpdated(gen, result) => {
+                // FIX-03: drop superseded results before seen_alert_ids insertion,
+                // so a stale alert batch can't mark IDs seen and suppress a real one.
+                if !is_current_generation(self.fetch_generation, gen) {
+                    return Task::none();
                 }
-            },
+                match result {
+                    Ok(new_alerts) => {
+                        for alert in &new_alerts {
+                            if !self.seen_alert_ids.contains(&alert.id) {
+                                self.send_alert_notification(alert);
+                                self.seen_alert_ids.insert(alert.id.clone());
+                            }
+                        }
+                        self.alerts = new_alerts;
+                    }
+                    Err(e) => {
+                        tracing::warn!("Failed to fetch alerts: {}", e);
+                    }
+                }
+            }
             Message::Tick => {
                 self.retry_count = 0;
                 return Self::refresh_task();
@@ -1003,17 +1018,25 @@ impl Application for Tempest {
             Message::HidePollutants => {
                 self.showing_pollutants = false;
             }
-            Message::PollenUpdated(result) => match result {
-                Ok(data) => self.pollen = Some(data),
-                Err(e) => {
-                    // Pollen is region-optional. Treat network failures as
-                    // "no data" rather than surfacing them — the alternative
-                    // is a blip of "Pollen unavailable" UI whenever the
-                    // network hiccups, which is worse than no UI at all.
-                    self.pollen = Some(None);
-                    tracing::warn!("pollen fetch failed: {e}");
+            Message::PollenUpdated(gen, result) => {
+                // FIX-03: drop superseded results before the tri-state write, so a
+                // stale result neither clobbers data nor trips the suppress-transients
+                // Some(None) policy for the live request.
+                if !is_current_generation(self.fetch_generation, gen) {
+                    return Task::none();
                 }
-            },
+                match result {
+                    Ok(data) => self.pollen = Some(data),
+                    Err(e) => {
+                        // Pollen is region-optional. Treat network failures as
+                        // "no data" rather than surfacing them — the alternative
+                        // is a blip of "Pollen unavailable" UI whenever the
+                        // network hiccups, which is worse than no UI at all.
+                        self.pollen = Some(None);
+                        tracing::warn!("pollen fetch failed: {e}");
+                    }
+                }
+            }
             Message::ShowPollen => {
                 self.showing_pollen = true;
             }
@@ -1109,6 +1132,15 @@ impl Tempest {
         self.is_loading = true;
         self.error_message = None;
 
+        // FIX-03 / D-08: bump the request generation at the single refresh entry
+        // point. Every refresh path — rapid manual refresh, retry, network
+        // reconnect, resume, AND the location-switch handlers — routes through
+        // `refresh_task()` -> `RefreshWeather` -> here, so this one bump covers
+        // them all without double-counting. `gen` is captured by value into each
+        // task closure and echoed back in the result payload for the stale guard.
+        self.fetch_generation += 1;
+        let gen = self.fetch_generation;
+
         let lat = self.config.latitude;
         let lon = self.config.longitude;
         let temp_unit = self.config.temperature_unit;
@@ -1121,7 +1153,7 @@ impl Tempest {
                     .await
                     .map_err(|e| e.to_string())
             },
-            |result| Action::App(Message::WeatherUpdated(result)),
+            move |result| Action::App(Message::WeatherUpdated(gen, result)),
         );
 
         let aqicn_token = self.config.aqicn_token.clone();
@@ -1131,13 +1163,13 @@ impl Tempest {
                     .await
                     .map_err(|e| e.to_string())
             },
-            |result| Action::App(Message::AirQualityUpdated(result)),
+            move |result| Action::App(Message::AirQualityUpdated(gen, result)),
         );
 
         let alerts_task = if alerts_enabled {
             Task::perform(
                 async move { fetch_alerts(lat, lon).await.map_err(|e| e.to_string()) },
-                |result| Action::App(Message::AlertsUpdated(result)),
+                move |result| Action::App(Message::AlertsUpdated(gen, result)),
             )
         } else {
             Task::none()
@@ -1145,7 +1177,7 @@ impl Tempest {
 
         let pollen_task = Task::perform(
             async move { fetch_pollen(lat, lon).await.map_err(|e| e.to_string()) },
-            |result| Action::App(Message::PollenUpdated(result)),
+            move |result| Action::App(Message::PollenUpdated(gen, result)),
         );
 
         Task::batch([weather_task, air_quality_task, alerts_task, pollen_task])
@@ -1153,7 +1185,18 @@ impl Tempest {
 
     /// Stores fresh weather data and updates the cached timestamp display, or
     /// schedules an exponential-backoff retry on failure.
-    fn handle_weather_updated(&mut self, result: Result<WeatherData, String>) -> Task<Message> {
+    fn handle_weather_updated(
+        &mut self,
+        gen: u64,
+        result: Result<WeatherData, String>,
+    ) -> Task<Message> {
+        // FIX-03 guardrail: discard a superseded result BEFORE touching
+        // is_loading / retry_count / error_message, so a stale drop can never
+        // reset the live request's exponential-backoff state.
+        if !is_current_generation(self.fetch_generation, gen) {
+            return Task::none();
+        }
+
         self.is_loading = false;
 
         match result {
