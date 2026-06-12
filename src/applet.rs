@@ -1016,16 +1016,14 @@ impl Application for Tempest {
             // commit_pending_edits), not per tab click. These handlers only
             // update transient state; observable reopen behavior is unchanged.
             Message::SelectTab(tab) => {
-                self.active_tab = tab;
-                self.leave_subviews();
+                self.select_tab(tab);
                 self.tab_model =
                     build_tab_model(tab_for_segmented_control(tab), self.config.show_meteogram);
             }
             Message::TabActivated(entity) => {
                 self.tab_model.activate(entity);
                 if let Some(&tab) = self.tab_model.data::<PopupTab>(entity) {
-                    self.active_tab = tab;
-                    self.leave_subviews();
+                    self.select_tab(tab);
                 }
             }
             Message::TemperatureUnitActivated(entity) => {
@@ -1127,13 +1125,29 @@ const UG_PER_M3: &str = "µg/m³";
 
 impl Tempest {
     /// Clears every sub-view overlay (pollutants, pollen, locations) so the
-    /// selected tab renders instead of a stale overlay. Shared by `SelectTab`
-    /// and `TabActivated`; a later DRY pass folds it into a single
-    /// tab-selection helper.
+    /// selected tab renders instead of a stale overlay. Invoked on every tab
+    /// selection via `select_tab`.
     fn leave_subviews(&mut self) {
         self.showing_pollutants = false;
         self.showing_pollen = false;
         self.showing_locations = false;
+    }
+
+    /// DRY-08: the shared tab-selection body for `SelectTab` and `TabActivated`.
+    ///
+    /// Sets the active tab and clears any open sub-view overlay (FIX-04), so a
+    /// tab switch always lands on the selected tab rather than a stale overlay.
+    /// Both call sites route their common work through here. The segmented-tab
+    /// model is reconciled by each caller: `SelectTab` rebuilds `tab_model`
+    /// after this (it has no activated entity), while `TabActivated` has already
+    /// activated the entity on the existing model — so the model rebuild stays
+    /// out of this helper to preserve each arm's observable behavior.
+    ///
+    /// `default_tab` is intentionally NOT persisted here: per Phase-4 D-05 it is
+    /// written once on popup CLOSE via `commit_pending_edits`, not per tab click.
+    fn select_tab(&mut self, tab: PopupTab) {
+        self.active_tab = tab;
+        self.leave_subviews();
     }
 
     /// PERF-03 / D-03, D-04: commit the refresh-interval edit buffer.
