@@ -8041,14 +8041,14 @@
     {
         "type": "archive",
         "archive-type": "tar-gzip",
-        "url": "https://static.crates.io/crates/weathervane/weathervane-0.5.0.crate",
-        "sha256": "f85b425255d29cee419652ac2807501a0b7ef7dc554850af4b12a9e6a85e5937",
-        "dest": "cargo/vendor/weathervane-0.5.0"
+        "url": "https://static.crates.io/crates/weathervane/weathervane-0.8.0.crate",
+        "sha256": "4bbd24b3c53888195a483a9e86e3e6679966e47a962dcdbf25b4c7e2ebb2ce9a",
+        "dest": "cargo/vendor/weathervane-0.8.0"
     },
     {
         "type": "inline",
-        "contents": "{\"package\": \"f85b425255d29cee419652ac2807501a0b7ef7dc554850af4b12a9e6a85e5937\", \"files\": {}}",
-        "dest": "cargo/vendor/weathervane-0.5.0",
+        "contents": "{\"package\": \"4bbd24b3c53888195a483a9e86e3e6679966e47a962dcdbf25b4c7e2ebb2ce9a\", \"files\": {}}",
+        "dest": "cargo/vendor/weathervane-0.8.0",
         "dest-filename": ".cargo-checksum.json"
     },
     {

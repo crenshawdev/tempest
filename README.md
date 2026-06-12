@@ -100,6 +100,10 @@ Translators: lorduskordus (Czech), therealmate (Hungarian), VandaL (Polish), Mar
 
 ## Changelog
 
+### 2.9.4
+
+No code changes — packaging only. The Flatpak manifest had been pinned at v2.9.0 since that release, so the self-hosted remote kept rebuilding and re-serving 2.9.0 while the AUR moved on through 2.9.1, 2.9.2, and 2.9.3. Three releases of green pipelines, all faithfully shipping the wrong version. This release bumps the manifest, regenerates the offline crate list (weathervane 0.8 among others), and adds a pipeline guard that refuses to publish a tag the manifest doesn't match. If you're on the Flatpak, this catches you up to everything below.
+
 ### 2.9.3
 
 A network blip used to blank the popup. Drop wifi for a few seconds mid-refresh and the whole thing flipped to "Failed to load," even with perfectly good weather sitting there a moment earlier. Now a transient failure keeps the last reading on screen and adds a quiet "couldn't refresh" note to the "Updated at" line, with a small warning glyph. The panel keeps its temperature, the air-quality row holds its value, and the note clears itself on the next good fetch. The full error screen is reserved for the case it's actually for — no data at all. Air-quality attribution now names the source it actually used instead of guessing from your settings. A few smaller fixes ride along: the saved-locations limit shows an inline "Saved locations are full" note instead of wiping your search when you try to add a ninth, the "Updated at" time is restored from your last good fetch at startup instead of sitting blank until the first refresh, and the 24-hour graph clamps to 24 columns so a longer hourly payload can't overdraw the chart. Under the hood, a deduplication pass folds the repeated helpers into one of each and pulls weathervane up to 0.8.

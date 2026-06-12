@@ -40,7 +40,7 @@
         {
           "type": "git",
           "url": "https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest.git",
-          "tag": "v2.9.0"
+          "tag": "v2.9.4"
         },
         "cargo-sources.json"
       ]

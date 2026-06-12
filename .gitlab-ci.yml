@@ -36,6 +36,14 @@ pages:
     - flatpak install -y --user flathub org.freedesktop.Platform//25.08 org.freedesktop.Sdk//25.08 org.freedesktop.Sdk.Extension.rust-stable//25.08
     - echo "$FLATPAK_GPG_PRIVATE_KEY" | base64 -d | gpg --batch --import
   script:
+    # Guard: the manifest must pin the tag being released. v2.9.1–v2.9.3 shipped with the
+    # manifest still on v2.9.0, so the remote silently republished the old build.
+    - MANIFEST_TAG=$(grep -o '"tag":\s*"[^"]*"' com.vintagetechie.CosmicExtAppletTempest.json | grep -o 'v[0-9][^"]*')
+    - |
+      if [ "$MANIFEST_TAG" != "$CI_COMMIT_TAG" ]; then
+        echo "FATAL: manifest pins $MANIFEST_TAG but releasing $CI_COMMIT_TAG — bump the manifest (and regenerate cargo-sources.json) before tagging." >&2
+        exit 1
+      fi
     - FLATPAK_GPG_KEY="$FLATPAK_GPG_KEY_ID" FLATPAK_BUILDER_EXTRA="--disable-rofiles-fuse" ./packaging/flatpak/publish.sh
   artifacts:
     paths:

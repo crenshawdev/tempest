@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.9.4] - 2026-06-12
+
+### Fixed
+
+- Packaging only — no code changes. The Flatpak manifest was still pinned to
+  v2.9.0, so the self-hosted remote kept rebuilding and serving 2.9.0 while
+  2.9.1–2.9.3 shipped on the AUR. The manifest now pins v2.9.4 and
+  `cargo-sources.json` is regenerated from the current lockfile (weathervane
+  0.8 et al.), catching the Flatpak up to everything in 2.9.1–2.9.3.
+- The publish pipeline gains a guard that fails the release if the manifest's
+  pinned tag doesn't match the tag being released, so a stale manifest can't
+  ship silently again.
+
 ## [2.9.3] - 2026-06-11
 
 ### Changed

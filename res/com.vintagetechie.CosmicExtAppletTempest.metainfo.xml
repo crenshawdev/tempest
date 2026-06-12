@@ -94,6 +94,17 @@
   </categories>
 
   <releases>
+    <release version="2.9.4" date="2026-06-12">
+      <description>
+        <p>Packaging only — no code changes. The Flatpak manifest had been pinned to v2.9.0 since that release, so the self-hosted remote kept serving 2.9.0 while 2.9.1–2.9.3 shipped elsewhere. This release catches the Flatpak up to everything in those versions:</p>
+        <ul>
+          <li>2.9.1's correctness fixes (notification crash on non-ASCII alert text, pressure-unit persistence, stale-weather flash, sub-view navigation)</li>
+          <li>2.9.2's performance work (meteogram canvas cache, non-blocking startup, debounced settings fields)</li>
+          <li>2.9.3's resilience pass (network blips keep the last good reading on screen instead of blanking the popup)</li>
+        </ul>
+        <p>The publish pipeline now refuses to release a tag the manifest doesn't match, so this can't happen silently again.</p>
+      </description>
+    </release>
     <release version="2.9.3" date="2026-06-11">
       <description>
         <p>The v1.1 Hardening release, bundling recent reliability and clarity fixes:</p>
