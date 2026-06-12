@@ -15,20 +15,23 @@ paru -S cosmic-ext-applet-tempest   # or: yay -S cosmic-ext-applet-tempest
 
 ### Flatpak (self-hosted remote)
 
-Tempest ships through the VintageTechie Flatpak remote — add it once and you get this and
-every other VintageTechie app:
+Tempest ships through the jcrenshaw.dev Flatpak remote — add it once and you get this and
+every other jcrenshaw.dev app:
 
 ```bash
-flatpak install --from https://vintagetechie.gitlab.io/flatpak/vintagetechie.flatpakrepo
+flatpak install --from https://dl.jcrenshaw.dev/jcrenshaw.flatpakrepo
 flatpak install com.vintagetechie.CosmicExtAppletTempest
 ```
+
+(The remote's original URL, `vintagetechie.gitlab.io/flatpak/vintagetechie.flatpakrepo`,
+still serves the same repo with the same key — remotes added under it keep updating.)
 
 Already have Tempest from the old cosmic-utils remote? It will **not** auto-update to this
 one — it's a different origin. Switch over once:
 
 ```bash
 flatpak uninstall com.vintagetechie.CosmicExtAppletTempest
-flatpak install --from https://vintagetechie.gitlab.io/flatpak/vintagetechie.flatpakrepo
+flatpak install --from https://dl.jcrenshaw.dev/jcrenshaw.flatpakrepo
 flatpak install com.vintagetechie.CosmicExtAppletTempest
 ```
 

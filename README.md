@@ -48,19 +48,23 @@ paru -S cosmic-ext-applet-tempest
 
 ### Flatpak
 
-Add the VintageTechie remote once. Everything I ship lives there.
+Add the jcrenshaw.dev remote once. Everything I ship lives there.
 
 ```bash
-flatpak remote-add --if-not-exists vintagetechie https://vintagetechie.gitlab.io/flatpak/vintagetechie.flatpakrepo
-flatpak install vintagetechie com.vintagetechie.CosmicExtAppletTempest
+flatpak remote-add --if-not-exists jcrenshaw https://dl.jcrenshaw.dev/jcrenshaw.flatpakrepo
+flatpak install jcrenshaw com.vintagetechie.CosmicExtAppletTempest
 ```
+
+Already have the remote under its old name (`vintagetechie`, at
+`vintagetechie.gitlab.io/flatpak`)? Nothing to do — it's the same repo and the same
+signing key, and the old URL keeps serving. Updates arrive either way.
 
 Installed from the old cosmic-utils remote? Different origin, so it won't auto-update. Switch once:
 
 ```bash
 flatpak uninstall com.vintagetechie.CosmicExtAppletTempest
-flatpak remote-add --if-not-exists vintagetechie https://vintagetechie.gitlab.io/flatpak/vintagetechie.flatpakrepo
-flatpak install vintagetechie com.vintagetechie.CosmicExtAppletTempest
+flatpak remote-add --if-not-exists jcrenshaw https://dl.jcrenshaw.dev/jcrenshaw.flatpakrepo
+flatpak install jcrenshaw com.vintagetechie.CosmicExtAppletTempest
 ```
 
 ### From source
