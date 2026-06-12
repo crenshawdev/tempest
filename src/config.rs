@@ -71,6 +71,10 @@ pub struct Config {
     /// use aqicn for the headline AQI instead of Open-Meteo.
     #[serde(default)]
     pub aqicn_token: Option<String>,
+    /// Country of the current location, carried from detect/select results.
+    /// Used by unit-selection and AQI-source logic in later plans.
+    #[serde(default)]
+    pub country: Option<String>,
 }
 
 /// Shared serde default for always-on booleans (alerts, auto-units, AQI panel,
@@ -120,6 +124,7 @@ impl Default for Config {
             pride_accent: true,
             saved_locations: Vec::new(),
             aqicn_token: None,
+            country: None,
         }
     }
 }
