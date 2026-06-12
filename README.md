@@ -96,6 +96,18 @@ Translators: lorduskordus (Czech), therealmate (Hungarian), VandaL (Polish), Mar
 
 ## Changelog
 
+### Unreleased
+
+A network blip used to blank the popup. Drop wifi for a few seconds mid-refresh and the whole thing flipped to "Failed to load," even with perfectly good weather sitting there a moment earlier. Now a transient failure keeps the last reading on screen and adds a quiet "couldn't refresh" note to the "Updated at" line, with a small warning glyph. The panel keeps its temperature, the air-quality row holds its value, and the note clears itself on the next good fetch. The full error screen is reserved for the case it's actually for — no data at all. Air-quality attribution now names the source it actually used instead of guessing from your settings. Under the hood, a deduplication pass folds the repeated helpers into one of each and pulls weathervane up to 0.8.
+
+### 2.9.2
+
+Performance. The meteogram stops re-tessellating every time the mouse crosses the popup — it redraws only when the weather, the hour, the time format, or the theme actually changes. The panel icon shows up at startup instead of waiting on a display-size query first. And the refresh-interval and aqicn-token fields stop writing to disk on every keystroke; they save when you press Enter or close the popup.
+
+### 2.9.1
+
+Four rough edges filed down. Notifications carrying accented or non-ASCII alert text used to crash the applet — fixed. The pressure-unit setting survives a restart again. Switching location or refreshing fast no longer flashes the old location's weather for a beat before the new data arrives. And opening Settings or Alerts from inside the pollutants, pollen, or saved-locations sub-views now drops you back on the tab you picked, not wherever you'd drilled in from.
+
 ### 2.9.0
 
 A graph, finally. The new Graph tab draws a YR.no-style meteogram for the next 24 hours: temperature line over precipitation bars up top, sustained and gust wind below, weather symbols and a now-marker across both, night hours shaded. It's the codebase's first iced canvas, sized to fit the 480px popup, which now scrolls. The Hourly tab picks up per-hour wind and precipitation amount next to the columns it already had. Both lean on weathervane 0.5 for the hourly data. Turn the meteogram off in Settings if you'd rather keep the old tab set. And every June, a thin Philadelphia pride flag rides across the top of the popup and under the panel readout — on by default, one toggle in Settings to turn it off. Plus translation updates for Czech, Swedish, and Simplified Chinese.

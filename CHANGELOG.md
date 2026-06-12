@@ -5,6 +5,57 @@ All notable changes to Tempest will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- A transient network failure now keeps the last good weather on screen instead
+  of replacing the popup with the full error view. The "Updated at" line gains a
+  small "couldn't refresh" note and a warning glyph; the panel keeps showing the
+  last reading, and air quality holds its last value through the blip. The full
+  error view (icon, "Failed to load", Retry) now appears only when there is no
+  cached weather at all, and the stale note clears on the next successful fetch.
+- Air quality attribution now names the source actually used (Open-Meteo or
+  aqicn.org) instead of inferring it from settings.
+- weathervane updated to 0.8 for the precipitation-unit and air-quality-source
+  accessors the above reads from.
+- Internal deduplication and maintainability sweep: a single shared helper each
+  for manual-location assignment, location detection, the pollen species table,
+  precipitation-unit derivation, saved-location coordinate checks, the meteogram
+  polyline and max folds, and tab selection. Plan-artifact comment tags are
+  replaced with plain-English rationale. No user-facing change.
+
+### Fixed
+
+- The saved-locations limit now shows an inline "Saved locations are full" note
+  instead of silently clearing your search when you try to add a ninth.
+- The "Updated at" time is restored from the last successful fetch at startup,
+  rather than reading blank until the first refresh completes.
+- The 24-hour graph clamps to 24 columns so a longer hourly payload can't
+  overdraw the chart.
+
+## [2.9.2] - 2026-06-11
+
+### Changed
+
+- The 24-hour graph no longer redraws as you move the mouse over the popup; it
+  updates only when the weather, the hour, the time format, or the theme changes.
+- The panel icon appears immediately at startup instead of briefly waiting on a
+  display-size check.
+- Typing in the refresh-interval and air-quality token settings no longer saves
+  on every keystroke — changes are saved when you press Enter or close the popup.
+
+## [2.9.1] - 2026-06-11
+
+### Fixed
+
+- Notifications with accented or non-ASCII alert text no longer crash the applet.
+- The pressure-unit setting is remembered correctly after a restart.
+- Switching location or refreshing quickly no longer briefly shows the previous
+  location's weather before the new data lands.
+- Opening Settings or Alerts from inside the pollutants, pollen, or
+  saved-locations views now returns to the tab you chose.
+
 ## [2.9.0] - 2026-06-09
 
 ### Added
