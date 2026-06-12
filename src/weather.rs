@@ -70,6 +70,26 @@ pub fn categorize_pollen(species: PollenSpecies, grains: f32) -> PollenLevel {
     }
 }
 
+/// Single source of the per-species pollen reading list.
+///
+/// Returns each of the six API-reported species paired with its raw grains/m³
+/// value from `data`, in natural species order (Alder, Birch, Grass, Mugwort,
+/// Olive, Ragweed). This is a PLAIN data table — it performs no categorization
+/// or filtering; callers apply `categorize_pollen` and any `OffSeason` filtering
+/// themselves. It is consumed by both the panel summary (which filters to the
+/// active species) and the pollen sub-view (which formats every reading).
+#[must_use]
+pub fn species_readings(data: &PollenData) -> [(PollenSpecies, f32); 6] {
+    [
+        (PollenSpecies::Alder, data.alder),
+        (PollenSpecies::Birch, data.birch),
+        (PollenSpecies::Grass, data.grass),
+        (PollenSpecies::Mugwort, data.mugwort),
+        (PollenSpecies::Olive, data.olive),
+        (PollenSpecies::Ragweed, data.ragweed),
+    ]
+}
+
 // Re-export everything the rest of the applet needs from tempest-core.
 pub use weathervane::{
     detect_location, detect_region, fetch_air_quality, fetch_alerts, fetch_pollen, fetch_weather,
