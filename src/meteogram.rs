@@ -165,13 +165,8 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
             }
 
             // ── Temperature axis (left) — auto-scale to 24h min/max with ~10% headroom.
-            let temps: Vec<f32> = self
-                .hourly
-                .iter()
-                .map(|h| h.temperature)
-                .filter(|t| t.is_finite())
-                .collect();
-            if let Some((t_min, t_max)) = min_max(&temps) {
+            // Folded directly over the hours (one pass, no intermediate Vec).
+            if let Some((t_min, t_max)) = finite_min_max(self.hourly, |h| h.temperature) {
                 let pad = ((t_max - t_min) * 0.1).max(0.5);
                 let lo = t_min - pad;
                 let hi = t_max + pad;
@@ -205,21 +200,7 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
                 // 4. Temperature line (GRAPH-02): 2px polyline through column centers,
                 // D-09 temp color chosen by theme brightness. Skip non-finite points.
                 let temp_color = if is_dark { TEMP_DARK } else { TEMP_LIGHT };
-                let line = Path::new(|b| {
-                    let mut started = false;
-                    for (h, hour) in self.hourly.iter().enumerate() {
-                        if !hour.temperature.is_finite() {
-                            continue;
-                        }
-                        let p = Point::new(cx(h), temp_y(hour.temperature));
-                        if started {
-                            b.line_to(p);
-                        } else {
-                            b.move_to(p);
-                            started = true;
-                        }
-                    }
-                });
+                let line = polyline(self.hourly, |h| h.temperature, &cx, &temp_y);
                 frame.stroke(
                     &line,
                     Stroke::default().with_width(2.0).with_color(temp_color),
@@ -233,12 +214,7 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
             // user's unit, so an imperial window simply scales against the (smaller)
             // numeric floor — the auto-scale still bounds the panel correctly.
             let precip_floor = 2.0_f32;
-            let precip_max = self
-                .hourly
-                .iter()
-                .map(|h| h.precipitation)
-                .filter(|p| p.is_finite())
-                .fold(0.0_f32, f32::max);
+            let precip_max = finite_max(self.hourly, |h| h.precipitation);
             let precip_scale = precip_max.max(precip_floor).max(f32::EPSILON);
             let precip_color = if is_dark { PRECIP_DARK } else { PRECIP_LIGHT };
             for (h, hour) in self.hourly.iter().enumerate() {
@@ -281,60 +257,22 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
             // the gust max alone pins the sustained line flat across the panel top whenever
             // gust data is all-zero/missing (WR-02); taking max(gust, sustained) keeps the
             // gust line from clipping while still plotting sustained wind proportionally.
-            let gust_max = self
-                .hourly
-                .iter()
-                .map(|h| h.wind_gusts)
-                .filter(|w| w.is_finite())
-                .fold(0.0_f32, f32::max);
-            let sustained_max = self
-                .hourly
-                .iter()
-                .map(|h| h.windspeed)
-                .filter(|w| w.is_finite())
-                .fold(0.0_f32, f32::max);
+            let gust_max = finite_max(self.hourly, |h| h.wind_gusts);
+            let sustained_max = finite_max(self.hourly, |h| h.windspeed);
             let wind_scale = gust_max.max(sustained_max).max(f32::EPSILON);
             let wind_y = |w: f32| wind_y1 - (w / wind_scale).clamp(0.0, 1.0) * BOTTOM_PANEL;
             let wind_color = if is_dark { WIND_DARK } else { WIND_LIGHT };
             let gust_color = with_alpha(wind_color, GUST_ALPHA);
 
             // Sustained wind — solid 2px line through finite windspeed centers.
-            let sustained = Path::new(|b| {
-                let mut started = false;
-                for (h, hour) in self.hourly.iter().enumerate() {
-                    if !hour.windspeed.is_finite() {
-                        continue;
-                    }
-                    let p = Point::new(cx(h), wind_y(hour.windspeed));
-                    if started {
-                        b.line_to(p);
-                    } else {
-                        b.move_to(p);
-                        started = true;
-                    }
-                }
-            });
+            let sustained = polyline(self.hourly, |h| h.windspeed, &cx, &wind_y);
             frame.stroke(
                 &sustained,
                 Stroke::default().with_width(2.0).with_color(wind_color),
             );
 
             // Gusts — 1.5px dashed line, same hue at 55% alpha, [4 on, 3 off] (D-03).
-            let gusts = Path::new(|b| {
-                let mut started = false;
-                for (h, hour) in self.hourly.iter().enumerate() {
-                    if !hour.wind_gusts.is_finite() {
-                        continue;
-                    }
-                    let p = Point::new(cx(h), wind_y(hour.wind_gusts));
-                    if started {
-                        b.line_to(p);
-                    } else {
-                        b.move_to(p);
-                        started = true;
-                    }
-                }
-            });
+            let gusts = polyline(self.hourly, |h| h.wind_gusts, &cx, &wind_y);
             let dash = [4.0_f32, 3.0_f32];
             frame.stroke(
                 &gusts,
@@ -436,11 +374,61 @@ fn parse_naive(s: &str) -> Option<NaiveDateTime> {
         .ok()
 }
 
-/// Finite min/max of a slice, or `None` if it is empty.
-fn min_max(values: &[f32]) -> Option<(f32, f32)> {
-    let mut iter = values.iter().copied();
-    let first = iter.next()?;
-    Some(iter.fold((first, first), |(lo, hi), v| (lo.min(v), hi.max(v))))
+/// Builds a polyline `Path` through the finite values of `hourly`.
+///
+/// `value_fn` pulls the plotted scalar from each hour (`temperature` / `windspeed`
+/// / `wind_gusts`); `x_fn` maps the column index to a center x and `y_fn` maps the
+/// value to a panel y. Non-finite values are skipped, so the line breaks across a
+/// gap rather than spiking to a bogus point; the first finite point starts the
+/// path (`move_to`) and the rest extend it (`line_to`).
+fn polyline(
+    hourly: &[HourlyForecast],
+    value_fn: impl Fn(&HourlyForecast) -> f32,
+    x_fn: &dyn Fn(usize) -> f32,
+    y_fn: &dyn Fn(f32) -> f32,
+) -> Path {
+    Path::new(|b| {
+        let mut started = false;
+        for (h, hour) in hourly.iter().enumerate() {
+            let v = value_fn(hour);
+            if !v.is_finite() {
+                continue;
+            }
+            let p = Point::new(x_fn(h), y_fn(v));
+            if started {
+                b.line_to(p);
+            } else {
+                b.move_to(p);
+                started = true;
+            }
+        }
+    })
+}
+
+/// Largest finite value pulled from `hourly` by `value_fn`, or `0.0` if none are
+/// finite. Used to auto-scale the precip and wind panels to their window peak.
+fn finite_max(hourly: &[HourlyForecast], value_fn: impl Fn(&HourlyForecast) -> f32) -> f32 {
+    hourly
+        .iter()
+        .map(value_fn)
+        .filter(|v| v.is_finite())
+        .fold(0.0_f32, f32::max)
+}
+
+/// Finite (min, max) pulled from `hourly` by `value_fn` in a single pass, or
+/// `None` if no value is finite. Drives the temperature axis auto-scaling without
+/// allocating an intermediate Vec.
+fn finite_min_max(
+    hourly: &[HourlyForecast],
+    value_fn: impl Fn(&HourlyForecast) -> f32,
+) -> Option<(f32, f32)> {
+    hourly
+        .iter()
+        .map(value_fn)
+        .filter(|v| v.is_finite())
+        .fold(None, |acc, v| {
+            Some(acc.map_or((v, v), |(lo, hi)| (lo.min(v), hi.max(v))))
+        })
 }
 
 /// 3–4 "nice" rounded gridline values spanning `[lo, hi]` for the temperature axis.
