@@ -171,3 +171,6 @@ pollen-level-very-high = Velmi vysoký
 tooltip-alerts = Upozornění na počasí
 tooltip-remove-saved-location = Odstranit uložené místo
 tooltip-save-location = Uložit místo
+tab-graph = Graf
+show-meteogram = Zobrazit meteogram
+settings-pride-accent = Pride Month akcent
