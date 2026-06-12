@@ -20,6 +20,8 @@ use crate::weather::{
     DetectedLocation, LocationResult, PollenData, PollenLevel, PollenSpecies, WeatherData,
 };
 
+mod view;
+
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// System-wide time format preference from COSMIC time applet.
