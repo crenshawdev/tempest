@@ -1524,7 +1524,18 @@ impl Tempest {
     fn handle_switch_location(&mut self, idx: usize) -> Task<Message> {
         if let Some(location) = self.config.saved_locations.get(idx) {
             let (lat, lon, name) = (location.latitude, location.longitude, location.name.clone());
+            // Saved locations don't carry a structured country, so derive it from the
+            // name's last comma-separated segment to keep auto-units correct after a
+            // switch. This matches the behavior from before the country was a stored
+            // field, when ToggleAutoUnits split the active location name. Without it,
+            // the prior location's country would linger and auto-units could apply the
+            // wrong country's unit rules.
+            let country = name
+                .split(',')
+                .next_back()
+                .map(|segment| segment.trim().to_string());
             self.set_manual_location(lat, lon, name);
+            self.config.country = country;
             self.showing_locations = false;
             self.save_config();
             return Self::refresh_task();
