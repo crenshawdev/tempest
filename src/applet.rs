@@ -227,18 +227,11 @@ fn build_pressure_model(active: PressureUnit) -> segmented_button::SingleSelectM
 /// in the natural species order; callers pick the leader with
 /// `iter().max_by_key(|(_, _, level)| *level)`.
 fn active_pollen_species(data: &PollenData) -> Vec<(PollenSpecies, f32, PollenLevel)> {
-    [
-        (PollenSpecies::Alder, data.alder),
-        (PollenSpecies::Birch, data.birch),
-        (PollenSpecies::Grass, data.grass),
-        (PollenSpecies::Mugwort, data.mugwort),
-        (PollenSpecies::Olive, data.olive),
-        (PollenSpecies::Ragweed, data.ragweed),
-    ]
-    .into_iter()
-    .map(|(s, g)| (s, g, categorize_pollen(s, g)))
-    .filter(|(_, _, level)| *level != PollenLevel::OffSeason)
-    .collect()
+    crate::weather::species_readings(data)
+        .into_iter()
+        .map(|(s, g)| (s, g, categorize_pollen(s, g)))
+        .filter(|(_, _, level)| *level != PollenLevel::OffSeason)
+        .collect()
 }
 
 /// Picks the panel text role to match the current size tier.
@@ -1817,14 +1810,7 @@ impl Tempest {
         ));
 
         if let Some(Some(ref p)) = self.pollen {
-            let rows = [
-                (PollenSpecies::Alder, p.alder),
-                (PollenSpecies::Birch, p.birch),
-                (PollenSpecies::Grass, p.grass),
-                (PollenSpecies::Mugwort, p.mugwort),
-                (PollenSpecies::Olive, p.olive),
-                (PollenSpecies::Ragweed, p.ragweed),
-            ];
+            let rows = crate::weather::species_readings(p);
 
             let mut list = widget::list_column();
             for (species, grains) in rows {
@@ -1975,16 +1961,14 @@ impl Tempest {
         let mut col = widget::Column::new().spacing(spacing.space_xxs);
         let hours_per_row = 4;
 
+        // Wind unit (km/h or mph) matches the Current tab derivation; precipitation
+        // amount unit (mm or in) is derived from the measurement system the same way.
+        // Both are loop-invariant, so they are computed once above the per-chunk loop.
+        let wind_unit = self.config.measurement_system.wind_speed_unit();
+        let precip_unit = self.config.measurement_system.precipitation_unit();
+
         for chunk in weather.hourly.chunks(hours_per_row) {
             let mut row = widget::Row::new().spacing(spacing.space_xxs);
-
-            // Wind unit (km/h or mph) matches the Current tab derivation; precipitation
-            // amount unit (mm or in) is derived from the measurement system the same way.
-            let wind_unit = self.config.measurement_system.wind_speed_unit();
-            let precip_unit = match self.config.measurement_system {
-                MeasurementSystem::Imperial => "in",
-                MeasurementSystem::Metric => "mm",
-            };
 
             for hour in chunk {
                 let cell = widget::Column::new()
@@ -2046,10 +2030,7 @@ impl Tempest {
     /// and time labels aren't cramped). Width fills the ~416px popup content area.
     fn render_graph_tab<'a>(&'a self, weather: &'a WeatherData) -> Element<'a, Message> {
         // Precip peak-label unit, derived the same way as the enriched Hourly cell.
-        let precip_unit = match self.config.measurement_system {
-            MeasurementSystem::Imperial => "in",
-            MeasurementSystem::Metric => "mm",
-        };
+        let precip_unit = self.config.measurement_system.precipitation_unit();
         cosmic::widget::Canvas::new(crate::meteogram::Meteogram {
             cache: &self.meteogram_cache,
             hourly: &weather.hourly,
