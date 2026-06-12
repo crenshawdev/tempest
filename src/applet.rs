@@ -13,10 +13,9 @@ use std::time::Duration;
 
 use crate::config::{Config, MeasurementSystem, PopupTab, PressureUnit, TemperatureUnit};
 use crate::weather::{
-    detect_location,
-    fetch_air_quality, fetch_alerts, fetch_pollen, fetch_weather,
-    search_city, uses_imperial_units, AirQualityData, Alert, AlertSeverity, AqiStandard,
-    DetectedLocation, LocationResult, PollenData, WeatherData,
+    detect_location, fetch_air_quality, fetch_alerts, fetch_pollen, fetch_weather, search_city,
+    uses_imperial_units, AirQualityData, Alert, AlertSeverity, AqiStandard, DetectedLocation,
+    LocationResult, PollenData, WeatherData,
 };
 
 mod view;
@@ -521,8 +520,8 @@ impl Application for Tempest {
         self.view_panel()
     }
 
-    fn view_window(&self, _id: Id) -> Element<'_, Self::Message> {
-        self.view_popup(_id)
+    fn view_window(&self, id: Id) -> Element<'_, Self::Message> {
+        self.view_popup(id)
     }
 
     fn update(&mut self, message: Self::Message) -> Task<Self::Message> {
