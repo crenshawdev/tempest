@@ -127,10 +127,10 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
         let gridline = with_alpha(on, 0.12);
         let label = with_alpha(on, 0.70);
 
-        // Delegate to the borrowed tessellation cache (PERF-01): the closure runs
-        // only when the cache is empty (post-`clear()`); otherwise cached geometry
-        // is returned without re-tessellating. The cache supplies the sized `&mut
-        // Frame` and calls `into_geometry()` itself.
+        // Delegate to the borrowed tessellation cache: the closure runs only when
+        // the cache is empty (post-`clear()`); otherwise cached geometry is returned
+        // without re-tessellating, so the meteogram isn't re-built every frame. The
+        // cache supplies the sized `&mut Frame` and calls `into_geometry()` itself.
         vec![self.cache.draw(renderer, bounds.size(), |frame| {
             // Background fill — drawn whether or not there is data to plot.
             frame.fill_rectangle(Point::ORIGIN, bounds.size(), bg);
