@@ -38,16 +38,16 @@ pub struct Config {
     #[serde(default)]
     pub default_tab: PopupTab,
     /// Enable weather alerts (US via NWS, EU via MeteoAlarm).
-    #[serde(default = "default_alerts_enabled")]
+    #[serde(default = "default_true")]
     pub alerts_enabled: bool,
     /// Automatically select units based on detected location.
-    #[serde(default = "default_auto_units")]
+    #[serde(default = "default_true")]
     pub auto_units: bool,
     /// Show AQI in the panel display.
-    #[serde(default = "default_show_aqi_in_panel")]
+    #[serde(default = "default_true")]
     pub show_aqi_in_panel: bool,
     /// Show weather icon in the panel display.
-    #[serde(default = "default_show_icon_in_panel")]
+    #[serde(default = "default_true")]
     pub show_icon_in_panel: bool,
     /// Show pressure in the panel display.
     #[serde(default)]
@@ -73,19 +73,9 @@ pub struct Config {
     pub aqicn_token: Option<String>,
 }
 
-fn default_alerts_enabled() -> bool {
-    true
-}
-
-fn default_auto_units() -> bool {
-    true
-}
-
-fn default_show_aqi_in_panel() -> bool {
-    true
-}
-
-fn default_show_icon_in_panel() -> bool {
+/// Shared serde default for always-on booleans (alerts, auto-units, AQI panel,
+/// icon panel). Consolidates four identical `default_*` fns (DRY-07).
+fn default_true() -> bool {
     true
 }
 
@@ -97,6 +87,12 @@ fn default_pride_accent() -> bool {
     true // ON for new AND migrating users (additive serde-defaulted field, version unchanged)
 }
 
+// DRY-07 drift-risk: the literal bool defaults below (e.g. `alerts_enabled: true`)
+// are a SECOND source of truth, parallel to the `#[serde(default = "...")]`
+// attributes on the struct fields. serde defaults apply when deserializing an
+// older on-disk config missing a field; this `impl Default` applies when building
+// a fresh Config. They must stay in sync — editing one without the other lets the
+// two silently diverge (a field could default true on migration but false on first run).
 impl Default for Config {
     fn default() -> Self {
         Self {
