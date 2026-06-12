@@ -9,8 +9,8 @@
 //! carries the sustained- and gust-wind lines. Weather symbols, time labels, a now-marker
 //! and per-hour night shading overlay both panels.
 //!
-//! All chrome colors resolve from the `Theme` draw parameter (D-10); only the four series
-//! colors are fixed (D-09 — see the palette block below for the documented exception).
+//! All chrome colors resolve from the `Theme` draw parameter; only the four series
+//! colors are fixed (see the palette block below for the documented exception).
 
 use chrono::{NaiveDate, NaiveDateTime};
 use cosmic::iced::core::svg::Svg as CanvasSvg;
@@ -56,15 +56,15 @@ const BAR_WIDTH: f32 = 11.0;
 /// Square side of an on-canvas weather symbol.
 const SYMBOL_SIZE: f32 = 18.0;
 
-// ── D-09 semantic series palette (FIXED, theme-independent) ─────────────────────
+// ── Semantic series palette (FIXED, theme-independent) ──────────────────────────
 //
-// DELIBERATE, DOCUMENTED EXCEPTION to CONVENTIONS.md:53 ("No custom styling;
-// defers to system theme"). Chart series colors carry *meaning* (warm = heat,
+// DELIBERATE, DOCUMENTED EXCEPTION to the project convention "No custom styling;
+// defers to system theme". Chart series colors carry *meaning* (warm = heat,
 // blue = water, a distinct hue = wind), so unlike all other applet colors they
-// do NOT follow the theme accent — they are a fixed weather-semantic palette
-// (D-09). Each series has a dark- and light-theme variant hand-tuned for
-// contrast on both backgrounds. DO NOT "fix" these back to theme colors: that
-// would erase the semantic encoding the chart depends on.
+// do NOT follow the theme accent — they are a fixed weather-semantic palette.
+// Each series has a dark- and light-theme variant hand-tuned for contrast on
+// both backgrounds. DO NOT "fix" these back to theme colors: that would erase
+// the semantic encoding the chart depends on.
 
 /// Temperature line — warm orange (dark theme variant).
 const TEMP_DARK: Color = Color::from_rgb8(0xFF, 0x8A, 0x4C);
@@ -78,7 +78,7 @@ const PRECIP_LIGHT: Color = Color::from_rgb8(0x19, 0x71, 0xC2);
 const WIND_DARK: Color = Color::from_rgb8(0x9C, 0x8C, 0xFF);
 /// Wind sustained line — deep violet (light theme variant).
 const WIND_LIGHT: Color = Color::from_rgb8(0x67, 0x41, 0xD9);
-/// Alpha applied to the wind hue for the gust line ("above sustained", D-03).
+/// Alpha applied to the wind hue for the gust line, drawn above the sustained line.
 const GUST_ALPHA: f32 = 0.55;
 
 /// The 24-hour meteogram canvas program.
@@ -122,7 +122,7 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
         let is_dark = cosmic.is_dark;
         let bg: Color = cosmic.background.base.into();
         let on: Color = cosmic.background.on.into();
-        // Theme-resolved chrome alphas (D-10 / UI-SPEC "Chart chrome palette").
+        // Theme-resolved chrome alphas for the night bands, gridlines, and labels.
         let night = with_alpha(on, 0.06);
         let gridline = with_alpha(on, 0.12);
         let label = with_alpha(on, 0.70);
@@ -132,14 +132,18 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
         // is returned without re-tessellating. The cache supplies the sized `&mut
         // Frame` and calls `into_geometry()` itself.
         vec![self.cache.draw(renderer, bounds.size(), |frame| {
-            // 1. Background fill (D-10) — drawn whether or not there is data to plot.
+            // Background fill — drawn whether or not there is data to plot.
             frame.fill_rectangle(Point::ORIGIN, bounds.size(), bg);
 
-            // Nothing to plot without hours — leave the blank themed surface.
-            let n = self.hourly.len();
+            // Hard-cap the chart at its column count: an over-length input slice can
+            // never plot a 25th column or index past the fixed plot geometry. Every
+            // loop and helper below walks this clamped slice, not `self.hourly`.
+            let n = self.hourly.len().min(HOURS);
             if n == 0 {
+                // Nothing to plot without hours — leave the blank themed surface.
                 return;
             }
+            let hourly = &self.hourly[..n];
 
             // Horizontal plot geometry (read bounds, never hardcode 416 — anti-pattern A4).
             let plot_w = (bounds.width - MARGIN_LEFT - MARGIN_RIGHT).max(1.0);
@@ -151,9 +155,9 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
             let top_y0 = MARGIN_TOP;
             let top_y1 = MARGIN_TOP + TOP_PANEL;
 
-            // 2. Night shading (D-07): full-height bands behind night columns. Drop a
-            // band entirely when classification fails (None) — never guess.
-            for (h, hour) in self.hourly.iter().enumerate() {
+            // Night shading: full-height bands behind night columns. Drop a band
+            // entirely when classification fails (None) rather than guessing day/night.
+            for (h, hour) in hourly.iter().enumerate() {
                 if hour_is_night(&hour.time, self.daily) == Some(true) {
                     let x = MARGIN_LEFT + h as f32 * col_w;
                     frame.fill_rectangle(
@@ -164,14 +168,9 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
                 }
             }
 
-            // ── Temperature axis (left) — auto-scale to 24h min/max with ~10% headroom.
-            let temps: Vec<f32> = self
-                .hourly
-                .iter()
-                .map(|h| h.temperature)
-                .filter(|t| t.is_finite())
-                .collect();
-            if let Some((t_min, t_max)) = min_max(&temps) {
+            // ── Temperature axis (left) — auto-scale to the window min/max with ~10%
+            // headroom. Folded directly over the hours (one pass, no intermediate Vec).
+            if let Some((t_min, t_max)) = finite_min_max(hourly, |h| h.temperature) {
                 let pad = ((t_max - t_min) * 0.1).max(0.5);
                 let lo = t_min - pad;
                 let hi = t_max + pad;
@@ -179,7 +178,8 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
                 // Map a temperature to a y within the top panel (higher temp → higher up).
                 let temp_y = |t: f32| top_y1 - ((t - lo) / span) * TOP_PANEL;
 
-                // 3. Temperature gridlines (D-08) at "nice" rounded values, theme on@12%.
+                // Temperature gridlines at "nice" rounded values, drawn in the theme
+                // foreground at 12% alpha.
                 for value in nice_gridlines(lo, hi) {
                     let y = temp_y(value);
                     let line = Path::new(|b| {
@@ -202,46 +202,28 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
                     });
                 }
 
-                // 4. Temperature line (GRAPH-02): 2px polyline through column centers,
-                // D-09 temp color chosen by theme brightness. Skip non-finite points.
+                // Temperature line: 2px polyline through column centers; the warm
+                // series color is picked by theme brightness, and non-finite points
+                // are skipped so the line breaks across gaps instead of spiking.
                 let temp_color = if is_dark { TEMP_DARK } else { TEMP_LIGHT };
-                let line = Path::new(|b| {
-                    let mut started = false;
-                    for (h, hour) in self.hourly.iter().enumerate() {
-                        if !hour.temperature.is_finite() {
-                            continue;
-                        }
-                        let p = Point::new(cx(h), temp_y(hour.temperature));
-                        if started {
-                            b.line_to(p);
-                        } else {
-                            b.move_to(p);
-                            started = true;
-                        }
-                    }
-                });
+                let line = polyline(hourly, |h| h.temperature, &cx, &temp_y);
                 frame.stroke(
                     &line,
                     Stroke::default().with_width(2.0).with_color(temp_color),
                 );
             }
 
-            // 5. Precipitation bars (GRAPH-03): auto-scale to the 24h max but never
-            // below the floor, so a drizzle doesn't fill the panel (D-02). The locked
-            // Meteogram contract carries no measurement-system field, so the floor uses
-            // the metric 2mm value; weathervane already delivers `precipitation` in the
-            // user's unit, so an imperial window simply scales against the (smaller)
-            // numeric floor — the auto-scale still bounds the panel correctly.
+            // Precipitation bars: auto-scale to the window max but never below a floor,
+            // so a drizzle doesn't fill the panel. The Meteogram contract carries no
+            // measurement-system field, so the floor uses the metric 2mm value;
+            // weathervane already delivers `precipitation` in the user's unit, so an
+            // imperial window simply scales against the (smaller) numeric floor — the
+            // auto-scale still bounds the panel correctly.
             let precip_floor = 2.0_f32;
-            let precip_max = self
-                .hourly
-                .iter()
-                .map(|h| h.precipitation)
-                .filter(|p| p.is_finite())
-                .fold(0.0_f32, f32::max);
+            let precip_max = finite_max(hourly, |h| h.precipitation);
             let precip_scale = precip_max.max(precip_floor).max(f32::EPSILON);
             let precip_color = if is_dark { PRECIP_DARK } else { PRECIP_LIGHT };
-            for (h, hour) in self.hourly.iter().enumerate() {
+            for (h, hour) in hourly.iter().enumerate() {
                 let p = hour.precipitation;
                 if !p.is_finite() || p <= 0.0 {
                     continue;
@@ -274,67 +256,31 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
                 });
             }
 
-            // ── Bottom wind panel (GRAPH-04) ───────────────────────────────────────
+            // ── Bottom wind panel ──────────────────────────────────────────────────
             let wind_y0 = top_y1 + PANEL_GAP;
             let wind_y1 = wind_y0 + BOTTOM_PANEL;
-            // Auto-scale to the 24h peak of BOTH wind series, baseline 0. Scaling against
-            // the gust max alone pins the sustained line flat across the panel top whenever
-            // gust data is all-zero/missing (WR-02); taking max(gust, sustained) keeps the
-            // gust line from clipping while still plotting sustained wind proportionally.
-            let gust_max = self
-                .hourly
-                .iter()
-                .map(|h| h.wind_gusts)
-                .filter(|w| w.is_finite())
-                .fold(0.0_f32, f32::max);
-            let sustained_max = self
-                .hourly
-                .iter()
-                .map(|h| h.windspeed)
-                .filter(|w| w.is_finite())
-                .fold(0.0_f32, f32::max);
+            // Auto-scale to the window peak of BOTH wind series, baseline 0. Scaling
+            // against the gust max alone would pin the sustained line flat across the
+            // panel top whenever gust data is all-zero/missing; taking max(gust,
+            // sustained) keeps the gust line from clipping while still plotting
+            // sustained wind proportionally.
+            let gust_max = finite_max(hourly, |h| h.wind_gusts);
+            let sustained_max = finite_max(hourly, |h| h.windspeed);
             let wind_scale = gust_max.max(sustained_max).max(f32::EPSILON);
             let wind_y = |w: f32| wind_y1 - (w / wind_scale).clamp(0.0, 1.0) * BOTTOM_PANEL;
             let wind_color = if is_dark { WIND_DARK } else { WIND_LIGHT };
             let gust_color = with_alpha(wind_color, GUST_ALPHA);
 
             // Sustained wind — solid 2px line through finite windspeed centers.
-            let sustained = Path::new(|b| {
-                let mut started = false;
-                for (h, hour) in self.hourly.iter().enumerate() {
-                    if !hour.windspeed.is_finite() {
-                        continue;
-                    }
-                    let p = Point::new(cx(h), wind_y(hour.windspeed));
-                    if started {
-                        b.line_to(p);
-                    } else {
-                        b.move_to(p);
-                        started = true;
-                    }
-                }
-            });
+            let sustained = polyline(hourly, |h| h.windspeed, &cx, &wind_y);
             frame.stroke(
                 &sustained,
                 Stroke::default().with_width(2.0).with_color(wind_color),
             );
 
-            // Gusts — 1.5px dashed line, same hue at 55% alpha, [4 on, 3 off] (D-03).
-            let gusts = Path::new(|b| {
-                let mut started = false;
-                for (h, hour) in self.hourly.iter().enumerate() {
-                    if !hour.wind_gusts.is_finite() {
-                        continue;
-                    }
-                    let p = Point::new(cx(h), wind_y(hour.wind_gusts));
-                    if started {
-                        b.line_to(p);
-                    } else {
-                        b.move_to(p);
-                        started = true;
-                    }
-                }
-            });
+            // Gusts — 1.5px dashed line ([4 on, 3 off]) in the same hue at 55% alpha,
+            // sitting visually above the sustained line.
+            let gusts = polyline(hourly, |h| h.wind_gusts, &cx, &wind_y);
             let dash = [4.0_f32, 3.0_f32];
             frame.stroke(
                 &gusts,
@@ -349,8 +295,9 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
                 },
             );
 
-            // ── Now-marker (D-06): 1px full-height vertical line at the current hour ──
-            if let Some(now_h) = self.current_hour_index() {
+            // ── Now-marker: 1px full-height vertical line at the current hour ──
+            // Only drawn when the current hour falls within the clamped column range.
+            if let Some(now_h) = self.current_hour_index().filter(|&h| h < n) {
                 let now_mark = with_alpha(on, 0.30);
                 let x = cx(now_h);
                 let line = Path::new(|b| {
@@ -363,15 +310,15 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
                 );
             }
 
-            // ── Weather symbols (D-04 / GRAPH-05): 8 symbols every 3h in MARGIN_TOP ──
+            // ── Weather symbols: one symbol every 3h in the top symbol row ──
             // Primary path: COSMIC symbolic icon → svg handle → recolored canvas Svg →
             // draw_svg. The Option is handled (never unwrapped). If a handle is missing
-            // the symbol is skipped here; the Stack-overlay fallback for that case is a
-            // view-tier construct (it emits widgets, which draw() cannot) and so is wired
-            // in Plan 03's view_window, which owns the Canvas + surrounding column.
+            // the symbol is skipped here; the missing-icon fallback is a view-tier
+            // construct (it emits widgets, which draw() cannot) and so lives in the
+            // surrounding view that owns the Canvas + column.
             let symbol_color = with_alpha(on, 0.85);
             for h in (0..n).step_by(LABEL_STEP) {
-                let hour = &self.hourly[h];
+                let hour = &hourly[h];
                 let is_night = hour_is_night(&hour.time, self.daily).unwrap_or(false);
                 let name = hour.condition.icon_name(is_night);
                 if let Some(handle) = cosmic::widget::icon::from_name(name)
@@ -389,12 +336,12 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
                 }
             }
 
-            // ── Time axis (D-05 / GRAPH-06): 8 hour-only labels every 3h, centered ──
+            // ── Time axis: one hour-only label every 3h, centered under its column ──
             let time_y = wind_y1 + AXIS_LABEL_GAP / 2.0;
             for h in (0..n).step_by(LABEL_STEP) {
-                let hour = &self.hourly[h];
+                let hour = &hourly[h];
                 // Compact the label (4:00 PM → 4 PM, 16:00 → 16): the on-the-hour ":00"
-                // is redundant on the axis and the full strings collide at 8-per-416px.
+                // is redundant on the axis and the full strings collide at this density.
                 frame.fill_text(Text {
                     content: crate::weather::format_hour(&hour.time, self.military_time)
                         .replace(":00", ""),
@@ -436,11 +383,61 @@ fn parse_naive(s: &str) -> Option<NaiveDateTime> {
         .ok()
 }
 
-/// Finite min/max of a slice, or `None` if it is empty.
-fn min_max(values: &[f32]) -> Option<(f32, f32)> {
-    let mut iter = values.iter().copied();
-    let first = iter.next()?;
-    Some(iter.fold((first, first), |(lo, hi), v| (lo.min(v), hi.max(v))))
+/// Builds a polyline `Path` through the finite values of `hourly`.
+///
+/// `value_fn` pulls the plotted scalar from each hour (`temperature` / `windspeed`
+/// / `wind_gusts`); `x_fn` maps the column index to a center x and `y_fn` maps the
+/// value to a panel y. Non-finite values are skipped, so the line breaks across a
+/// gap rather than spiking to a bogus point; the first finite point starts the
+/// path (`move_to`) and the rest extend it (`line_to`).
+fn polyline(
+    hourly: &[HourlyForecast],
+    value_fn: impl Fn(&HourlyForecast) -> f32,
+    x_fn: &dyn Fn(usize) -> f32,
+    y_fn: &dyn Fn(f32) -> f32,
+) -> Path {
+    Path::new(|b| {
+        let mut started = false;
+        for (h, hour) in hourly.iter().enumerate() {
+            let v = value_fn(hour);
+            if !v.is_finite() {
+                continue;
+            }
+            let p = Point::new(x_fn(h), y_fn(v));
+            if started {
+                b.line_to(p);
+            } else {
+                b.move_to(p);
+                started = true;
+            }
+        }
+    })
+}
+
+/// Largest finite value pulled from `hourly` by `value_fn`, or `0.0` if none are
+/// finite. Used to auto-scale the precip and wind panels to their window peak.
+fn finite_max(hourly: &[HourlyForecast], value_fn: impl Fn(&HourlyForecast) -> f32) -> f32 {
+    hourly
+        .iter()
+        .map(value_fn)
+        .filter(|v| v.is_finite())
+        .fold(0.0_f32, f32::max)
+}
+
+/// Finite (min, max) pulled from `hourly` by `value_fn` in a single pass, or
+/// `None` if no value is finite. Drives the temperature axis auto-scaling without
+/// allocating an intermediate Vec.
+fn finite_min_max(
+    hourly: &[HourlyForecast],
+    value_fn: impl Fn(&HourlyForecast) -> f32,
+) -> Option<(f32, f32)> {
+    hourly
+        .iter()
+        .map(value_fn)
+        .filter(|v| v.is_finite())
+        .fold(None, |acc, v| {
+            Some(acc.map_or((v, v), |(lo, hi)| (lo.min(v), hi.max(v))))
+        })
 }
 
 /// 3–4 "nice" rounded gridline values spanning `[lo, hi]` for the temperature axis.
@@ -467,7 +464,7 @@ fn nice_gridlines(lo: f32, hi: f32) -> Vec<f32> {
         10.0
     } * mag;
     // Independently guarantee a positive, finite step before walking multiples — the
-    // len()<8 loop cap is a backstop, not a correctness proof for extreme spans (WR-04).
+    // len()<8 loop cap is a backstop, not a correctness proof for extreme spans.
     if !step.is_finite() || step <= 0.0 {
         return vec![lo];
     }
@@ -488,9 +485,9 @@ fn nice_gridlines(lo: f32, hi: f32) -> Vec<f32> {
 /// Returns `true` if `hour_time` falls in night for the day that owns it.
 ///
 /// Generalizes the single-instant `is_night_time` to an arbitrary hour: the 24h
-/// window spans two calendar days, so each hour is classified against *its own*
-/// day's sunrise/sunset (Pitfall 3). Returns `None` if anything fails to
-/// parse/match — the caller then drops shading for that hour (D-07 graceful
+/// window spans two calendar days, so each hour must be classified against *its
+/// own* day's sunrise/sunset rather than a single day's. Returns `None` if anything
+/// fails to parse/match — the caller then drops shading for that hour (graceful
 /// degradation). No `unwrap`/`expect` touches the upstream timestamp strings.
 fn hour_is_night(hour_time: &str, forecast: &[DailyForecast]) -> Option<bool> {
     let h = parse_naive(hour_time)?;
