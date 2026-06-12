@@ -90,7 +90,7 @@ pub struct Tempest {
     pollen: Option<Option<PollenData>>,
     /// Whether the pollen drill-down sub-view is currently displayed.
     showing_pollen: bool,
-    /// MAINT-02: set when a save is attempted at the 8-slot cap; renders an
+    /// Set when a save is attempted at the 8-slot cap; renders an
     /// inline caption in the search section instead of silently clearing the
     /// search. Cleared on the next successful save or search-input change.
     saved_locations_full: bool,
@@ -98,10 +98,11 @@ pub struct Tempest {
     popup_max_height: f32,
     /// Consecutive fetch failures driving the backoff retry schedule.
     retry_count: u8,
-    /// Monotonic request-generation counter (FIX-03 / D-08). Bumped at every
-    /// logical fetch start so superseded in-flight results can be discarded.
+    /// Monotonic request-generation counter. Bumped at every logical fetch
+    /// start so superseded in-flight results can be discarded — a slow old
+    /// response can't overwrite the data from a newer request.
     fetch_generation: u64,
-    /// Shared tessellation cache for the meteogram canvas (PERF-01). Borrowed by
+    /// Shared tessellation cache for the meteogram canvas. Borrowed by
     /// `Meteogram` so `draw()` reuses geometry across renders; cleared only at the
     /// state transitions that change rendered pixels (weather replace, hourly tick,
     /// 12/24h format change, dark/light theme change).
@@ -114,7 +115,8 @@ const POPUP_MAX_HEIGHT_FALLBACK: f32 = 650.0;
 
 /// Queries cosmic-randr for the primary display resolution without blocking.
 /// Returns (width, height) or None if unavailable. Awaits the subprocess future
-/// directly so it can run off the startup critical path (PERF-02 / D-07).
+/// directly so it can run off the startup critical path rather than blocking
+/// the applet's first paint.
 async fn get_screen_resolution_async() -> Option<(u32, u32)> {
     let list = cosmic_randr_shell::list().await.ok()?;
 
@@ -142,7 +144,7 @@ fn tab_for_segmented_control(tab: PopupTab) -> Option<PopupTab> {
 /// Builds the segmented control model for tab selection.
 /// Pass `None` to build with no active selection (for Settings/Alerts tabs).
 /// The Graph segment is appended as the 4th tab only when `show_meteogram` is
-/// enabled (D-12) — disabling the meteogram removes it from the bar (D-14).
+/// enabled — disabling the meteogram removes the Graph segment from the bar.
 fn build_tab_model(
     active: Option<PopupTab>,
     show_meteogram: bool,
@@ -307,8 +309,9 @@ impl Default for Tempest {
 pub enum Message {
     TogglePopup,
     PopupClosed(Id),
-    /// Async result of the cosmic-randr resolution query (PERF-02 / D-07).
-    /// `None` => no usable display; the handler keeps the 650px fallback.
+    /// Async result of the cosmic-randr resolution query (run off the startup
+    /// critical path). `None` => no usable display; the handler keeps the 650px
+    /// fallback.
     ScreenResolution(Option<(u32, u32)>),
     RefreshWeather,
     WeatherUpdated(u64, Result<WeatherData, String>),
@@ -330,10 +333,12 @@ pub enum Message {
     SelectLocation(usize),
     UpdateRefreshInterval(String),
     UpdateAqicnToken(String),
-    /// Enter/submit commit for the refresh-interval field (PERF-03 / D-03).
+    /// Enter/submit commit for the refresh-interval field. Edits are buffered
+    /// locally and only written on commit, avoiding a config write per keystroke.
     /// Reads from `refresh_input`; the `on_submit` String payload is ignored.
     CommitRefreshInterval,
-    /// Enter/submit commit for the AQI-token field (PERF-03 / D-03).
+    /// Enter/submit commit for the AQI-token field. Edits are buffered locally
+    /// and only written on commit, avoiding a config write per keystroke.
     /// Reads from `aqicn_token_input`; the `on_submit` String payload is ignored.
     CommitAqicnToken,
     DetectLocation,
@@ -400,7 +405,7 @@ impl Application for Tempest {
         }
 
         let refresh_input = config.refresh_interval_minutes.to_string();
-        // D-14: a persisted `default_tab == Graph` while the meteogram is disabled
+        // A persisted `default_tab == Graph` while the meteogram is disabled
         // (e.g. a hand-edited config) must not open the popup to a missing view —
         // fall back to Current. The Graph segment is also omitted from the tab bar
         // below, so there is no clickable path back to the absent view.
@@ -465,7 +470,7 @@ impl Application for Tempest {
             meteogram_cache: canvas::Cache::new(),
         };
 
-        // MAINT-02: seed the "Updated at HH:MM" header from the persisted
+        // Seed the "Updated at HH:MM" header from the persisted
         // timestamp so a freshly-started applet shows the last known refresh
         // time instead of a blank header until the first fetch completes. Same
         // reconstruction as `handle_system_time_config`; runs after `app` exists
@@ -484,7 +489,7 @@ impl Application for Tempest {
             Task::perform(async { Message::RefreshWeather }, Action::App)
         };
 
-        // Fire the resolution query off the startup critical path (PERF-02 / D-07):
+        // Fire the resolution query off the startup critical path:
         // the panel button renders immediately on the 650px fallback; the async
         // result refines popup_max_height when it arrives.
         (app, Task::batch([task, Self::screen_resolution_task()]))
@@ -526,7 +531,7 @@ impl Application for Tempest {
         Some(Message::PopupClosed(id))
     }
 
-    /// Dark/light theme seam (PERF-01 / D-02): the meteogram's `is_dark` branch
+    /// Dark/light theme seam: the meteogram's `is_dark` branch
     /// selects different series and chrome colors, so a theme-mode flip must
     /// invalidate the cached chart for an instant repaint.
     fn system_theme_mode_update(
@@ -882,12 +887,13 @@ impl Application for Tempest {
             Message::TogglePopup => return self.handle_toggle_popup(),
             Message::PopupClosed(id) => {
                 if self.popup.as_ref() == Some(&id) {
-                    // PERF-03 / D-05: dismiss/outside-click close route — commit
-                    // pending text-field edits and persist the last-used tab
-                    // (second of two close routes; see handle_toggle_popup).
+                    // Dismiss/outside-click close route — commit pending
+                    // text-field edits and persist the last-used tab on close
+                    // (rather than on every keystroke). Second of two close
+                    // routes; see handle_toggle_popup.
                     self.commit_pending_edits();
                     self.popup = None;
-                    // FIX-04: reset sub-view overlays so a reopen lands on the
+                    // Reset sub-view overlays so a reopen lands on the
                     // tab, not a stale overlay.
                     self.showing_pollutants = false;
                     self.showing_pollen = false;
@@ -895,7 +901,7 @@ impl Application for Tempest {
                 }
             }
             Message::ScreenResolution(res) => {
-                // Latest-wins: a height value needs no fetch_generation guard (D-08).
+                // Latest-wins: a height value needs no generation guard.
                 // Mirrors the arithmetic of the former calculate_popup_max_height().
                 self.popup_max_height = res
                     .map(|(_, h)| (h as f32 * 0.75).clamp(400.0, 1000.0))
@@ -906,7 +912,8 @@ impl Application for Tempest {
                 return self.handle_weather_updated(gen, result);
             }
             Message::AirQualityUpdated(gen, result) => {
-                // FIX-03: drop superseded results before touching any state.
+                // Drop superseded results before touching any state, so a slow
+                // old-coords response can't overwrite the current location's AQI.
                 if !is_current_generation(self.fetch_generation, gen) {
                     return Task::none();
                 }
@@ -925,7 +932,7 @@ impl Application for Tempest {
                 }
             }
             Message::AlertsUpdated(gen, result) => {
-                // FIX-03: drop superseded results before seen_alert_ids insertion,
+                // Drop superseded results before seen_alert_ids insertion,
                 // so a stale alert batch can't mark IDs seen and suppress a real one.
                 if !is_current_generation(self.fetch_generation, gen) {
                     return Task::none();
@@ -939,12 +946,12 @@ impl Application for Tempest {
                             }
                         }
                         self.alerts = new_alerts;
-                        // MAINT-04 / D-06: prune the seen-set to the IDs in this
-                        // winning batch so it stays bounded to currently-active
-                        // alerts. An alert that clears then genuinely re-issues
-                        // re-notifies. Runs only here — inside the Ok branch,
-                        // past the FIX-03 generation guard (D-06a) — so a stale
-                        // or superseded batch can never reshape the seen-set.
+                        // Prune the seen-set to the IDs in this winning batch so
+                        // it stays bounded to currently-active alerts. An alert
+                        // that clears then genuinely re-issues re-notifies. Runs
+                        // only here — inside the Ok branch, past the generation
+                        // guard — so a stale or superseded batch can never
+                        // reshape the seen-set.
                         let batch_ids: HashSet<_> =
                             self.alerts.iter().map(|a| a.id.clone()).collect();
                         self.seen_alert_ids.retain(|id| batch_ids.contains(id));
@@ -956,7 +963,7 @@ impl Application for Tempest {
             }
             Message::Tick => {
                 self.retry_count = 0;
-                // Hourly wall-clock advance (D-01): refresh now-marker, night
+                // Hourly wall-clock advance: refresh now-marker, night
                 // shading, and current-hour index at hourly granularity.
                 self.meteogram_cache.clear();
                 return Self::refresh_task();
@@ -1004,7 +1011,7 @@ impl Application for Tempest {
             }
             Message::ToggleShowMeteogram => {
                 self.config.show_meteogram = !self.config.show_meteogram;
-                // D-14: disabling the meteogram removes the Graph segment, so a
+                // Disabling the meteogram removes the Graph segment, so a
                 // Graph active/default tab would point at a missing view — reset
                 // both to Current before rebuilding the tab bar.
                 if !self.config.show_meteogram
@@ -1026,7 +1033,7 @@ impl Application for Tempest {
             }
             Message::UpdateCityInput(value) => {
                 self.city_input = value;
-                // MAINT-02: clear the save-cap feedback once the user edits the
+                // Clear the save-cap feedback once the user edits the
                 // search again.
                 self.saved_locations_full = false;
             }
@@ -1049,14 +1056,14 @@ impl Application for Tempest {
                 }
             },
             Message::SelectLocation(idx) => return self.handle_select_location(idx),
-            // PERF-03: local-edit-only. No parse, no config write, no save per
+            // Local-edit-only. No parse, no config write, no save per
             // keystroke — committed on Enter (CommitRefreshInterval) and on popup
             // close (commit_pending_edits). This stops the "typing 120 passes
             // through a live 1-minute tick" subscription thrash.
             Message::UpdateRefreshInterval(value) => {
                 self.refresh_input = value;
             }
-            // PERF-03: local-edit-only; committed on Enter / popup close.
+            // Local-edit-only; committed on Enter / popup close.
             Message::UpdateAqicnToken(value) => {
                 self.aqicn_token_input = value;
             }
@@ -1065,7 +1072,7 @@ impl Application for Tempest {
             Message::ToggleAutoLocation => return self.handle_toggle_auto_location(),
             Message::DetectLocation => return Self::detect_location_task(),
             Message::LocationDetected(result) => return self.handle_location_detected(result),
-            // PERF-03 / D-05: default_tab now persists once on popup close (via
+            // default_tab now persists once on popup close (via
             // commit_pending_edits), not per tab click. These handlers only
             // update transient state; observable reopen behavior is unchanged.
             Message::SelectTab(tab) => {
@@ -1110,7 +1117,7 @@ impl Application for Tempest {
                 self.showing_pollutants = false;
             }
             Message::PollenUpdated(gen, result) => {
-                // FIX-03: drop superseded results before the tri-state write, so a
+                // Drop superseded results before the tri-state write, so a
                 // stale result neither clobbers data nor trips the suppress-transients
                 // Some(None) policy for the live request.
                 if !is_current_generation(self.fetch_generation, gen) {
@@ -1186,9 +1193,9 @@ impl Tempest {
         self.showing_locations = false;
     }
 
-    /// DRY-08: the shared tab-selection body for `SelectTab` and `TabActivated`.
+    /// The shared tab-selection body for `SelectTab` and `TabActivated`.
     ///
-    /// Sets the active tab and clears any open sub-view overlay (FIX-04), so a
+    /// Sets the active tab and clears any open sub-view overlay, so a
     /// tab switch always lands on the selected tab rather than a stale overlay.
     /// Both call sites route their common work through here. The segmented-tab
     /// model is reconciled by each caller: `SelectTab` rebuilds `tab_model`
@@ -1196,22 +1203,21 @@ impl Tempest {
     /// activated the entity on the existing model — so the model rebuild stays
     /// out of this helper to preserve each arm's observable behavior.
     ///
-    /// `default_tab` is intentionally NOT persisted here: per Phase-4 D-05 it is
-    /// written once on popup CLOSE via `commit_pending_edits`, not per tab click.
+    /// `default_tab` is intentionally NOT persisted here: it is written once on
+    /// popup CLOSE via `commit_pending_edits`, not per tab click.
     fn select_tab(&mut self, tab: PopupTab) {
         self.active_tab = tab;
         self.leave_subviews();
     }
 
-    /// PERF-03 / D-03, D-04: commit the refresh-interval edit buffer.
+    /// Commit the refresh-interval edit buffer.
     ///
     /// Parses `refresh_input`; if it is a valid `u64` in `1..=1440` it is
     /// persisted. Otherwise (non-numeric or out of range) the field REVERTS to
-    /// the last persisted value — no config write, no error UI (the error-hint
-    /// UX is deferred to Phase 6 MAINT-03). The `1..=1440` range-check also
-    /// mitigates T-04-04: a 0/overflow/non-numeric interval can never be
-    /// committed, so the tick subscription cannot be driven to a degenerate
-    /// cadence.
+    /// the last persisted value — no config write, no error UI. The `1..=1440`
+    /// range-check also guards the tick subscription: a 0/overflow/non-numeric
+    /// interval can never be committed, so the tick cadence cannot be driven to
+    /// a degenerate value.
     fn commit_refresh_interval(&mut self) {
         match self.refresh_input.parse::<u64>() {
             Ok(interval) if (1..=1440).contains(&interval) => {
@@ -1219,13 +1225,13 @@ impl Tempest {
                 self.save_config();
             }
             _ => {
-                // Revert to the last persisted value (D-04).
+                // Revert to the last persisted value.
                 self.refresh_input = self.config.refresh_interval_minutes.to_string();
             }
         }
     }
 
-    /// PERF-03: commit the AQI-token edit buffer.
+    /// Commit the AQI-token edit buffer.
     ///
     /// Mirrors the original per-keystroke trim logic: an empty (after trim)
     /// field clears the token, otherwise the trimmed value is stored. The input
@@ -1242,7 +1248,7 @@ impl Tempest {
         self.save_config();
     }
 
-    /// PERF-03 / D-05: commit every pending edit on popup close.
+    /// Commit every pending edit on popup close.
     ///
     /// Persists the refresh-interval and AQI-token edit buffers and the
     /// last-used tab (`default_tab`) in a single place. Called from BOTH
@@ -1263,9 +1269,10 @@ impl Tempest {
         Task::perform(async { Message::RefreshWeather }, Action::App)
     }
 
-    /// One-shot async cosmic-randr resolution query (PERF-02 / D-07, D-08).
-    /// Fired at init and on each popup open so monitor/resolution changes are
-    /// picked up on the next open; the result lands as `Message::ScreenResolution`.
+    /// One-shot async cosmic-randr resolution query, kept off the startup
+    /// critical path. Fired at init and on each popup open so monitor/resolution
+    /// changes are picked up on the next open; the result lands as
+    /// `Message::ScreenResolution`.
     fn screen_resolution_task() -> Task<Message> {
         Task::perform(async { get_screen_resolution_async().await }, |res| {
             Action::App(Message::ScreenResolution(res))
@@ -1274,8 +1281,7 @@ impl Tempest {
 
     /// One-shot async geolocation lookup. Fired at init (when auto-location is
     /// enabled), from the `DetectLocation` message, and when toggling into
-    /// auto-location mode; the result lands as `Message::LocationDetected`
-    /// (DRY-02).
+    /// auto-location mode; the result lands as `Message::LocationDetected`.
     fn detect_location_task() -> Task<Message> {
         Task::perform(
             async { detect_location().await.map_err(|e| e.to_string()) },
@@ -1286,9 +1292,9 @@ impl Tempest {
     /// Opens the popup, or closes it if already open.
     fn handle_toggle_popup(&mut self) -> Task<Message> {
         if let Some(p) = self.popup.take() {
-            // PERF-03 / D-05: panel-button close route — commit any pending
-            // text-field edits and persist the last-used tab before tearing
-            // down the popup (one of two close routes; see PopupClosed).
+            // Panel-button close route — commit any pending text-field edits
+            // and persist the last-used tab before tearing down the popup
+            // (one of two close routes; see PopupClosed).
             self.commit_pending_edits();
             destroy_popup(p)
         } else {
@@ -1302,7 +1308,7 @@ impl Tempest {
                 None,
             );
             popup_settings.positioner.size_limits = self.popup_limits();
-            // D-08: re-fire the resolution query so a monitor/resolution change
+            // Re-fire the resolution query so a monitor/resolution change
             // is reflected on the next open. This open uses the cached
             // popup_max_height; the refreshed value lands before the next open.
             Task::batch([get_popup(popup_settings), Self::screen_resolution_task()])
@@ -1316,7 +1322,7 @@ impl Tempest {
         self.is_loading = true;
         self.error_message = None;
 
-        // FIX-03 / D-08: bump the request generation at the single refresh entry
+        // Bump the request generation at the single refresh entry
         // point. Every refresh path — rapid manual refresh, retry, network
         // reconnect, resume, AND the location-switch handlers — routes through
         // `refresh_task()` -> `RefreshWeather` -> here, so this one bump covers
@@ -1374,7 +1380,7 @@ impl Tempest {
         gen: u64,
         result: Result<WeatherData, String>,
     ) -> Task<Message> {
-        // FIX-03 guardrail: discard a superseded result BEFORE touching
+        // Discard a superseded result BEFORE touching
         // is_loading / retry_count / error_message, so a stale drop can never
         // reset the live request's exponential-backoff state.
         if !is_current_generation(self.fetch_generation, gen) {
@@ -1503,7 +1509,7 @@ impl Tempest {
     /// Stores a manually chosen location: sets the active coordinates/name and
     /// the persisted `manual_*` shadow fields, and disables auto-location. The
     /// single source of truth for the manual-location assignment shared by
-    /// `handle_switch_location` and `handle_select_location` (DRY-01).
+    /// `handle_switch_location` and `handle_select_location`.
     fn set_manual_location(&mut self, lat: f64, lon: f64, name: String) {
         self.config.latitude = lat;
         self.config.longitude = lon;
@@ -1551,7 +1557,7 @@ impl Tempest {
     /// coordinate, capped at the configured 8-slot limit.
     fn handle_save_location(&mut self, idx: usize) {
         if let Some(location) = self.search_results.get(idx) {
-            // MAINT-02: at the 8-slot cap, surface inline feedback and PRESERVE
+            // At the 8-slot cap, surface inline feedback and PRESERVE
             // the search so the user can remove a saved location and retry —
             // rather than silently no-op'ing and clearing what they searched.
             if self.config.saved_locations.len() >= 8 {
@@ -1763,9 +1769,9 @@ impl Tempest {
                     .add(widget::list::button(aqi_content).on_press(Message::ShowPollutants)),
             );
 
-            // MAINT-05 / D-05: attribution reflects the source weathervane
-            // actually used, read straight off the data (`aqi_source`) instead
-            // of re-deriving the token/region selection logic here.
+            // Attribution reflects the source weathervane actually used, read
+            // straight off the data (`aqi_source`) instead of re-deriving the
+            // token/region selection logic here.
             match aq.aqi_source {
                 AqiSource::Aqicn => {
                     col = col.push(widget::text::caption(crate::fl!("aqicn-attribution")));
@@ -2077,12 +2083,12 @@ impl Tempest {
                         "{}%",
                         hour.precipitation_probability
                     )))
-                    // HOUR-01: per-hour wind speed (weathervane 0.5, already in user's unit)
+                    // Per-hour wind speed (already converted to the user's unit by weathervane)
                     .push(widget::text::caption(format!(
                         "{:.0} {wind_unit}",
                         hour.windspeed
                     )))
-                    // HOUR-02: per-hour precipitation amount (weathervane 0.5, user's unit)
+                    // Per-hour precipitation amount (in the user's unit)
                     .push(widget::text::caption(format!(
                         "{:.1} {precip_unit}",
                         hour.precipitation
@@ -2106,12 +2112,12 @@ impl Tempest {
         col.into()
     }
 
-    /// Renders the Graph tab: the YR.no-style meteogram canvas (GRAPH-01).
+    /// Renders the Graph tab: the YR.no-style meteogram canvas.
     ///
-    /// The canvas is constructed against `meteogram::Meteogram`'s LOCKED field
+    /// The canvas is constructed against `meteogram::Meteogram`'s field
     /// contract (`hourly` / `daily` / `military_time`; `&Vec<T>` coerces to the
     /// struct's `&[T]` fields). Height MUST be a `Fixed` value — `Shrink` collapses
-    /// the canvas to zero inside the surrounding `scrollable` (Pitfall 1); 300px
+    /// the canvas to zero inside the surrounding `scrollable`; 300px
     /// matches the meteogram's band-height constants (grown from 260px so the panels
     /// and time labels aren't cramped). Width fills the ~416px popup content area.
     fn render_graph_tab<'a>(&'a self, weather: &'a WeatherData) -> Element<'a, Message> {
@@ -2307,7 +2313,7 @@ impl Tempest {
                 );
             }
 
-            // MAINT-02: inline feedback when the 8-slot save cap is reached.
+            // Inline feedback when the 8-slot save cap is reached.
             if self.saved_locations_full {
                 section = section.add(widget::text::caption(crate::fl!("saved-locations-full")));
             }
@@ -2568,8 +2574,8 @@ fn sanitize_notification_text(input: &str, max_len: usize) -> String {
 
 /// Returns `true` when an incoming fetch result belongs to the current request
 /// generation and should be applied; `false` for any superseded (stale or
-/// defensively future) result, which the caller drops via `Task::none()`
-/// (FIX-03 / D-08). Extracted as a pure helper for unit-testability (D-06).
+/// defensively future) result, which the caller drops via `Task::none()`.
+/// Extracted as a pure helper so the generation-compare logic is unit-testable.
 fn is_current_generation(current: u64, incoming: u64) -> bool {
     current == incoming
 }
@@ -2578,7 +2584,7 @@ fn is_current_generation(current: u64, incoming: u64) -> bool {
 mod tests {
     use super::*;
 
-    // FIX-01 regression seed (D-06): byte-based truncation panicked when `max_len`
+    // Regression guard: byte-based truncation panicked when `max_len`
     // landed mid-codepoint on multibyte alert text. With char semantics this must
     // keep exactly `max_len` characters and append the "..." suffix.
     #[test]
@@ -2604,7 +2610,7 @@ mod tests {
         assert_eq!(result, "caf...");
     }
 
-    // FIX-03 (D-06): the pure generation-compare helper. A result is applied only
+    // The pure generation-compare helper. A result is applied only
     // when its captured generation matches the current counter; any mismatch
     // (stale-incoming or defensive future-incoming) drops the result.
     #[test]
