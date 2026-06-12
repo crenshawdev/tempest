@@ -1,6 +1,6 @@
 pkgbase = cosmic-ext-applet-tempest
 	pkgdesc = Weather applet for COSMIC Desktop with automatic location detection
-	pkgver = 2.9.2
+	pkgver = 2.9.3
 	pkgrel = 1
 	url = https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest
 	arch = x86_64
@@ -11,7 +11,7 @@ pkgbase = cosmic-ext-applet-tempest
 	depends = libxkbcommon
 	depends = openssl
 	options = !lto
-	source = cosmic-ext-applet-tempest-2.9.2.tar.gz::https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/archive/v2.9.2/cosmic-ext-applet-tempest-v2.9.2.tar.gz
-	sha256sums = f28a53f6ef81017c3199ee06aa7a2dc6a19c88d8407cd49124488f1c54272368
+	source = cosmic-ext-applet-tempest-2.9.3.tar.gz::https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/archive/v2.9.3/cosmic-ext-applet-tempest-v2.9.3.tar.gz
+	sha256sums = c360e867081f4a30879306eb5649cae966ed4b81c71a5b785e5cdc28f7f33c42
 
 pkgname = cosmic-ext-applet-tempest
