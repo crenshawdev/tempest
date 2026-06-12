@@ -463,10 +463,7 @@ impl Application for Tempest {
 
         // Start with auto-location if enabled, otherwise fetch weather
         let task = if config.use_auto_location {
-            Task::perform(
-                async { detect_location().await.map_err(|e| e.to_string()) },
-                |result| Action::App(Message::LocationDetected(result)),
-            )
+            Self::detect_location_task()
         } else {
             Task::perform(async { Message::RefreshWeather }, Action::App)
         };
@@ -1020,12 +1017,7 @@ impl Application for Tempest {
             Message::CommitRefreshInterval => self.commit_refresh_interval(),
             Message::CommitAqicnToken => self.commit_aqicn_token(),
             Message::ToggleAutoLocation => return self.handle_toggle_auto_location(),
-            Message::DetectLocation => {
-                return Task::perform(
-                    async { detect_location().await.map_err(|e| e.to_string()) },
-                    |result| Action::App(Message::LocationDetected(result)),
-                );
-            }
+            Message::DetectLocation => return Self::detect_location_task(),
             Message::LocationDetected(result) => return self.handle_location_detected(result),
             // PERF-03 / D-05: default_tab now persists once on popup close (via
             // commit_pending_edits), not per tab click. These handlers only
@@ -1220,6 +1212,17 @@ impl Tempest {
         })
     }
 
+    /// One-shot async geolocation lookup. Fired at init (when auto-location is
+    /// enabled), from the `DetectLocation` message, and when toggling into
+    /// auto-location mode; the result lands as `Message::LocationDetected`
+    /// (DRY-02).
+    fn detect_location_task() -> Task<Message> {
+        Task::perform(
+            async { detect_location().await.map_err(|e| e.to_string()) },
+            |result| Action::App(Message::LocationDetected(result)),
+        )
+    }
+
     /// Opens the popup, or closes it if already open.
     fn handle_toggle_popup(&mut self) -> Task<Message> {
         if let Some(p) = self.popup.take() {
@@ -1395,10 +1398,7 @@ impl Tempest {
             self.config.manual_location_name = Some(self.config.location_name.clone());
             self.save_config();
 
-            Task::perform(
-                async { detect_location().await.map_err(|e| e.to_string()) },
-                |result| Action::App(Message::LocationDetected(result)),
-            )
+            Self::detect_location_task()
         } else {
             if let (Some(lat), Some(lon), Some(name)) = (
                 self.config.manual_latitude,
