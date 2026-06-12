@@ -14,11 +14,10 @@ use std::time::Duration;
 use crate::config::{Config, MeasurementSystem, PopupTab, PressureUnit, TemperatureUnit};
 use crate::weather::{
     aqi_to_description, categorize_pollen, condition_to_description, detect_location,
-    detect_region, fetch_air_quality, fetch_alerts, fetch_pollen, fetch_weather, format_date,
-    format_hour, format_time, is_night_time, pollen_level_to_description,
-    pollen_species_to_description, search_city, uses_imperial_units, AirQualityData, Alert,
-    AlertSeverity, AqiStandard, DetectedLocation, LocationResult, PollenData, PollenLevel,
-    PollenSpecies, Region, WeatherData,
+    fetch_air_quality, fetch_alerts, fetch_pollen, fetch_weather, format_date, format_hour,
+    format_time, is_night_time, pollen_level_to_description, pollen_species_to_description,
+    search_city, uses_imperial_units, AirQualityData, Alert, AlertSeverity, AqiSource, AqiStandard,
+    DetectedLocation, LocationResult, PollenData, PollenLevel, PollenSpecies, WeatherData,
 };
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -898,6 +897,15 @@ impl Application for Tempest {
                             }
                         }
                         self.alerts = new_alerts;
+                        // MAINT-04 / D-06: prune the seen-set to the IDs in this
+                        // winning batch so it stays bounded to currently-active
+                        // alerts. An alert that clears then genuinely re-issues
+                        // re-notifies. Runs only here — inside the Ok branch,
+                        // past the FIX-03 generation guard (D-06a) — so a stale
+                        // or superseded batch can never reshape the seen-set.
+                        let batch_ids: HashSet<_> =
+                            self.alerts.iter().map(|a| a.id.clone()).collect();
+                        self.seen_alert_ids.retain(|id| batch_ids.contains(id));
                     }
                     Err(e) => {
                         tracing::warn!("Failed to fetch alerts: {}", e);
@@ -1690,18 +1698,16 @@ impl Tempest {
                     .add(widget::list::button(aqi_content).on_press(Message::ShowPollutants)),
             );
 
-            // aqicn attribution. Required by their terms when their data is
-            // what we're showing. Mirrors the library's selection logic:
-            // non-empty token and not in Europe.
-            let token_set = self
-                .config
-                .aqicn_token
-                .as_deref()
-                .map(|t| !t.trim().is_empty())
-                .unwrap_or(false);
-            let region = detect_region(self.config.latitude, self.config.longitude);
-            if token_set && region != Region::Europe {
-                col = col.push(widget::text::caption(crate::fl!("aqicn-attribution")));
+            // MAINT-05 / D-05: attribution reflects the source weathervane
+            // actually used, read straight off the data (`aqi_source`) instead
+            // of re-deriving the token/region selection logic here.
+            match aq.aqi_source {
+                AqiSource::Aqicn => {
+                    col = col.push(widget::text::caption(crate::fl!("aqicn-attribution")));
+                }
+                AqiSource::OpenMeteo => {
+                    col = col.push(widget::text::caption(crate::fl!("openmeteo-attribution")));
+                }
             }
         } else {
             col = col.push(widget::divider::horizontal::default());

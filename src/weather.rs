@@ -92,10 +92,10 @@ pub fn species_readings(data: &PollenData) -> [(PollenSpecies, f32); 6] {
 
 // Re-export everything the rest of the applet needs from tempest-core.
 pub use weathervane::{
-    detect_location, detect_region, fetch_air_quality, fetch_alerts, fetch_pollen, fetch_weather,
-    format_hour, format_time, is_night_time, search_city, uses_imperial_units, AirQualityData,
-    Alert, AlertSeverity, AqiStandard, DailyForecast, DetectedLocation, HourlyForecast,
-    LocationResult, PollenData, Region, WeatherData,
+    detect_location, fetch_air_quality, fetch_alerts, fetch_pollen, fetch_weather, format_hour,
+    format_time, is_night_time, search_city, uses_imperial_units, AirQualityData, Alert,
+    AlertSeverity, AqiSource, AqiStandard, DailyForecast, DetectedLocation, HourlyForecast,
+    LocationResult, PollenData, WeatherData,
 };
 
 /// Localized description for a weather condition.
