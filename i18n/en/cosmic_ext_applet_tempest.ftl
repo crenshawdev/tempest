@@ -1,6 +1,7 @@
 # General
 loading = Loading weather data...
 updated = Updated: { $time }
+couldnt-refresh = · couldn't refresh
 retry = Retry
 failed-to-load = Failed to load weather
 weather-fetch-error = Failure to retrieve Weather Data, check your network connection and try again

@@ -62,6 +62,10 @@ pub struct Tempest {
     is_loading: bool,
     /// Error state
     error_message: Option<String>,
+    /// A refresh failed while we still hold valid weather. Drives the stale
+    /// marker on the "Updated at" header instead of the full error view, so a
+    /// brief network blip doesn't blow away the last good reading.
+    refresh_failed: bool,
     /// Active tab in the popup
     active_tab: PopupTab,
     /// Segmented control model for tab selection
@@ -272,6 +276,7 @@ impl Default for Tempest {
             current_aqi: None,
             is_loading: true,
             error_message: None,
+            refresh_failed: false,
             active_tab,
             tab_model: build_tab_model(
                 tab_for_segmented_control(active_tab),
@@ -447,6 +452,7 @@ impl Application for Tempest {
             current_aqi: None,
             is_loading: true,
             error_message: None,
+            refresh_failed: false,
             last_updated_display: None,
             showing_pollutants: false,
             showing_locations: false,
@@ -553,8 +559,10 @@ impl Application for Tempest {
                 !(6..18).contains(&hour)
             });
 
-        // Use error icon if there's an error, otherwise use weather icon
-        let icon_name = if self.error_message.is_some() {
+        // Use the error icon only when there's truly no weather to show. A
+        // transient refresh failure keeps the last good condition icon so the
+        // panel doesn't flicker to an error glyph on every network blip.
+        let icon_name = if self.error_message.is_some() && self.weather_data.is_none() {
             "dialog-error-symbolic"
         } else {
             self.current_condition.icon_name(is_night)
@@ -720,6 +728,20 @@ impl Application for Tempest {
         if let Some(ref formatted_time) = self.last_updated_display {
             let l_updated = crate::fl!("updated", time = formatted_time.as_str());
             header = header.push(widget::text::caption(l_updated));
+        }
+
+        // A failed refresh that still has cached weather annotates the timestamp
+        // in place ("· couldn't refresh" + a small warning glyph) instead of a
+        // separate banner, keeping the lowest-footprint staleness cue in the
+        // fixed-width header.
+        if self.refresh_failed {
+            header = header
+                .push(widget::text::caption(crate::fl!("couldnt-refresh")))
+                .push(
+                    widget::icon::from_name("dialog-warning-symbolic")
+                        .size(12)
+                        .symbolic(true),
+                );
         }
 
         let refresh_btn = widget::tooltip::tooltip(
@@ -894,9 +916,11 @@ impl Application for Tempest {
                         self.air_quality = Some(data);
                     }
                     Err(e) => {
+                        // Suppress the transient error and keep the last good
+                        // AQI/air-quality in place (same spirit as pollen's
+                        // suppress-transients tri-state), so the AQI row stays
+                        // stable across wifi blips instead of blanking.
                         tracing::warn!("Failed to fetch air quality: {}", e);
-                        self.current_aqi = None;
-                        self.air_quality = None;
                     }
                 }
             }
@@ -1371,6 +1395,8 @@ impl Tempest {
                 // Series, bars, and axis all change — invalidate the cached chart.
                 self.meteogram_cache.clear();
                 self.error_message = None;
+                // A good reading clears any stale marker from a prior failed refresh.
+                self.refresh_failed = false;
 
                 let now = chrono::Local::now();
                 self.config.last_updated = Some(now.timestamp());
@@ -1380,9 +1406,19 @@ impl Tempest {
             }
             Err(e) => {
                 tracing::error!("Failed to fetch weather: {}", e);
-                self.display_label = crate::fl!("panel-error");
-                self.current_condition = weathervane::WeatherCondition::Unknown;
-                self.error_message = Some(crate::fl!("weather-fetch-error"));
+                if self.weather_data.is_some() {
+                    // Transient failure with a last good reading still in hand:
+                    // keep the cached weather (popup and panel both) and just
+                    // flag the staleness on the header, rather than wiping the
+                    // display to the full error view on every network blip.
+                    self.refresh_failed = true;
+                } else {
+                    // No data at all — surface the full error view (and the
+                    // panel error glyph) since there's nothing to keep showing.
+                    self.display_label = crate::fl!("panel-error");
+                    self.current_condition = weathervane::WeatherCondition::Unknown;
+                    self.error_message = Some(crate::fl!("weather-fetch-error"));
+                }
 
                 const BACKOFF_SECS: [u64; 4] = [5, 15, 30, 60];
                 if (self.retry_count as usize) < BACKOFF_SECS.len() {
