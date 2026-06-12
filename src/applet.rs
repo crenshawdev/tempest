@@ -922,9 +922,9 @@ impl Application for Tempest {
             Message::ToggleAutoUnits => {
                 self.config.auto_units = !self.config.auto_units;
                 if self.config.auto_units {
-                    // Extract country from location name (last part after comma)
-                    if let Some(country) = self.config.location_name.split(',').next_back() {
-                        let country = country.trim().to_string();
+                    // Apply units for the persisted structured country (populated on
+                    // detect/select). A missing country simply skips auto-units.
+                    if let Some(country) = self.config.country.clone() {
                         self.apply_units_for_country(&country);
                     }
                 }
@@ -1459,6 +1459,7 @@ impl Tempest {
             location.display_name.clone(),
         );
 
+        self.config.country = Some(country.clone());
         self.apply_units_for_country(&country);
 
         self.city_input.clear();
@@ -1504,6 +1505,7 @@ impl Tempest {
                 self.config.location_name = loc.display_name;
                 let country = loc.country;
 
+                self.config.country = Some(country.clone());
                 self.apply_units_for_country(&country);
 
                 self.save_config();
@@ -2239,8 +2241,7 @@ impl Tempest {
         let spacing = cosmic::theme::spacing();
         let mut list = widget::list_column();
         for (idx, location) in self.config.saved_locations.iter().enumerate() {
-            let is_active = (location.latitude - self.config.latitude).abs() < 0.01
-                && (location.longitude - self.config.longitude).abs() < 0.01;
+            let is_active = location.matches_coords(self.config.latitude, self.config.longitude);
 
             let mut row = widget::Row::new()
                 .spacing(spacing.space_xxs)
