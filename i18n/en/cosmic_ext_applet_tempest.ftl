@@ -175,4 +175,5 @@ tooltip-alerts = Weather alerts
 tooltip-settings = Settings
 tooltip-save-location = Save location
 tooltip-remove-saved-location = Remove saved location
+saved-locations-full = Saved locations are full (8 max)
 panel-error = ERR

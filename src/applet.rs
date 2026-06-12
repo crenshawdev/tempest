@@ -86,6 +86,10 @@ pub struct Tempest {
     pollen: Option<Option<PollenData>>,
     /// Whether the pollen drill-down sub-view is currently displayed.
     showing_pollen: bool,
+    /// MAINT-02: set when a save is attempted at the 8-slot cap; renders an
+    /// inline caption in the search section instead of silently clearing the
+    /// search. Cleared on the next successful save or search-input change.
+    saved_locations_full: bool,
     /// Cached max popup height based on screen resolution.
     popup_max_height: f32,
     /// Consecutive fetch failures driving the backoff retry schedule.
@@ -282,6 +286,7 @@ impl Default for Tempest {
             showing_locations: false,
             pollen: None,
             showing_pollen: false,
+            saved_locations_full: false,
             popup_max_height: POPUP_MAX_HEIGHT_FALLBACK,
             retry_count: 0,
             fetch_generation: 0,
@@ -415,7 +420,7 @@ impl Application for Tempest {
         .map(|c| c.military_time)
         .unwrap_or(false);
 
-        let app = Tempest {
+        let mut app = Tempest {
             core,
             config: config.clone(),
             config_handler,
@@ -447,11 +452,24 @@ impl Application for Tempest {
             showing_locations: false,
             pollen: None,
             showing_pollen: false,
+            saved_locations_full: false,
             popup_max_height: POPUP_MAX_HEIGHT_FALLBACK,
             retry_count: 0,
             fetch_generation: 0,
             meteogram_cache: canvas::Cache::new(),
         };
+
+        // MAINT-02: seed the "Updated at HH:MM" header from the persisted
+        // timestamp so a freshly-started applet shows the last known refresh
+        // time instead of a blank header until the first fetch completes. Same
+        // reconstruction as `handle_system_time_config`; runs after `app` exists
+        // because `format_time_of_day` is a method on `self`.
+        if let Some(timestamp) = app.config.last_updated {
+            if let Some(dt) = chrono::DateTime::from_timestamp(timestamp, 0) {
+                let local = dt.with_timezone(&chrono::Local);
+                app.last_updated_display = Some(app.format_time_of_day(local));
+            }
+        }
 
         // Start with auto-location if enabled, otherwise fetch weather
         let task = if config.use_auto_location {
@@ -984,6 +1002,9 @@ impl Application for Tempest {
             }
             Message::UpdateCityInput(value) => {
                 self.city_input = value;
+                // MAINT-02: clear the save-cap feedback once the user edits the
+                // search again.
+                self.saved_locations_full = false;
             }
             Message::SearchCity => {
                 let city = self.city_input.clone();
@@ -1494,23 +1515,31 @@ impl Tempest {
     /// coordinate, capped at the configured 8-slot limit.
     fn handle_save_location(&mut self, idx: usize) {
         if let Some(location) = self.search_results.get(idx) {
-            if self.config.saved_locations.len() < 8 {
-                let saved = crate::config::SavedLocation {
-                    name: location.display_name.clone(),
-                    latitude: location.latitude,
-                    longitude: location.longitude,
-                };
-                if !self
-                    .config
-                    .saved_locations
-                    .iter()
-                    .any(|l| l.matches_coords(saved.latitude, saved.longitude))
-                {
-                    self.config.saved_locations.push(saved);
-                    self.save_config();
-                }
+            // MAINT-02: at the 8-slot cap, surface inline feedback and PRESERVE
+            // the search so the user can remove a saved location and retry —
+            // rather than silently no-op'ing and clearing what they searched.
+            if self.config.saved_locations.len() >= 8 {
+                self.saved_locations_full = true;
+                return;
+            }
+            let saved = crate::config::SavedLocation {
+                name: location.display_name.clone(),
+                latitude: location.latitude,
+                longitude: location.longitude,
+            };
+            if !self
+                .config
+                .saved_locations
+                .iter()
+                .any(|l| l.matches_coords(saved.latitude, saved.longitude))
+            {
+                self.config.saved_locations.push(saved);
+                self.save_config();
             }
         }
+        // Successful (or under-cap dedup) save: clear the cap feedback and the
+        // completed search.
+        self.saved_locations_full = false;
         self.search_results.clear();
         self.city_input.clear();
     }
@@ -2041,7 +2070,6 @@ impl Tempest {
         col.into()
     }
 
-    /// Renders the 7-day Forecast tab content.
     /// Renders the Graph tab: the YR.no-style meteogram canvas (GRAPH-01).
     ///
     /// The canvas is constructed against `meteogram::Meteogram`'s LOCKED field
@@ -2065,6 +2093,7 @@ impl Tempest {
         .into()
     }
 
+    /// Renders the 7-day Forecast tab content.
     fn render_forecast_tab(&self, weather: &WeatherData) -> Element<'_, Message> {
         const COL_DAY: cosmic::iced::Length = cosmic::iced::Length::FillPortion(3);
         const COL_ICON: cosmic::iced::Length = cosmic::iced::Length::Fixed(24.0);
@@ -2240,6 +2269,11 @@ impl Tempest {
                         )
                         .push(save_btn),
                 );
+            }
+
+            // MAINT-02: inline feedback when the 8-slot save cap is reached.
+            if self.saved_locations_full {
+                section = section.add(widget::text::caption(crate::fl!("saved-locations-full")));
             }
 
             section = section.add(
