@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.9.3] - 2026-06-11
+
 ### Changed
 
 - A transient network failure now keeps the last good weather on screen instead

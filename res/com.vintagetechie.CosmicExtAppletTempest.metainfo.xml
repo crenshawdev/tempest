@@ -94,6 +94,19 @@
   </categories>
 
   <releases>
+    <release version="2.9.3" date="2026-06-11">
+      <description>
+        <p>The v1.1 Hardening release, bundling recent reliability and clarity fixes:</p>
+        <ul>
+          <li>A brief network hiccup no longer wipes the popup — the last good weather stays on screen with a small "couldn't refresh" note, and the full error view appears only when there is no cached weather at all</li>
+          <li>Air-quality attribution now names the source actually used (Open-Meteo or aqicn.org)</li>
+          <li>Trying to add a ninth saved location shows an inline "Saved locations are full" note instead of clearing your search</li>
+          <li>The "Updated at" time is restored at startup instead of reading blank until the first refresh</li>
+          <li>The 24-hour graph clamps to 24 columns so a longer hourly payload can't overdraw the chart</li>
+        </ul>
+        <p>Also includes internal code cleanup with no user-facing change.</p>
+      </description>
+    </release>
     <release version="2.9.2" date="2026-06-11">
       <description>
         <p>Performance polish — the applet does less redundant work:</p>
