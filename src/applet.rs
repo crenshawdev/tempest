@@ -1104,20 +1104,7 @@ impl Application for Tempest {
             Message::HideLocations => {
                 self.showing_locations = false;
             }
-            Message::SwitchLocation(idx) => {
-                if let Some(location) = self.config.saved_locations.get(idx) {
-                    self.config.latitude = location.latitude;
-                    self.config.longitude = location.longitude;
-                    self.config.location_name = location.name.clone();
-                    self.config.manual_latitude = Some(location.latitude);
-                    self.config.manual_longitude = Some(location.longitude);
-                    self.config.manual_location_name = Some(location.name.clone());
-                    self.config.use_auto_location = false;
-                    self.showing_locations = false;
-                    self.save_config();
-                    return Self::refresh_task();
-                }
-            }
+            Message::SwitchLocation(idx) => return self.handle_switch_location(idx),
             Message::SaveLocation(idx) => self.handle_save_location(idx),
             Message::RemoveSavedLocation(idx) => {
                 if idx < self.config.saved_locations.len() {
@@ -1441,19 +1428,43 @@ impl Tempest {
         }
     }
 
+    /// Stores a manually chosen location: sets the active coordinates/name and
+    /// the persisted `manual_*` shadow fields, and disables auto-location. The
+    /// single source of truth for the manual-location assignment shared by
+    /// `handle_switch_location` and `handle_select_location` (DRY-01).
+    fn set_manual_location(&mut self, lat: f64, lon: f64, name: String) {
+        self.config.latitude = lat;
+        self.config.longitude = lon;
+        self.config.location_name = name.clone();
+        self.config.manual_latitude = Some(lat);
+        self.config.manual_longitude = Some(lon);
+        self.config.manual_location_name = Some(name);
+        self.config.use_auto_location = false;
+    }
+
+    /// Switches to a previously saved location and refreshes.
+    fn handle_switch_location(&mut self, idx: usize) -> Task<Message> {
+        if let Some(location) = self.config.saved_locations.get(idx) {
+            let (lat, lon, name) = (location.latitude, location.longitude, location.name.clone());
+            self.set_manual_location(lat, lon, name);
+            self.showing_locations = false;
+            self.save_config();
+            return Self::refresh_task();
+        }
+        Task::none()
+    }
+
     /// Picks a location from the search-results list and refreshes.
     fn handle_select_location(&mut self, idx: usize) -> Task<Message> {
         let Some(location) = self.search_results.get(idx) else {
             return Task::none();
         };
         let country = location.country.clone();
-        self.config.latitude = location.latitude;
-        self.config.longitude = location.longitude;
-        self.config.location_name = location.display_name.clone();
-        self.config.use_auto_location = false;
-        self.config.manual_latitude = Some(location.latitude);
-        self.config.manual_longitude = Some(location.longitude);
-        self.config.manual_location_name = Some(location.display_name.clone());
+        self.set_manual_location(
+            location.latitude,
+            location.longitude,
+            location.display_name.clone(),
+        );
 
         self.apply_units_for_country(&country);
 
