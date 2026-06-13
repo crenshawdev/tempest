@@ -163,3 +163,6 @@ tooltip-settings = Ustawienia
 tooltip-save-location = Zapisz położenie
 tooltip-remove-saved-location = Usuń zapisane położenie
 panel-error = Błąd
+couldnt-refresh = · nieudane odświeżenie
+openmeteo-attribution = Dane jakości powietrza z Open-Meteo
+saved-locations-full = Maksymalna liczba zapisanych położeń osiągnięta (8)
