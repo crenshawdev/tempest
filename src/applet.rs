@@ -334,6 +334,8 @@ pub enum Message {
     HideLocations,
     SwitchLocation(usize),
     OpenKofi,
+    OpenSourceCode,
+    OpenWorkItems,
     RetryFetch,
     NetworkChanged(crate::network::NetworkEvent),
     SystemResumed,
@@ -800,6 +802,20 @@ impl Application for Tempest {
             Message::OpenKofi => {
                 if let Err(e) = open::that("https://ko-fi.com/vintagetechie") {
                     tracing::error!("Failed to open Ko-fi URL: {}", e);
+                }
+            }
+            Message::OpenSourceCode => {
+                if let Err(e) = open::that(
+                    "https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest",
+                ) {
+                    tracing::error!("Failed to open source URL: {}", e);
+                }
+            }
+            Message::OpenWorkItems => {
+                if let Err(e) = open::that(
+                    "https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/work_items",
+                ) {
+                    tracing::error!("Failed to open work items URL: {}", e);
                 }
             }
             Message::RetryFetch => {
