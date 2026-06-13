@@ -1,6 +1,6 @@
 [package]
 name = "cosmic-ext-applet-tempest"
-version = "2.9.4"
+version = "2.9.5"
 edition = "2021"
 authors = ["John Crenshaw <john@vintagetechie.com>"]
 license = "GPL-3.0-only"
