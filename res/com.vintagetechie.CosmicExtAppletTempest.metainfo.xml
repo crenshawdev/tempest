@@ -94,6 +94,15 @@
   </categories>
 
   <releases>
+    <release version="2.9.5" date="2026-06-13">
+      <description>
+        <p>Translation updates and settings improvements.</p>
+        <ul>
+          <li>Updated translations for Polish and Simplified Chinese</li>
+          <li>Settings support section now includes Source code and Report an issue links</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.9.4" date="2026-06-12">
       <description>
         <p>Packaging only — no code changes. The Flatpak manifest had been pinned to v2.9.0 since that release, so the self-hosted remote kept serving 2.9.0 while 2.9.1–2.9.3 shipped elsewhere. This release catches the Flatpak up to everything in those versions:</p>

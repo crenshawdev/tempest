@@ -160,6 +160,8 @@ settings-pride-accent = Pride Month accent
 settings-version = Version
 settings-support = Support
 settings-tip-kofi = Tip me on Ko-fi
+settings-source-code = Source code
+settings-report-issue = Report an issue
 
 settings-auto-units = Auto-select units
 settings-auto-units-hint = Based on location
