@@ -1247,7 +1247,7 @@ impl Tempest {
             .into()
     }
 
-    /// SUPPORT section: version label and a tip-jar button.
+    /// SUPPORT section: version label, tip-jar, source, and issue-tracker buttons.
     fn render_support_section(&self) -> Element<'_, Message> {
         settings::section()
             .title(crate::fl!("settings-support"))
@@ -1263,6 +1263,19 @@ impl Tempest {
                     .push(
                         widget::button::link(crate::fl!("settings-tip-kofi"))
                             .on_press(Message::OpenKofi),
+                    ),
+            )
+            .add(
+                widget::Row::new()
+                    .align_y(cosmic::iced::Alignment::Center)
+                    .push(
+                        widget::button::link(crate::fl!("settings-source-code"))
+                            .on_press(Message::OpenSourceCode),
+                    )
+                    .push(widget::space::horizontal())
+                    .push(
+                        widget::button::link(crate::fl!("settings-report-issue"))
+                            .on_press(Message::OpenWorkItems),
                     ),
             )
             .into()

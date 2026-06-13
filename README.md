@@ -100,6 +100,10 @@ Translators: lorduskordus (Czech), therealmate (Hungarian), VandaL (Polish), Mar
 
 ## Changelog
 
+### 2.9.5
+
+Translation updates for Polish and Simplified Chinese. The Settings support section now includes Source code and Report an issue links alongside the Ko-fi button.
+
 ### 2.9.4
 
 No code changes — packaging only. The Flatpak manifest had been pinned at v2.9.0 since that release, so the self-hosted remote kept rebuilding and re-serving 2.9.0 while the AUR moved on through 2.9.1, 2.9.2, and 2.9.3. Three releases of green pipelines, all faithfully shipping the wrong version. This release bumps the manifest, regenerates the offline crate list (weathervane 0.8 among others), and adds a pipeline guard that refuses to publish a tag the manifest doesn't match. If you're on the Flatpak, this catches you up to everything below.
