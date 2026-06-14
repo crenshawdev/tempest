@@ -48,12 +48,15 @@ paru -S cosmic-ext-applet-tempest
 
 ### Flatpak
 
-Add the jcrenshaw.dev remote once. Everything I ship lives there.
+Tempest runs on the freedesktop runtime, which lives on Flathub. Most COSMIC systems already have Flathub. Some clean installs don't, so add it first, then add the jcrenshaw.dev remote. Everything I ship lives there.
 
 ```bash
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 flatpak remote-add --if-not-exists jcrenshaw https://dl.jcrenshaw.dev/jcrenshaw.flatpakrepo
 flatpak install jcrenshaw com.vintagetechie.CosmicExtAppletTempest
 ```
+
+If you skip Flathub the install stops with `requires the runtime org.freedesktop.Platform/x86_64/25.08 which was not found`. That's the runtime missing, not the app. Add Flathub and run the install again.
 
 Already have the remote under its old name (`vintagetechie`, at
 `vintagetechie.gitlab.io/flatpak`)? Nothing to do — it's the same repo and the same
