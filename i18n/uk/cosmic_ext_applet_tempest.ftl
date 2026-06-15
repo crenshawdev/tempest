@@ -159,3 +159,7 @@ tooltip-save-location = Збережені
 settings-pride-accent = Pride Month accent
 show-meteogram = Метеограма
 tab-graph = Графік
+settings-source-code = Початковий код
+settings-report-issue = Повідомити про ваду
+openmeteo-attribution = Дані якості повітря від Open-Meteo
+couldnt-refresh = · не оновлено
