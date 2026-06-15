@@ -177,3 +177,5 @@ show-meteogram = 显示天气图
 settings-pride-accent = 骄傲月主题
 openmeteo-attribution = 由 Open-Meteo 提供空气质量数据
 saved-locations-full = 已保存位置列表已满（最多 8 个）
+settings-source-code = 源代码
+settings-report-issue = 问题汇报
