@@ -166,3 +166,5 @@ panel-error = Błąd
 couldnt-refresh = · nieudane odświeżenie
 openmeteo-attribution = Dane jakości powietrza z Open-Meteo
 saved-locations-full = Maksymalna liczba zapisanych położeń osiągnięta (8)
+settings-source-code = Kod źródłowy
+settings-report-issue = Zgłoś problem
