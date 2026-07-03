@@ -120,6 +120,10 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
     ) -> Vec<Geometry> {
         let cosmic = theme.cosmic();
         let is_dark = cosmic.is_dark;
+        // Single series-color selection site (shared with the Graph-tab legend
+        // via `legend_colors`): resolve all four series colors once so a legend
+        // swatch can never drift from the line/bar it labels.
+        let [temp_color, precip_color, wind_color, gust_color] = legend_colors(is_dark);
         let bg: Color = cosmic.background.base.into();
         let on: Color = cosmic.background.on.into();
         // Theme-resolved chrome alphas for the night bands, gridlines, and labels.
@@ -203,9 +207,8 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
                 }
 
                 // Temperature line: 2px polyline through column centers; the warm
-                // series color is picked by theme brightness, and non-finite points
-                // are skipped so the line breaks across gaps instead of spiking.
-                let temp_color = if is_dark { TEMP_DARK } else { TEMP_LIGHT };
+                // series color (resolved once above) is skipped at non-finite points
+                // so the line breaks across gaps instead of spiking.
                 let line = polyline(hourly, |h| h.temperature, &cx, &temp_y);
                 frame.stroke(
                     &line,
@@ -222,7 +225,6 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
             let precip_floor = 2.0_f32;
             let precip_max = finite_max(hourly, |h| h.precipitation);
             let precip_scale = precip_max.max(precip_floor).max(f32::EPSILON);
-            let precip_color = if is_dark { PRECIP_DARK } else { PRECIP_LIGHT };
             for (h, hour) in hourly.iter().enumerate() {
                 let p = hour.precipitation;
                 if !p.is_finite() || p <= 0.0 {
@@ -268,10 +270,9 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
             let sustained_max = finite_max(hourly, |h| h.windspeed);
             let wind_scale = gust_max.max(sustained_max).max(f32::EPSILON);
             let wind_y = |w: f32| wind_y1 - (w / wind_scale).clamp(0.0, 1.0) * BOTTOM_PANEL;
-            let wind_color = if is_dark { WIND_DARK } else { WIND_LIGHT };
-            let gust_color = with_alpha(wind_color, GUST_ALPHA);
 
             // Sustained wind — solid 2px line through finite windspeed centers.
+            // `wind_color` / `gust_color` were resolved once at the top of draw().
             let sustained = polyline(hourly, |h| h.windspeed, &cx, &wind_y);
             frame.stroke(
                 &sustained,
@@ -374,6 +375,23 @@ impl Meteogram<'_> {
 /// Returns `color` with its alpha replaced by `a` (theme chrome dimming).
 fn with_alpha(color: Color, a: f32) -> Color {
     Color { a, ..color }
+}
+
+/// The four meteogram series colors, in the fixed legend order
+/// `[Temperature, Precipitation, Wind, Gust]`, resolved for the given theme
+/// brightness (`is_dark`).
+///
+/// This is the SINGLE color-selection site for the chart: both the canvas
+/// `draw()` closure and the Graph-tab legend swatches resolve their series
+/// colors here, so a swatch can never drift from the line/bar it labels
+/// (LEGEND-02). Gust is the Wind hue at [`GUST_ALPHA`] (D-02). The palette
+/// constants and [`with_alpha`] stay private — this accessor is the only
+/// cross-module surface.
+pub(crate) fn legend_colors(is_dark: bool) -> [Color; 4] {
+    let temp = if is_dark { TEMP_DARK } else { TEMP_LIGHT };
+    let precip = if is_dark { PRECIP_DARK } else { PRECIP_LIGHT };
+    let wind = if is_dark { WIND_DARK } else { WIND_LIGHT };
+    [temp, precip, wind, with_alpha(wind, GUST_ALPHA)]
 }
 
 /// Parses an hourly/daily timestamp string with the two formats the API emits.
