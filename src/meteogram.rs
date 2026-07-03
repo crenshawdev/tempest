@@ -394,6 +394,79 @@ pub(crate) fn legend_colors(is_dark: bool) -> [Color; 4] {
     [temp, precip, wind, with_alpha(wind, GUST_ALPHA)]
 }
 
+/// A tiny canvas drawing the legend mark for one series, using the SAME stroke
+/// and fill styles as [`Meteogram::draw`] so a legend entry can never drift from
+/// the mark it labels. `idx` indexes the fixed
+/// `[Temperature, Precipitation, Wind, Gust]` order (matching [`legend_colors`]):
+/// Temperature and Wind are 2px solid lines, Gust a 1.5px dashed line
+/// (`[4 on, 3 off]`) at [`GUST_ALPHA`], and Precipitation a filled bar — so the
+/// mark *shape*, not just its color, identifies the series (the two wind hues are
+/// otherwise near-identical, which is why a solid swatch could not disambiguate
+/// the dashed gust line from the solid sustained-wind line).
+pub(crate) struct LegendMark {
+    /// Series index into [`legend_colors`], `[Temperature, Precipitation, Wind, Gust]`.
+    pub idx: usize,
+}
+
+impl canvas::Program<crate::applet::Message, cosmic::Theme> for LegendMark {
+    type State = ();
+
+    fn draw(
+        &self,
+        _state: &Self::State,
+        renderer: &cosmic::Renderer,
+        theme: &cosmic::Theme,
+        bounds: Rectangle,
+        _cursor: cosmic::iced::mouse::Cursor,
+    ) -> Vec<Geometry> {
+        // Same single color-selection site as the chart (`legend_colors`), so the
+        // mark's color stays locked to the series it labels.
+        let color = legend_colors(theme.cosmic().is_dark)[self.idx];
+        let mut frame = canvas::Frame::new(renderer, bounds.size());
+        let mid_y = bounds.height / 2.0;
+        match self.idx {
+            // Precipitation renders as bars on the chart → a filled bar block here.
+            1 => {
+                let w = BAR_WIDTH.min(bounds.width);
+                frame.fill_rectangle(
+                    Point::new((bounds.width - w) / 2.0, 0.0),
+                    Size::new(w, bounds.height),
+                    color,
+                );
+            }
+            // Gust renders as a 1.5px dashed line ([4 on, 3 off]) at GUST_ALPHA.
+            3 => {
+                let line = Path::new(|b| {
+                    b.move_to(Point::new(0.0, mid_y));
+                    b.line_to(Point::new(bounds.width, mid_y));
+                });
+                let dash = [4.0_f32, 3.0_f32];
+                frame.stroke(
+                    &line,
+                    Stroke {
+                        style: canvas::Style::Solid(color),
+                        width: 1.5,
+                        line_dash: canvas::LineDash {
+                            segments: &dash,
+                            offset: 0,
+                        },
+                        ..Stroke::default()
+                    },
+                );
+            }
+            // Temperature (0) and Wind (2) render as 2px solid lines.
+            _ => {
+                let line = Path::new(|b| {
+                    b.move_to(Point::new(0.0, mid_y));
+                    b.line_to(Point::new(bounds.width, mid_y));
+                });
+                frame.stroke(&line, Stroke::default().with_width(2.0).with_color(color));
+            }
+        }
+        vec![frame.into_geometry()]
+    }
+}
+
 /// Parses an hourly/daily timestamp string with the two formats the API emits.
 fn parse_naive(s: &str) -> Option<NaiveDateTime> {
     NaiveDateTime::parse_from_str(s, "%Y-%m-%dT%H:%M:%S")
