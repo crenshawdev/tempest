@@ -499,3 +499,60 @@ fn hour_is_night(hour_time: &str, forecast: &[DailyForecast]) -> Option<bool> {
     let sunset = parse_naive(&day.sunset)?;
     Some(h < sunrise || h > sunset)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        legend_colors, Color, GUST_ALPHA, PRECIP_DARK, PRECIP_LIGHT, TEMP_DARK, TEMP_LIGHT,
+        WIND_DARK, WIND_LIGHT,
+    };
+
+    // The legend accessor is the single source of truth for the four series
+    // colors; these tests structurally lock the exact-color-match (LEGEND-02)
+    // and the Gust alpha/hue invariant (D-02) that the canvas draw path relies on.
+
+    #[test]
+    fn legend_colors_match_canvas_series_both_themes() {
+        assert_eq!(
+            legend_colors(true),
+            [
+                TEMP_DARK,
+                PRECIP_DARK,
+                WIND_DARK,
+                Color {
+                    a: GUST_ALPHA,
+                    ..WIND_DARK
+                },
+            ],
+            "dark legend colors must equal the canvas series in [temp, precip, wind, gust] order",
+        );
+        assert_eq!(
+            legend_colors(false),
+            [
+                TEMP_LIGHT,
+                PRECIP_LIGHT,
+                WIND_LIGHT,
+                Color {
+                    a: GUST_ALPHA,
+                    ..WIND_LIGHT
+                },
+            ],
+            "light legend colors must equal the canvas series in [temp, precip, wind, gust] order",
+        );
+    }
+
+    #[test]
+    fn gust_is_wind_hue_at_gust_alpha() {
+        for is_dark in [true, false] {
+            let [_, _, wind, gust] = legend_colors(is_dark);
+            assert_eq!(
+                gust,
+                Color {
+                    a: GUST_ALPHA,
+                    ..wind
+                },
+                "gust (index 3) must be the wind hue (index 2) at GUST_ALPHA (is_dark={is_dark})",
+            );
+        }
+    }
+}
