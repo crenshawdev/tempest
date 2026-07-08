@@ -1,0 +1,33 @@
+# nfpm config — builds the unsigned .deb and .rpm for the VintageTechie package
+# store (pkg.jcrenshaw.dev). ONE config, BOTH formats. The store re-signs both
+# centrally with the reused Flatpak key, so nothing is signed here.
+#
+# Install map mirrors packaging/aur/PKGBUILD's package(). $VERSION is exported by
+# the CI `package` job from the git tag ($CI_COMMIT_TAG without the leading v).
+name: cosmic-ext-applet-tempest
+arch: amd64
+platform: linux
+version: ${VERSION}
+maintainer: John Crenshaw <john@vintagetechie.com>
+description: Weather applet for COSMIC Desktop with automatic location detection
+homepage: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest
+license: GPL-3.0-only
+
+# No declared runtime deps: this targets COSMIC systems that already ship
+# wayland / libxkbcommon / openssl. If a clean-box install proves a missing lib,
+# add it per-format under overrides.deb.depends / overrides.rpm.depends (the deb
+# and rpm package names differ).
+
+contents:
+  - src: target/release/cosmic-ext-applet-tempest
+    dst: /usr/bin/cosmic-ext-applet-tempest
+    file_info:
+      mode: 0755
+  - src: res/com.vintagetechie.CosmicExtAppletTempest.desktop
+    dst: /usr/share/applications/com.vintagetechie.CosmicExtAppletTempest.desktop
+  - src: res/com.vintagetechie.CosmicExtAppletTempest.metainfo.xml
+    dst: /usr/share/metainfo/com.vintagetechie.CosmicExtAppletTempest.metainfo.xml
+  - src: res/icons/hicolor/scalable/apps/com.vintagetechie.CosmicExtAppletTempest.svg
+    dst: /usr/share/icons/hicolor/scalable/apps/com.vintagetechie.CosmicExtAppletTempest.svg
+  - src: LICENSE
+    dst: /usr/share/licenses/cosmic-ext-applet-tempest/LICENSE
