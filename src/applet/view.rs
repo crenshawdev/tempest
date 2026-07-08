@@ -863,7 +863,8 @@ impl Tempest {
         col.into()
     }
 
-    /// Renders the Graph tab: the YR.no-style meteogram canvas.
+    /// Renders the Graph tab: the YR.no-style meteogram canvas above an
+    /// always-visible series legend.
     ///
     /// The canvas is constructed against `meteogram::Meteogram`'s field
     /// contract (`hourly` / `daily` / `military_time`; `&Vec<T>` coerces to the
@@ -871,10 +872,16 @@ impl Tempest {
     /// the canvas to zero inside the surrounding `scrollable`; 300px
     /// matches the meteogram's band-height constants (grown from 260px so the panels
     /// and time labels aren't cramped). Width fills the ~416px popup content area.
+    ///
+    /// The result is a `Column [canvas, legend_row]`; the `canvas::Cache` is
+    /// untouched (the legend is iced widgets, not canvas geometry). The legend row
+    /// is pushed only when there are hours to plot, mirroring the canvas `n == 0`
+    /// early return in `meteogram.rs` — so legend and chart appear/vanish together.
     fn render_graph_tab<'a>(&'a self, weather: &'a WeatherData) -> Element<'a, Message> {
+        let spacing = cosmic::theme::spacing();
         // Precip peak-label unit, derived the same way as the enriched Hourly cell.
         let precip_unit = self.config.measurement_system.precipitation_unit();
-        cosmic::widget::Canvas::new(crate::meteogram::Meteogram {
+        let canvas = cosmic::widget::Canvas::new(crate::meteogram::Meteogram {
             cache: &self.meteogram_cache,
             hourly: &weather.hourly,
             daily: &weather.forecast,
@@ -882,8 +889,60 @@ impl Tempest {
             precip_unit,
         })
         .width(cosmic::iced::Length::Fill)
-        .height(cosmic::iced::Length::Fixed(300.0))
-        .into()
+        .height(cosmic::iced::Length::Fixed(300.0));
+
+        let mut col = widget::Column::new()
+            .spacing(spacing.space_xxs)
+            .push(canvas);
+        // LEGEND-05 data-missing guard: no hours → blank canvas → no legend.
+        if !weather.hourly.is_empty() {
+            col = col.push(Self::render_legend_row());
+        }
+        col.into()
+    }
+
+    /// The always-visible four-entry meteogram legend as a single centered
+    /// row — Temperature, Precipitation, Wind, Gust in fixed order — rendered
+    /// directly on the popup `background.base` below the canvas (no card surface,
+    /// so the 55%-alpha Gust mark composites to the same color as the chart).
+    fn render_legend_row() -> Element<'static, Message> {
+        let spacing = cosmic::theme::spacing();
+        let row = widget::Row::new()
+            .spacing(spacing.space_s)
+            .align_y(cosmic::iced::Alignment::Center)
+            .push(Self::legend_entry(0, crate::fl!("legend-temperature")))
+            .push(Self::legend_entry(1, crate::fl!("legend-precipitation")))
+            .push(Self::legend_entry(2, crate::fl!("legend-wind")))
+            .push(Self::legend_entry(3, crate::fl!("legend-gust")));
+        // Center under the full popup content width: the canvas plot area is inset
+        // by the y-axis label gutter, so a left-packed row read as lopsided at 480px.
+        widget::container(row)
+            .width(cosmic::iced::Length::Fill)
+            .align_x(cosmic::iced::alignment::Horizontal::Center)
+            .into()
+    }
+
+    /// One legend entry: an 18×12 series *mark* bound to its label.
+    ///
+    /// `idx` indexes the fixed `[Temperature, Precipitation, Wind, Gust]` order.
+    /// The mark is a [`crate::meteogram::LegendMark`] canvas that draws the same
+    /// shape the chart draws for that series — a solid line (Temperature, Wind), a
+    /// dashed line (Gust), or a filled bar (Precipitation) — resolving its color
+    /// from `legend_colors` inside its own `draw`, so it re-reads the live theme on
+    /// a light/dark switch and stays locked to the chart (no palette literals leak
+    /// into the view). The mark shape is what disambiguates the near-identical
+    /// solid-wind and dashed-gust hues.
+    fn legend_entry(idx: usize, label: String) -> Element<'static, Message> {
+        let spacing = cosmic::theme::spacing();
+        let mark = cosmic::widget::Canvas::new(crate::meteogram::LegendMark { idx })
+            .width(cosmic::iced::Length::Fixed(18.0))
+            .height(cosmic::iced::Length::Fixed(12.0));
+        widget::Row::new()
+            .spacing(spacing.space_xxxs)
+            .align_y(cosmic::iced::Alignment::Center)
+            .push(mark)
+            .push(widget::text::body(label))
+            .into()
     }
 
     /// Renders the 7-day Forecast tab content.

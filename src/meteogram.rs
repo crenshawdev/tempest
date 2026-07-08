@@ -120,6 +120,10 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
     ) -> Vec<Geometry> {
         let cosmic = theme.cosmic();
         let is_dark = cosmic.is_dark;
+        // Single series-color selection site (shared with the Graph-tab legend
+        // via `legend_colors`): resolve all four series colors once so a legend
+        // swatch can never drift from the line/bar it labels.
+        let [temp_color, precip_color, wind_color, gust_color] = legend_colors(is_dark);
         let bg: Color = cosmic.background.base.into();
         let on: Color = cosmic.background.on.into();
         // Theme-resolved chrome alphas for the night bands, gridlines, and labels.
@@ -203,9 +207,8 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
                 }
 
                 // Temperature line: 2px polyline through column centers; the warm
-                // series color is picked by theme brightness, and non-finite points
-                // are skipped so the line breaks across gaps instead of spiking.
-                let temp_color = if is_dark { TEMP_DARK } else { TEMP_LIGHT };
+                // series color (resolved once above) is skipped at non-finite points
+                // so the line breaks across gaps instead of spiking.
                 let line = polyline(hourly, |h| h.temperature, &cx, &temp_y);
                 frame.stroke(
                     &line,
@@ -222,7 +225,6 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
             let precip_floor = 2.0_f32;
             let precip_max = finite_max(hourly, |h| h.precipitation);
             let precip_scale = precip_max.max(precip_floor).max(f32::EPSILON);
-            let precip_color = if is_dark { PRECIP_DARK } else { PRECIP_LIGHT };
             for (h, hour) in hourly.iter().enumerate() {
                 let p = hour.precipitation;
                 if !p.is_finite() || p <= 0.0 {
@@ -268,10 +270,9 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
             let sustained_max = finite_max(hourly, |h| h.windspeed);
             let wind_scale = gust_max.max(sustained_max).max(f32::EPSILON);
             let wind_y = |w: f32| wind_y1 - (w / wind_scale).clamp(0.0, 1.0) * BOTTOM_PANEL;
-            let wind_color = if is_dark { WIND_DARK } else { WIND_LIGHT };
-            let gust_color = with_alpha(wind_color, GUST_ALPHA);
 
             // Sustained wind — solid 2px line through finite windspeed centers.
+            // `wind_color` / `gust_color` were resolved once at the top of draw().
             let sustained = polyline(hourly, |h| h.windspeed, &cx, &wind_y);
             frame.stroke(
                 &sustained,
@@ -374,6 +375,96 @@ impl Meteogram<'_> {
 /// Returns `color` with its alpha replaced by `a` (theme chrome dimming).
 fn with_alpha(color: Color, a: f32) -> Color {
     Color { a, ..color }
+}
+
+/// The four meteogram series colors, in the fixed legend order
+/// `[Temperature, Precipitation, Wind, Gust]`, resolved for the given theme
+/// brightness (`is_dark`).
+///
+/// This is the SINGLE color-selection site for the chart: both the canvas
+/// `draw()` closure and the Graph-tab legend swatches resolve their series
+/// colors here, so a swatch can never drift from the line/bar it labels
+/// (LEGEND-02). Gust is the Wind hue at [`GUST_ALPHA`] (D-02). The palette
+/// constants and [`with_alpha`] stay private — this accessor is the only
+/// cross-module surface.
+pub(crate) fn legend_colors(is_dark: bool) -> [Color; 4] {
+    let temp = if is_dark { TEMP_DARK } else { TEMP_LIGHT };
+    let precip = if is_dark { PRECIP_DARK } else { PRECIP_LIGHT };
+    let wind = if is_dark { WIND_DARK } else { WIND_LIGHT };
+    [temp, precip, wind, with_alpha(wind, GUST_ALPHA)]
+}
+
+/// A tiny canvas drawing the legend mark for one series, using the SAME stroke
+/// and fill styles as [`Meteogram::draw`] so a legend entry can never drift from
+/// the mark it labels. `idx` indexes the fixed
+/// `[Temperature, Precipitation, Wind, Gust]` order (matching [`legend_colors`]):
+/// Temperature and Wind are 2px solid lines, Gust a 1.5px dashed line
+/// (`[4 on, 3 off]`) at [`GUST_ALPHA`], and Precipitation a filled bar — so the
+/// mark *shape*, not just its color, identifies the series (the two wind hues are
+/// otherwise near-identical, which is why a solid swatch could not disambiguate
+/// the dashed gust line from the solid sustained-wind line).
+pub(crate) struct LegendMark {
+    /// Series index into [`legend_colors`], `[Temperature, Precipitation, Wind, Gust]`.
+    pub idx: usize,
+}
+
+impl canvas::Program<crate::applet::Message, cosmic::Theme> for LegendMark {
+    type State = ();
+
+    fn draw(
+        &self,
+        _state: &Self::State,
+        renderer: &cosmic::Renderer,
+        theme: &cosmic::Theme,
+        bounds: Rectangle,
+        _cursor: cosmic::iced::mouse::Cursor,
+    ) -> Vec<Geometry> {
+        // Same single color-selection site as the chart (`legend_colors`), so the
+        // mark's color stays locked to the series it labels.
+        let color = legend_colors(theme.cosmic().is_dark)[self.idx];
+        let mut frame = canvas::Frame::new(renderer, bounds.size());
+        let mid_y = bounds.height / 2.0;
+        match self.idx {
+            // Precipitation renders as bars on the chart → a filled bar block here.
+            1 => {
+                let w = BAR_WIDTH.min(bounds.width);
+                frame.fill_rectangle(
+                    Point::new((bounds.width - w) / 2.0, 0.0),
+                    Size::new(w, bounds.height),
+                    color,
+                );
+            }
+            // Gust renders as a 1.5px dashed line ([4 on, 3 off]) at GUST_ALPHA.
+            3 => {
+                let line = Path::new(|b| {
+                    b.move_to(Point::new(0.0, mid_y));
+                    b.line_to(Point::new(bounds.width, mid_y));
+                });
+                let dash = [4.0_f32, 3.0_f32];
+                frame.stroke(
+                    &line,
+                    Stroke {
+                        style: canvas::Style::Solid(color),
+                        width: 1.5,
+                        line_dash: canvas::LineDash {
+                            segments: &dash,
+                            offset: 0,
+                        },
+                        ..Stroke::default()
+                    },
+                );
+            }
+            // Temperature (0) and Wind (2) render as 2px solid lines.
+            _ => {
+                let line = Path::new(|b| {
+                    b.move_to(Point::new(0.0, mid_y));
+                    b.line_to(Point::new(bounds.width, mid_y));
+                });
+                frame.stroke(&line, Stroke::default().with_width(2.0).with_color(color));
+            }
+        }
+        vec![frame.into_geometry()]
+    }
 }
 
 /// Parses an hourly/daily timestamp string with the two formats the API emits.
@@ -498,4 +589,61 @@ fn hour_is_night(hour_time: &str, forecast: &[DailyForecast]) -> Option<bool> {
     let sunrise = parse_naive(&day.sunrise)?;
     let sunset = parse_naive(&day.sunset)?;
     Some(h < sunrise || h > sunset)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        legend_colors, Color, GUST_ALPHA, PRECIP_DARK, PRECIP_LIGHT, TEMP_DARK, TEMP_LIGHT,
+        WIND_DARK, WIND_LIGHT,
+    };
+
+    // The legend accessor is the single source of truth for the four series
+    // colors; these tests structurally lock the exact-color-match (LEGEND-02)
+    // and the Gust alpha/hue invariant (D-02) that the canvas draw path relies on.
+
+    #[test]
+    fn legend_colors_match_canvas_series_both_themes() {
+        assert_eq!(
+            legend_colors(true),
+            [
+                TEMP_DARK,
+                PRECIP_DARK,
+                WIND_DARK,
+                Color {
+                    a: GUST_ALPHA,
+                    ..WIND_DARK
+                },
+            ],
+            "dark legend colors must equal the canvas series in [temp, precip, wind, gust] order",
+        );
+        assert_eq!(
+            legend_colors(false),
+            [
+                TEMP_LIGHT,
+                PRECIP_LIGHT,
+                WIND_LIGHT,
+                Color {
+                    a: GUST_ALPHA,
+                    ..WIND_LIGHT
+                },
+            ],
+            "light legend colors must equal the canvas series in [temp, precip, wind, gust] order",
+        );
+    }
+
+    #[test]
+    fn gust_is_wind_hue_at_gust_alpha() {
+        for is_dark in [true, false] {
+            let [_, _, wind, gust] = legend_colors(is_dark);
+            assert_eq!(
+                gust,
+                Color {
+                    a: GUST_ALPHA,
+                    ..wind
+                },
+                "gust (index 3) must be the wind hue (index 2) at GUST_ALPHA (is_dark={is_dark})",
+            );
+        }
+    }
 }

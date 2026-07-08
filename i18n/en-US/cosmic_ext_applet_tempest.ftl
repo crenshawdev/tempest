@@ -13,6 +13,11 @@ tab-current = Current
 tab-hourly = Hourly
 tab-forecast = 7-Day
 tab-air-quality = Air
+# Graph legend
+legend-temperature = Temperature
+legend-precipitation = Precipitation
+legend-wind = Wind
+legend-gust = Gust
 # Current conditions - labels
 label-feels-like = Feels like
 label-humidity = Humidity
