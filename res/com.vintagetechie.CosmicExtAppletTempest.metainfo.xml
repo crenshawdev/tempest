@@ -94,6 +94,14 @@
   </categories>
 
   <releases>
+    <release version="2.10.0" date="2026-07-08">
+      <description>
+        <p>The meteogram now has an always-visible legend so you can tell the lines apart at a glance.</p>
+        <ul>
+          <li>Added a legend row beneath the meteogram with color swatches matching each plotted series</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.9.5" date="2026-06-13">
       <description>
         <p>Translation updates and settings improvements.</p>
