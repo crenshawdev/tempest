@@ -124,8 +124,8 @@ impl canvas::Program<crate::applet::Message, cosmic::Theme> for Meteogram<'_> {
         // via `legend_colors`): resolve all four series colors once so a legend
         // swatch can never drift from the line/bar it labels.
         let [temp_color, precip_color, wind_color, gust_color] = legend_colors(is_dark);
-        let bg: Color = cosmic.background.base.into();
-        let on: Color = cosmic.background.on.into();
+        let bg: Color = cosmic.background(false).base.into();
+        let on: Color = cosmic.background(false).on.into();
         // Theme-resolved chrome alphas for the night bands, gridlines, and labels.
         let night = with_alpha(on, 0.06);
         let gridline = with_alpha(on, 0.12);
