@@ -518,6 +518,21 @@ impl Application for Tempest {
         Task::none()
     }
 
+    /// Frosted-glass seam: the meteogram reads `theme.transparent` (derived from
+    /// the theme's `frosted_applets` flag) to pick its background variant, so a
+    /// theme change that toggles frost must invalidate the cached chart. Without
+    /// this the tessellated geometry keeps the old opaque/frosted background
+    /// until an unrelated event (weather refresh, hourly tick, mode flip) clears
+    /// the cache.
+    fn system_theme_update(
+        &mut self,
+        _keys: &[&'static str],
+        _new_theme: &cosmic::cosmic_theme::Theme,
+    ) -> Task<Self::Message> {
+        self.meteogram_cache.clear();
+        Task::none()
+    }
+
     fn view(&self) -> Element<'_, Self::Message> {
         self.view_panel()
     }
