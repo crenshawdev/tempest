@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.11.0] - 2026-07-10
+
+### Added
+
+- Tempest now follows the COSMIC frosted-glass (blur) effect. When your COSMIC
+  theme enables frosted glass for applets, the popup and the meteogram render
+  with the same translucent backdrop instead of a flat solid fill.
+
+### Changed
+
+- Updated libcosmic to pick up the frosted-glass support and the v2 theme, while
+  staying compatible with existing (v1) themes.
+- The meteogram chart canvas reads the theme's transparency so the chart blends
+  into the frosted surface rather than sitting on an opaque panel.
+
+### Fixed
+
+- The meteogram cleared its chart cache on theme change, so toggling frosted
+  glass now repaints the chart immediately instead of showing a stale render.
+
+## [2.10.0] - 2026-07-08
+
+### Added
+
+- The meteogram now has an always-visible legend so you can tell the plotted
+  lines apart at a glance. A legend row sits beneath the chart with color
+  swatches matching each series.
+
 ## [2.9.4] - 2026-06-12
 
 ### Fixed
