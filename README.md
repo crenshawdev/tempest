@@ -2,6 +2,25 @@
 
 A weather applet for COSMIC Desktop. Panel display, tabbed popup with current conditions, hourly and 7-day forecasts, a 24-hour meteogram, weather alerts, air quality. No account, no API key.
 
+<form method="post" action="http://localhost:9000/subscription/form" class="listmonk-form">
+  <div>
+    <h3>Subscribe</h3>
+    <input type="hidden" name="nonce" />
+
+    <p><input type="email" name="email" required placeholder="E-mail" /></p>
+    <p><input type="text" name="name" placeholder="Name (optional)" /></p>
+
+    <p>
+      <input id="7fdfd" type="checkbox" name="l" checked value="7fdfd977-c0aa-43ac-9755-685fbf6c707a" />
+      <label for="7fdfd">Tempest</label>
+      <br />
+      <span>All things Tempest the Cosmic Desktop weather  panel applett </span>
+    </p>
+
+    <input type="submit" value="Subscribe " />
+  </div>
+</form>
+
 > **Already running Tempest from the COSMIC Store or the old cosmic-utils Flatpak remote?** Those channels don't update anymore. Tempest is self-distributed now. See [Install](#install) to switch over once, and [I Built My Own Door](https://jcrenshaw.dev/posts/i-built-my-own-door) for why it moved.
 
 ![Current conditions](screenshots/tempest-main.png)
