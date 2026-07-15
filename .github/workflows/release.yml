@@ -69,6 +69,8 @@ jobs:
       - name: Notify aggregator
         env:
           URL: ${{ secrets.AGGREGATOR_WEBHOOK_URL }}
+          TOKEN: ${{ secrets.AGGREGATOR_WEBHOOK_TOKEN }}
+          METHOD: ${{ vars.AGGREGATOR_WEBHOOK_METHOD || 'POST' }}
           VERSION: ${{ github.ref_name }}
         run: |
           if [ -z "$URL" ]; then
@@ -76,7 +78,12 @@ jobs:
             exit 0
           fi
           version="${VERSION#v}"
-          curl --fail-with-body -X POST \
+          auth=()
+          if [ -n "$TOKEN" ]; then
+            auth=(-H "Authorization: Bearer $TOKEN")
+          fi
+          curl --fail-with-body -X "$METHOD" \
+            "${auth[@]}" \
             -H 'Content-Type: application/json' \
             -d "{\"app_id\":\"com.vintagetechie.CosmicExtAppletTempest\",\"version\":\"${version}\"}" \
             "$URL"
