@@ -19,7 +19,10 @@ MANIFEST="$REPO_ROOT/com.vintagetechie.CosmicExtAppletTempest.json"
 
 [ -f "$MANIFEST" ] || { echo "FATAL: manifest not found at $MANIFEST" >&2; exit 1; }
 
-MANIFEST_TAG="$(jq -r '.modules[0].sources[0].tag' "$MANIFEST")"
+# Extract the pinned tag without a jq dependency (the flatpak-builder CI
+# container is minimal and may lack jq). The manifest has exactly one "tag" key,
+# in modules[0].sources[0], so the first match is authoritative.
+MANIFEST_TAG="$(grep -oE '"tag"[[:space:]]*:[[:space:]]*"[^"]+"' "$MANIFEST" | head -1 | sed -E 's/.*:[[:space:]]*"([^"]+)".*/\1/')"
 
 if [ "$MANIFEST_TAG" != "$RELEASE_TAG" ]; then
     echo "FATAL: manifest pins '$MANIFEST_TAG' but releasing '$RELEASE_TAG' -- bump the manifest (and regenerate cargo-sources.json) before tagging." >&2
