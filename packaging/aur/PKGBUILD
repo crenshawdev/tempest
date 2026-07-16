@@ -1,18 +1,19 @@
-# Maintainer: John Crenshaw <john@vintagetechie.com>
+# Maintainer: John Crenshaw <john@jcrenshaw.dev>
 pkgname=cosmic-ext-applet-tempest
-pkgver=2.9.5
+pkgver=2.11.2
 pkgrel=1
 pkgdesc="Weather applet for COSMIC Desktop with automatic location detection"
 arch=('x86_64')
-url="https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest"
+url="https://github.com/crenshawdev/tempest"
 license=('GPL-3.0-only')
 depends=('wayland' 'libxkbcommon' 'openssl')
 makedepends=('cargo' 'git')
-source=("$pkgname-$pkgver.tar.gz::$url/-/archive/v$pkgver/$pkgname-v$pkgver.tar.gz")
-sha256sums=('35c469cc2d5b12e2abf8e1d74e78b16e99b27636bc7185f52332bb4ad48f0494')
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('SKIP')
 options=(!lto)
 
-_srcdir="$pkgname-v$pkgver"
+# GitHub names the tag archive's top directory <repo>-<version> (no leading v).
+_srcdir="tempest-$pkgver"
 
 prepare() {
     cd "$_srcdir"

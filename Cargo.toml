@@ -1,8 +1,8 @@
 [package]
 name = "cosmic-ext-applet-tempest"
-version = "2.11.0"
+version = "2.11.2"
 edition = "2021"
-authors = ["John Crenshaw <john@vintagetechie.com>"]
+authors = ["John Crenshaw <john@jcrenshaw.dev>"]
 license = "GPL-3.0-only"
 description = "Weather applet for COSMIC Desktop with automatic location detection"
 

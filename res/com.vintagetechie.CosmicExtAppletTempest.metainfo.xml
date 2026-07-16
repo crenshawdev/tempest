@@ -78,14 +78,14 @@
       libcosmic framework.
     </p>
   </description>
-  <url type="homepage">https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest</url>
-  <url type="bugtracker">https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/issues</url>
+  <url type="homepage">https://github.com/crenshawdev/tempest</url>
+  <url type="bugtracker">https://github.com/crenshawdev/tempest/issues</url>
   <url type="donation">https://ko-fi.com/vintagetechie</url>
   <url type="translate">https://hosted.weblate.org/engage/tempest/</url>
-  <url type="vcs-browser">https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest</url>
-  <url type="changelog">https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/blob/main/CHANGELOG.md</url>
+  <url type="vcs-browser">https://github.com/crenshawdev/tempest</url>
+  <url type="changelog">https://github.com/crenshawdev/tempest/blob/main/CHANGELOG.md</url>
   <developer_name>John Crenshaw</developer_name>
-  <update_contact>john@vintagetechie.com</update_contact>
+  <update_contact>john@jcrenshaw.dev</update_contact>
   <launchable type="desktop-id">com.vintagetechie.CosmicExtAppletTempest.desktop</launchable>
 
   <categories>
@@ -94,6 +94,16 @@
   </categories>
 
   <releases>
+    <release version="2.11.2" date="2026-07-16">
+      <description>
+        <p>Tempest ships as a Flatpak again, alongside the Debian and Fedora packages, all signed and served from pkg.jcrenshaw.dev. The COSMIC frosted-glass (blur) effect from 2.11.0 is now available on every channel, including Flatpak.</p>
+        <ul>
+          <li>Restored the signed Flatpak remote next to the .deb and .rpm repositories</li>
+          <li>Add the remote once at pkg.jcrenshaw.dev/flatpak and updates arrive like any other Flatpak</li>
+          <li>The Source code and Report an issue links in Settings now open the GitHub repository</li>
+        </ul>
+      </description>
+    </release>
     <release version="2.11.0" date="2026-07-10">
       <description>
         <p>Tempest now supports the COSMIC frosted-glass (blur) effect and the v2 theme.</p>
@@ -281,17 +291,17 @@
       <caption>Current weather conditions</caption>
       <caption xml:lang="cs">Aktuální stav počasí</caption>
       <caption xml:lang="uk">Поточні умови погоди</caption>
-      <image>https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/raw/main/screenshots/tempest-main.png</image>
+      <image>https://raw.githubusercontent.com/crenshawdev/tempest/main/screenshots/tempest-main.png</image>
     </screenshot>
     <screenshot>
       <caption>Hourly weather forecast</caption>
-      <image>https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/raw/main/screenshots/tempest-hourly.png</image>
+      <image>https://raw.githubusercontent.com/crenshawdev/tempest/main/screenshots/tempest-hourly.png</image>
     </screenshot>
     <screenshot>
       <caption>7-day weather forecast</caption>
       <caption xml:lang="cs">Předpověď na 7 dní</caption>
       <caption xml:lang="uk">Прогноз погоди на 7 днів</caption>
-      <image>https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest/-/raw/main/screenshots/tempest-7day.png</image>
+      <image>https://raw.githubusercontent.com/crenshawdev/tempest/main/screenshots/tempest-7day.png</image>
     </screenshot>
   </screenshots>
 

@@ -19,20 +19,19 @@ Tempest ships through the jcrenshaw.dev Flatpak remote — add it once and you g
 every other jcrenshaw.dev app:
 
 ```bash
-flatpak install --from https://dl.jcrenshaw.dev/jcrenshaw.flatpakrepo
-flatpak install com.vintagetechie.CosmicExtAppletTempest
+flatpak remote-add --if-not-exists --from jcrenshaw https://pkg.jcrenshaw.dev/flatpak/jcrenshaw.flatpakrepo
+flatpak install jcrenshaw com.vintagetechie.CosmicExtAppletTempest
 ```
 
-(The remote's original URL, `vintagetechie.gitlab.io/flatpak/vintagetechie.flatpakrepo`,
-still serves the same repo with the same key — remotes added under it keep updating.)
-
-Already have Tempest from the old cosmic-utils remote? It will **not** auto-update to this
-one — it's a different origin. Switch over once:
+Already have Tempest from the old `vintagetechie.gitlab.io/flatpak` remote or the old
+cosmic-utils remote? Those are retired origins and will **not** auto-update. Switch over
+once:
 
 ```bash
 flatpak uninstall com.vintagetechie.CosmicExtAppletTempest
-flatpak install --from https://dl.jcrenshaw.dev/jcrenshaw.flatpakrepo
-flatpak install com.vintagetechie.CosmicExtAppletTempest
+flatpak remote-delete vintagetechie 2>/dev/null || true
+flatpak remote-add --if-not-exists --from jcrenshaw https://pkg.jcrenshaw.dev/flatpak/jcrenshaw.flatpakrepo
+flatpak install jcrenshaw com.vintagetechie.CosmicExtAppletTempest
 ```
 
 ### Build from source
@@ -40,8 +39,8 @@ flatpak install com.vintagetechie.CosmicExtAppletTempest
 Clone the repository:
 
 ```bash
-git clone https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest cosmic-ext-applet-tempest
-cd cosmic-ext-applet-tempest
+git clone https://github.com/crenshawdev/tempest
+cd tempest
 ```
 
 Build and install the project:
