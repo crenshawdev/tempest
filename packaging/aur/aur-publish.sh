@@ -2,8 +2,7 @@
 # Publish the current release of cosmic-ext-applet-tempest to the AUR.
 #
 # Runs entirely on your machine: it signs the AUR push with the SSH key already
-# in your agent/keyring — no secret ever goes to CI. Mirrors the local-publish
-# model of packaging/flatpak/publish.sh.
+# in your agent/keyring, so no secret ever goes to CI.
 #
 # Usage:
 #   packaging/aur/aur-publish.sh                 # version from Cargo.toml
@@ -16,7 +15,7 @@
 set -euo pipefail
 
 PKGNAME=cosmic-ext-applet-tempest
-REPO_URL="https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest"
+REPO_URL="https://github.com/crenshawdev/tempest"
 AUR_REMOTE="ssh://aur@aur.archlinux.org/${PKGNAME}.git"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -43,7 +42,7 @@ if [[ -z "$VERSION" ]]; then
   VERSION="$(grep -m1 '^version' "$REPO_ROOT/Cargo.toml" | sed -E 's/.*"([^"]+)".*/\1/')"
 fi
 TAG="v$VERSION"
-TARBALL_URL="$REPO_URL/-/archive/$TAG/$PKGNAME-$TAG.tar.gz"
+TARBALL_URL="$REPO_URL/archive/refs/tags/$TAG.tar.gz"
 
 tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
 
@@ -95,7 +94,7 @@ cp "$tmp/.SRCINFO" "$tmp/aur/.SRCINFO"
   if git diff --cached --quiet; then
     echo ">> AUR already at $VERSION — nothing to push."; exit 0
   fi
-  git -c user.name='John Crenshaw' -c user.email='john@vintagetechie.com' \
+  git -c user.name='John Crenshaw' -c user.email='john@jcrenshaw.dev' \
       commit -q -m "Update to $VERSION"
   GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=accept-new' git push origin master
 )

@@ -8,9 +8,9 @@ name: cosmic-ext-applet-tempest
 arch: amd64
 platform: linux
 version: ${VERSION}
-maintainer: John Crenshaw <john@vintagetechie.com>
+maintainer: John Crenshaw <john@jcrenshaw.dev>
 description: Weather applet for COSMIC Desktop with automatic location detection
-homepage: https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest
+homepage: https://github.com/crenshawdev/tempest
 license: GPL-3.0-only
 
 # No declared runtime deps: this targets COSMIC systems that already ship

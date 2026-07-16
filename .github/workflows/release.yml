@@ -100,6 +100,12 @@ jobs:
           TAG: ${{ github.ref_name }}
         run: packaging/flatpak/assert-manifest-tag.sh "$TAG"
 
+      # flatpak-builder exports into repo-dir but does not create its parent, so
+      # a bare repo-dir: public/repo fails with "Creating repo: mkdirat: No such
+      # file or directory". Create the Pages output root first.
+      - name: Prepare Pages output directory
+        run: mkdir -p public
+
       - name: Build and GPG-sign the flatpak repo
         uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:

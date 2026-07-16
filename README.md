@@ -52,29 +52,28 @@ Tempest runs on the freedesktop runtime, which lives on Flathub. Most COSMIC sys
 
 ```bash
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-flatpak remote-add --if-not-exists jcrenshaw https://dl.jcrenshaw.dev/jcrenshaw.flatpakrepo
+flatpak remote-add --if-not-exists --from jcrenshaw https://pkg.jcrenshaw.dev/flatpak/jcrenshaw.flatpakrepo
 flatpak install jcrenshaw com.vintagetechie.CosmicExtAppletTempest
 ```
 
 If you skip Flathub the install stops with `requires the runtime org.freedesktop.Platform/x86_64/25.08 which was not found`. That's the runtime missing, not the app. Add Flathub and run the install again.
 
-Already have the remote under its old name (`vintagetechie`, at
-`vintagetechie.gitlab.io/flatpak`)? Nothing to do — it's the same repo and the same
-signing key, and the old URL keeps serving. Updates arrive either way.
-
-Installed from the old cosmic-utils remote? Different origin, so it won't auto-update. Switch once:
+Have the old `vintagetechie` remote from `vintagetechie.gitlab.io/flatpak`, or the
+old cosmic-utils remote? Those are retired origins and won't auto-update. Remove
+the old remote and add the `jcrenshaw` one above:
 
 ```bash
 flatpak uninstall com.vintagetechie.CosmicExtAppletTempest
-flatpak remote-add --if-not-exists jcrenshaw https://dl.jcrenshaw.dev/jcrenshaw.flatpakrepo
+flatpak remote-delete vintagetechie 2>/dev/null || true
+flatpak remote-add --if-not-exists --from jcrenshaw https://pkg.jcrenshaw.dev/flatpak/jcrenshaw.flatpakrepo
 flatpak install jcrenshaw com.vintagetechie.CosmicExtAppletTempest
 ```
 
 ### From source
 
 ```bash
-git clone https://gitlab.com/vintagetechie/cosmic-ext-applet-tempest
-cd cosmic-ext-applet-tempest
+git clone https://github.com/crenshawdev/tempest
+cd tempest
 just build-release
 sudo just install
 ```

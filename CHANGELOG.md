@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.11.2] - 2026-07-16
+
+### Changed
+
+- Tempest is packaged as a Flatpak again, alongside the Debian and Fedora
+  packages, all signed and served from pkg.jcrenshaw.dev. The COSMIC
+  frosted-glass (blur) effect from 2.11.0 is now available on every channel,
+  including Flatpak. Add the remote once at pkg.jcrenshaw.dev/flatpak and updates
+  arrive like any other Flatpak.
+
+### Fixed
+
+- The Source code and Report an issue links in the applet's settings now point
+  at the GitHub repository instead of the retired GitLab project.
+
 ## [2.11.0] - 2026-07-10
 
 ### Added
