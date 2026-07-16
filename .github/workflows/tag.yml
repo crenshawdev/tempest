@@ -1,9 +1,10 @@
 # Thin caller: a `v*` tag push runs the reusable packaging workflow, producing
-# the .deb and .rpm from a single run.
+# the .deb, .rpm, and signed OSTree flatpak repo from a single run.
 #
 # A reusable workflow's GITHUB_TOKEN cannot be elevated above the caller's, so
-# this caller declares the write permission explicitly. Without it, a repo whose
-# default workflow permissions are read-only would 403 on release creation.
+# this caller declares the full permission set explicitly. Without it, a repo
+# whose default workflow permissions are read-only would 403 on release
+# creation and fail the Pages deploy.
 name: tag
 
 on:
@@ -13,6 +14,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   release:
