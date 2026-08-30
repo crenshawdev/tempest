@@ -21,12 +21,12 @@ on:
 
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     steps:
       - name: Checkout release tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.release_tag }}
           fetch-depth: 0
@@ -46,27 +46,37 @@ jobs:
             exit 1
           fi
           git show-ref --verify --quiet "refs/tags/$TAG"
-          version="$(cargo metadata --no-deps --format-version 1 \
+          tag_sha="$(git rev-parse "${TAG}^{commit}")"
+          git fetch --no-tags --quiet origin +refs/heads/main:refs/remotes/origin/main
+          if ! git merge-base --is-ancestor "$tag_sha" refs/remotes/origin/main; then
+            echo "$TAG points at $tag_sha, which is not reachable from origin/main" >&2
+            exit 1
+          fi
+          version="$(cargo metadata --locked --no-deps --format-version 1 \
             | jq -r '.packages[] | select(.name == "cosmic-ext-applet-tempest") | .version')"
           test "v$version" = "$TAG"
           packaging/flatpak/assert-manifest-tag.sh "$TAG"
 
-      - name: Run release tests
-        run: cargo test --locked
+      - name: Run release checks
+        run: |
+          cargo fmt --all -- --check
+          cargo clippy --locked --all-targets -- -D warnings
+          cargo test --locked
 
   # Build the release binary and package it into an UNSIGNED .deb and .rpm with
   # nfpm. Publication waits until the Flatpak build and Pages deployment also
   # succeed, so a partially-built release is not presented as complete.
   package:
     needs: validate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     env:
       NFPM_VERSION: "2.47.0"
+      NFPM_SHA256: "0660ca602b2d2d2ae4781a06c692b3eeb9d437ffea05b831d76e41f4a3188783"
     steps:
       - name: Checkout release tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.release_tag }}
 
@@ -78,8 +88,13 @@ jobs:
 
       - name: Install nfpm
         run: |
-          curl -fsSL "https://github.com/goreleaser/nfpm/releases/download/v${NFPM_VERSION}/nfpm_${NFPM_VERSION}_Linux_x86_64.tar.gz" \
-            | sudo tar -xz -C /usr/local/bin nfpm
+          set -euo pipefail
+          archive="${RUNNER_TEMP}/nfpm_${NFPM_VERSION}_Linux_x86_64.tar.gz"
+          curl -fsSL \
+            "https://github.com/goreleaser/nfpm/releases/download/v${NFPM_VERSION}/nfpm_${NFPM_VERSION}_Linux_x86_64.tar.gz" \
+            -o "$archive"
+          printf '%s  %s\n' "$NFPM_SHA256" "$archive" | sha256sum -c -
+          sudo tar -xzf "$archive" -C /usr/local/bin nfpm
           nfpm --version
 
       - name: Build release binary
@@ -96,7 +111,7 @@ jobs:
           ls -l dist
 
       - name: Upload package artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: linux-packages
           path: dist/*
@@ -118,7 +133,7 @@ jobs:
     needs: validate
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
+      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08@sha256:ee2f9b93a145c898d36be9b7d91be13fb80d4bdfae731d3a962bd55eefde9952
       options: --privileged
     concurrency:
       group: pages
@@ -130,7 +145,7 @@ jobs:
     environment: github-pages
     steps:
       - name: Checkout release tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.release_tag }}
 
@@ -151,7 +166,7 @@ jobs:
         run: mkdir -p public
 
       - name: Build and GPG-sign the flatpak repo
-        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        uses: flatpak/flatpak-github-actions/flatpak-builder@401fe28a8384095fc1531b9d320b292f0ee45adb # v6.7
         with:
           manifest-path: com.vintagetechie.CosmicExtAppletTempest.json
           arch: x86_64
@@ -206,30 +221,30 @@ jobs:
             | grep -Fxq 'app/com.vintagetechie.CosmicExtAppletTempest/x86_64/stable'
 
       - name: Configure Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: public
 
       - name: Deploy to Pages
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
 
   release:
     needs: [package, flatpak]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
     steps:
       - name: Download package artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: linux-packages
           path: dist
 
       - name: Attach packages to the GitHub Release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           tag_name: ${{ inputs.release_tag }}
           fail_on_unmatched_files: true
