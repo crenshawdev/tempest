@@ -21,7 +21,7 @@ A `v*` tag runs `release.yml`. The same workflow can be dispatched manually with
 existing tag to rebuild or repair a deployment without inventing a new release:
 
 - **`validate`** confirms the tag matches Cargo and the Flatpak manifest, then runs
-  formatting and tests.
+  the release tests.
 - **`package`** builds the release binary and packages an unsigned `.deb` and `.rpm`
   with nfpm (`packaging/nfpm.yaml`).
 - **`flatpak`** builds the app into an archive-z2 OSTree repo with flatpak-builder

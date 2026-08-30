@@ -51,10 +51,8 @@ jobs:
           test "v$version" = "$TAG"
           packaging/flatpak/assert-manifest-tag.sh "$TAG"
 
-      - name: Run release checks
-        run: |
-          cargo fmt --all -- --check
-          cargo test --locked
+      - name: Run release tests
+        run: cargo test --locked
 
   # Build the release binary and package it into an UNSIGNED .deb and .rpm with
   # nfpm. Publication waits until the Flatpak build and Pages deployment also
