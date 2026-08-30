@@ -1,5 +1,6 @@
 # Tempest
 
+[![CI](https://github.com/crenshawdev/tempest/actions/workflows/ci.yml/badge.svg)](https://github.com/crenshawdev/tempest/actions/workflows/ci.yml)
 [![Release](https://github.com/crenshawdev/tempest/actions/workflows/tag.yml/badge.svg)](https://github.com/crenshawdev/tempest/actions/workflows/tag.yml)
 [![Latest release](https://img.shields.io/github/v/release/crenshawdev/tempest?label=release)](https://github.com/crenshawdev/tempest/releases/latest)
 [![AUR version](https://img.shields.io/aur/version/cosmic-ext-applet-tempest)](https://aur.archlinux.org/packages/cosmic-ext-applet-tempest)

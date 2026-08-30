@@ -820,16 +820,12 @@ impl Application for Tempest {
                 }
             }
             Message::OpenSourceCode => {
-                if let Err(e) = open::that(
-                    "https://github.com/crenshawdev/tempest",
-                ) {
+                if let Err(e) = open::that("https://github.com/crenshawdev/tempest") {
                     tracing::error!("Failed to open source URL: {}", e);
                 }
             }
             Message::OpenWorkItems => {
-                if let Err(e) = open::that(
-                    "https://github.com/crenshawdev/tempest/issues",
-                ) {
+                if let Err(e) = open::that("https://github.com/crenshawdev/tempest/issues") {
                     tracing::error!("Failed to open work items URL: {}", e);
                 }
             }
