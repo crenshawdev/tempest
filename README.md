@@ -48,11 +48,11 @@ paru -S cosmic-ext-applet-tempest
 
 ### Flatpak
 
-Tempest runs on the freedesktop runtime, which lives on Flathub. Most COSMIC systems already have Flathub. Some clean installs don't, so add it first, then add the jcrenshaw.dev remote. Everything I ship lives there.
+Tempest runs on the freedesktop runtime, which lives on Flathub. Most COSMIC systems already have Flathub. Some clean installs don't, so add it first, then add Tempest's signed jcrenshaw.dev remote.
 
 ```bash
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-flatpak remote-add --if-not-exists --from jcrenshaw https://pkg.jcrenshaw.dev/flatpak/jcrenshaw.flatpakrepo
+flatpak remote-add --if-not-exists --from jcrenshaw https://crenshawdev.github.io/tempest/jcrenshaw.flatpakrepo
 flatpak install jcrenshaw com.vintagetechie.CosmicExtAppletTempest
 ```
 
@@ -64,8 +64,7 @@ the old remote and add the `jcrenshaw` one above:
 
 ```bash
 flatpak uninstall com.vintagetechie.CosmicExtAppletTempest
-flatpak remote-delete vintagetechie 2>/dev/null || true
-flatpak remote-add --if-not-exists --from jcrenshaw https://pkg.jcrenshaw.dev/flatpak/jcrenshaw.flatpakrepo
+flatpak remote-add --if-not-exists --from jcrenshaw https://crenshawdev.github.io/tempest/jcrenshaw.flatpakrepo
 flatpak install jcrenshaw com.vintagetechie.CosmicExtAppletTempest
 ```
 

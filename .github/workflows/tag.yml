@@ -1,5 +1,6 @@
-# Thin caller: a `v*` tag push runs the reusable packaging workflow, producing
-# the .deb, .rpm, and signed OSTree flatpak repo from a single run.
+# Thin caller: a `v*` tag push runs the reusable release workflow, producing
+# the .deb, .rpm, and signed OSTree Flatpak repo from a single run. A manual
+# dispatch can rebuild an existing tag without manufacturing a new release.
 #
 # A reusable workflow's GITHUB_TOKEN cannot be elevated above the caller's, so
 # this caller declares the full permission set explicitly. Without it, a repo
@@ -11,6 +12,16 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing vX.Y.Z tag to rebuild and redeploy
+        required: true
+        type: string
+
+concurrency:
+  group: tempest-release-${{ github.event.inputs.tag || github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -20,4 +31,6 @@ permissions:
 jobs:
   release:
     uses: ./.github/workflows/release.yml
+    with:
+      release_tag: ${{ github.event.inputs.tag || github.ref_name }}
     secrets: inherit

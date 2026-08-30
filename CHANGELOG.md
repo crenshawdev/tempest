@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Flatpak releases now publish their signed repository and generated
+  `jcrenshaw.flatpakrepo` install descriptor directly to GitHub Pages. The tag
+  workflow validates, builds, signs, deploys, and only then publishes the Linux
+  package assets; an existing tag can be redeployed manually for recovery.
+
 ## [2.11.2] - 2026-07-16
 
 ### Changed

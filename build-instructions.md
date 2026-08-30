@@ -15,11 +15,10 @@ paru -S cosmic-ext-applet-tempest   # or: yay -S cosmic-ext-applet-tempest
 
 ### Flatpak (self-hosted remote)
 
-Tempest ships through the jcrenshaw.dev Flatpak remote — add it once and you get this and
-every other jcrenshaw.dev app:
+Tempest ships through its signed jcrenshaw.dev Flatpak remote:
 
 ```bash
-flatpak remote-add --if-not-exists --from jcrenshaw https://pkg.jcrenshaw.dev/flatpak/jcrenshaw.flatpakrepo
+flatpak remote-add --if-not-exists --from jcrenshaw https://crenshawdev.github.io/tempest/jcrenshaw.flatpakrepo
 flatpak install jcrenshaw com.vintagetechie.CosmicExtAppletTempest
 ```
 
@@ -29,8 +28,7 @@ once:
 
 ```bash
 flatpak uninstall com.vintagetechie.CosmicExtAppletTempest
-flatpak remote-delete vintagetechie 2>/dev/null || true
-flatpak remote-add --if-not-exists --from jcrenshaw https://pkg.jcrenshaw.dev/flatpak/jcrenshaw.flatpakrepo
+flatpak remote-add --if-not-exists --from jcrenshaw https://crenshawdev.github.io/tempest/jcrenshaw.flatpakrepo
 flatpak install jcrenshaw com.vintagetechie.CosmicExtAppletTempest
 ```
 
@@ -69,4 +67,3 @@ A [justfile](./justfile) is included with common recipes used by other COSMIC pr
 ## License
 
 Code is distributed with the [GPL-3.0-only license][./LICENSE]
-
