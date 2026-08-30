@@ -1,5 +1,10 @@
 # Tempest
 
+[![Release](https://github.com/crenshawdev/tempest/actions/workflows/tag.yml/badge.svg)](https://github.com/crenshawdev/tempest/actions/workflows/tag.yml)
+[![Latest release](https://img.shields.io/github/v/release/crenshawdev/tempest?label=release)](https://github.com/crenshawdev/tempest/releases/latest)
+[![AUR version](https://img.shields.io/aur/version/cosmic-ext-applet-tempest)](https://aur.archlinux.org/packages/cosmic-ext-applet-tempest)
+[![License: GPL-3.0](https://img.shields.io/github/license/crenshawdev/tempest)](LICENSE)
+
 A weather applet for COSMIC Desktop. Panel display, tabbed popup with current conditions, hourly and 7-day forecasts, a 24-hour meteogram, weather alerts, air quality. No account, no API key.
 
 > **Already running Tempest from the COSMIC Store or the old cosmic-utils Flatpak remote?** Those channels don't update anymore. Tempest is self-distributed now. See [Install](#install) to switch over once, and [I Built My Own Door](https://jcrenshaw.dev/posts/i-built-my-own-door) for why it moved.
