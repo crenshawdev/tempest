@@ -166,7 +166,7 @@ jobs:
         run: mkdir -p public
 
       - name: Build and GPG-sign the flatpak repo
-        uses: flatpak/flatpak-github-actions/flatpak-builder@401fe28a8384095fc1531b9d320b292f0ee45adb # v6.7
+        uses: flatpak/flatpak-github-actions/flatpak-builder@79327416609af08178ad73b352877e51450790b3 # v6.8
         with:
           manifest-path: com.vintagetechie.CosmicExtAppletTempest.json
           arch: x86_64
@@ -229,7 +229,7 @@ jobs:
           path: public
 
       - name: Deploy to Pages
-        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
 
   release:
     needs: [package, flatpak]
