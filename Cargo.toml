@@ -24,7 +24,7 @@ weathervane = "0.9"
 
 
 [dependencies.i18n-embed]
-version = "0.15"
+version = "0.16"
 features = ["fluent-system", "desktop-requester"]
 
 [dependencies.libcosmic]
